@@ -1,4 +1,4 @@
-FROM golang:1.25-bookworm
+FROM golang:1.26.5-bookworm
 
 # Set working directory
 WORKDIR /gruent

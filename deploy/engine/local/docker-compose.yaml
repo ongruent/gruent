@@ -175,7 +175,7 @@ services:
     profiles:
       - dev
       - run
-    image: postgres:latest
+    image: postgres:16
     environment:
       POSTGRES_USER: gruent
       POSTGRES_PASSWORD: gruent

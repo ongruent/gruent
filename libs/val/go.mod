@@ -1,6 +1,6 @@
 module github.com/ongruent/gruent/libs/val
 
-go 1.25.0
+go 1.26.5
 
 require github.com/go-playground/validator/v10 v10.22.1
 

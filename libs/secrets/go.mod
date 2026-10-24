@@ -1,6 +1,6 @@
 module github.com/ongruent/gruent/libs/secrets
 
-go 1.25.0
+go 1.26.5
 
 require (
 	github.com/hashicorp/vault/api v1.15.0

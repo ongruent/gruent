@@ -101,6 +101,7 @@ terraform.rc
 .github/instructions/nx.instructions.md
 
 # Kotlin
-build
+services/**/build
+./build
 .gradle
 .kotlin

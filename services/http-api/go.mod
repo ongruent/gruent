@@ -1,6 +1,6 @@
 module github.com/ongruent/gruent/services/http-api
 
-go 1.25.0
+go 1.26.5
 
 require (
 	github.com/ClickHouse/clickhouse-go/v2 v2.34.0

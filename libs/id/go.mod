@@ -1,6 +1,6 @@
 module github.com/ongruent/gruent/libs/id
 
-go 1.25.0
+go 1.26.5
 
 require github.com/matoous/go-nanoid/v2 v2.1.0
 
