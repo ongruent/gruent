@@ -86,7 +86,8 @@ func NewClient(address, username, password, tokenFilePath string) (*Client, erro
 	const maxRetries = 3
 	var loginError error
 	for attempt := 1; attempt <= maxRetries; attempt++ {
-		vaultClientToken, loginError := secretsClient.login(vaultClient)
+		var vaultClientToken *string
+		vaultClientToken, loginError = secretsClient.login(vaultClient)
 
 		if loginError == nil && vaultClientToken != nil {
 			// Successful authentication
