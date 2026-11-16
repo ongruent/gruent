@@ -16,7 +16,7 @@
 			"defaultConfiguration": "up",
 			"options": {
 				"cwd": "{projectRoot}",
-				"command": "DATABASE_URL=\"${DATABASE_URL:-postgresql://gruent:gruent@localhost:5432/gruent}\" go run ./cmd/goose"
+				"command": "goose -dir migrations postgres \"${DATABASE_URL:-postgresql://gruent:gruent@localhost:5432/gruent}\""
 			},
 			"configurations": {
 				"up": {
@@ -43,14 +43,14 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"cwd": "{projectRoot}",
-				"command": "go run ./cmd/goose create {args.name}"
+				"command": "goose -dir migrations -s create {args.name} sql"
 			}
 		},
 		"migrate-validate": {
 			"executor": "nx:run-commands",
 			"options": {
 				"cwd": "{projectRoot}",
-				"command": "go run ./cmd/goose validate"
+				"command": "goose -dir migrations validate"
 			}
 		}
 	},

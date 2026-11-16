@@ -7,9 +7,14 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5/stdlib"
+	gruentDb "github.com/ongruent/gruent/db"
 	"github.com/ongruent/gruent/libs/telemetry"
 	"github.com/ongruent/gruent/services/http-api/api"
 	"github.com/ongruent/gruent/services/http-api/config"
+	sqlcService "github.com/ongruent/gruent/services/http-api/services/sqlc"
+	"github.com/pressly/goose/v3"
 )
 
 // @title GRUENT
@@ -38,6 +43,14 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
+	// Apply pending database migrations. Only the parent process runs them,
+	// since fiber re-executes main() in every child process when prefork is enabled
+	if !fiber.IsChild() {
+		if err := migrateDatabase(ctx); err != nil {
+			panic(fmt.Errorf("failed to migrate database: %v", err))
+		}
+	}
+
 	// Create new API server
 	api := api.New()
 
@@ -63,4 +76,18 @@ func main() {
 
 	// Only print the shutdown message once
 	fmt.Printf("Server gracefully stopped for PID %v\n", os.Getppid())
+}
+
+// migrateDatabase applies the goose migrations embedded in the db module
+// using the service's existing connection pool
+func migrateDatabase(ctx context.Context) error {
+	db := stdlib.OpenDBFromPool(sqlcService.Pool)
+	defer db.Close() // does not close the underlying pool
+
+	goose.SetBaseFS(gruentDb.Migrations)
+	if err := goose.SetDialect(string(goose.DialectPostgres)); err != nil {
+		return err
+	}
+
+	return goose.UpContext(ctx, db, gruentDb.MigrationsDir)
 }
