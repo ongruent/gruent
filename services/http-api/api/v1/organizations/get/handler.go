@@ -2,7 +2,7 @@ package organizationsGet
 
 import (
 	"github.com/gofiber/fiber/v2"
-	sqldb "github.com/ongruent/gruent/db/sqlc"
+	db "github.com/ongruent/gruent/db/sqlc"
 )
 
 type Input struct {
@@ -11,7 +11,8 @@ type Input struct {
 }
 
 type Output struct {
-	Organization *sqldb.AppOrganization `json:"organization"`
+	Organization *db.AppOrganization `json:"organization"`
+	Spaces       []db.AppSpace       `json:"spaces"`
 }
 
 // @Summary Get an organization

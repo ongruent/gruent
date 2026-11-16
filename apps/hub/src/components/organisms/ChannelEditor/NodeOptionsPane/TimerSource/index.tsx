@@ -1,6 +1,6 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
 import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
-import { ChannelNode } from '@gruent/libs/engine/nodes/v1'
+import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import { TimerSourceConfig } from '@gruent/libs/engine/nodes/v1/src/source/timer'
 import { FC, useEffect, useState, useMemo } from 'react'
 import { RemixIcon, riArrowDownSFill } from '@mwarnerdotme/react-remixicon'

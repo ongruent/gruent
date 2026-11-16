@@ -3,7 +3,7 @@ import Button from '@gruent/libs/frontend/components/atoms/Button'
 import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
 import Modal from '@gruent/libs/frontend/components/organisms/Modal'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
-import { ChannelNode, BooleanConditionalNodeConfig } from '@gruent/libs/engine/nodes/v1'
+import { ChannelNode, BooleanConditionalNodeConfig } from '@gruent/libs/legacy/engine/nodes/v1'
 import { BooleanCondition } from '@gruent/libs/engine/nodes/v1/src/conditional/boolean'
 import { RemixIcon, riAddLine, riCloseLine } from '@mwarnerdotme/react-remixicon'
 import {

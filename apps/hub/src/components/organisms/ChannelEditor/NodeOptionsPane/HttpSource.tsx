@@ -1,9 +1,9 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
 import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
 import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
-import { ChannelNode, ChannelNodeConfig, defaultNodes } from '@gruent/libs/engine/nodes/v1'
-import { HttpMethod } from '@gruent/libs/engine/nodes/v1/src/action/http'
-import { HttpSourceNodeConfig } from '@gruent/libs/engine/nodes/v1/src/source/http'
+import { ChannelNode, ChannelNodeConfig, defaultNodes } from '@gruent/libs/legacy/engine/nodes/v1'
+import { HttpMethod } from '@gruent/libs/legacy/engine/nodes/v1/src/action/http'
+import { HttpSourceNodeConfig } from '@gruent/libs/legacy/engine/nodes/v1/src/source/http'
 import { FC, useEffect, useState } from 'react'
 import NodeLibrarySectionNode from '../NodeLibraryPane/NodeLibrarySectionNode'
 

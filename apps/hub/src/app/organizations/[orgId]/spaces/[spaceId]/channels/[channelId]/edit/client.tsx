@@ -300,7 +300,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
   // Update nodes and edges whenever the database is queried
   useEffect(() => {
     if (!channel) return
-    const channelConfig = JSON.parse(channel.config as string) as ChannelConfig
+    const channelConfig = channel.config as ChannelConfig
     const { nodes, edges, notes, runtime } = channelConfig
 
     // Set nodes
@@ -608,7 +608,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
               </div>
               <button
                 className={`
-                  relative w-9 h-6 rounded-full transition-colors duration-300 
+                  relative w-9 h-6 rounded-full transition-colors duration-300
                   ${channelStatus === 'PUBLISHED' ? 'bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}
                   ${!channelStatus || channelStatus === 'INITIALIZING' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 `}

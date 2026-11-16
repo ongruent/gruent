@@ -1,7 +1,7 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
 import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
 import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
-import { ChannelNode, MqttSourceNodeConfig } from '@gruent/libs/engine/nodes/v1'
+import { ChannelNode, MqttSourceNodeConfig } from '@gruent/libs/legacy/engine/nodes/v1'
 import { Thing } from '@prisma/client'
 import { FC, useEffect, useMemo, useState } from 'react'
 import Button from '@gruent/libs/frontend/components/atoms/Button'

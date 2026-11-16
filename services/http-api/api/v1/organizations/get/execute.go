@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5"
 	gruenthttp "github.com/ongruent/gruent/libs/http"
 	"github.com/ongruent/gruent/services/http-api/services/sqlc"
-	"github.com/jackc/pgx/v5"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 )
@@ -37,10 +37,21 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 		return nil, err
 	}
 
+	spaces, err := sqlc.Queries.ListSpaces(dbCtx, request.Input.OrgId)
+	if err != nil {
+		dbSpan.SetAttributes(
+			attribute.String("error.type", "database"),
+			attribute.String("error.message", fmt.Sprintf("error getting spaces for organization %s: %s", request.Input.OrgId, err)),
+		)
+		dbSpan.End()
+		return nil, err
+	}
+
 	dbSpan.End()
 
 	output := Output{
 		Organization: &organization,
+		Spaces:       spaces,
 	}
 
 	return &output, nil

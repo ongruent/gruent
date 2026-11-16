@@ -1,5 +1,5 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
-import { ChannelNode } from '@gruent/libs/engine/nodes/v1'
+import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import { HttpResponseActionNodeConfig } from '@gruent/libs/engine/nodes/v1/src/action/httpResponse'
 import { Thing } from '@prisma/client'
 import { FC, useEffect, useState } from 'react'

@@ -1,3 +1,5 @@
+@reference "../../../../app/styles.css";
+
 .sectionNode {
   @apply relative transition my-1 py-3 pl-5 pr-7 bg-gray-50 dark:bg-gray-900 border border-gray-200 rounded select-none dark:text-gray-200 text-sm cursor-grab;
 

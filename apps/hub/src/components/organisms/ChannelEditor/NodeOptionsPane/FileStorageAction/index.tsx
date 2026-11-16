@@ -1,6 +1,6 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
 import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
-import { ChannelNode } from '@gruent/libs/engine/nodes/v1'
+import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import { FileStorageActionNodeConfig } from '@gruent/libs/engine/nodes/v1/src/action/fileStorage'
 import { Thing } from '@prisma/client'
 import { FC, useEffect, useMemo, useState } from 'react'

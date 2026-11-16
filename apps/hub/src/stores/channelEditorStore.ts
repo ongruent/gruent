@@ -1,5 +1,5 @@
-import { ChannelEdge, ChannelNote, ChannelRuntime } from '@gruent/libs/engine/channels/channels'
-import { ChannelNode } from '@gruent/libs/engine/nodes/v1'
+import { ChannelEdge, ChannelNote, ChannelRuntime } from '@gruent/libs/legacy/engine/channels/channels'
+import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import { Model, Thing } from '@prisma/client'
 import { create } from 'zustand'
 
