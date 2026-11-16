@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/jackc/pgx/v5/stdlib"
+	pg "github.com/jackc/pgx/v5/stdlib"
 	gruentDb "github.com/ongruent/gruent/db"
 	"github.com/ongruent/gruent/libs/telemetry"
 	"github.com/ongruent/gruent/services/http-api/api"
@@ -81,7 +81,7 @@ func main() {
 // migrateDatabase applies the goose migrations embedded in the db module
 // using the service's existing connection pool
 func migrateDatabase(ctx context.Context) error {
-	db := stdlib.OpenDBFromPool(sqlcService.Pool)
+	db := pg.OpenDBFromPool(sqlcService.Pool)
 	defer db.Close() // does not close the underlying pool
 
 	goose.SetBaseFS(gruentDb.Migrations)
