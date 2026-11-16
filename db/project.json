@@ -1,0 +1,58 @@
+{
+	"name": "db",
+	"$schema": "../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "db",
+	"projectType": "library",
+	"targets": {
+		"generate": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "sqlc generate"
+			}
+		},
+		"migrate": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "up",
+			"options": {
+				"cwd": "{projectRoot}",
+				"command": "DATABASE_URL=\"${DATABASE_URL:-postgresql://gruent:gruent@localhost:5432/gruent}\" go run ./cmd/goose"
+			},
+			"configurations": {
+				"up": {
+					"args": "up"
+				},
+				"down": {
+					"args": "down"
+				},
+				"redo": {
+					"args": "redo"
+				},
+				"reset": {
+					"args": "reset"
+				},
+				"status": {
+					"args": "status"
+				},
+				"version": {
+					"args": "version"
+				}
+			}
+		},
+		"migrate-create": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{projectRoot}",
+				"command": "go run ./cmd/goose create {args.name}"
+			}
+		},
+		"migrate-validate": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{projectRoot}",
+				"command": "go run ./cmd/goose validate"
+			}
+		}
+	},
+	"tags": []
+}

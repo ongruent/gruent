@@ -1,5 +1,6 @@
--- Set the schema
-SET search_path TO app;
+-- +goose Up
+-- All objects are schema-qualified with "app." so that goose's version table
+-- (goose_db_version) stays in the default schema.
 
 -- Create app schema if it doesn't exist
 CREATE SCHEMA IF NOT EXISTS app;
@@ -243,3 +244,6 @@ CREATE INDEX idx_applied_tags_tag_id ON app.applied_tags(tag_id);
 CREATE INDEX idx_applied_tags_channel_id ON app.applied_tags(channel_id);
 CREATE INDEX idx_applied_tags_model_id ON app.applied_tags(model_id);
 CREATE INDEX idx_applied_tags_thing_id ON app.applied_tags(thing_id);
+
+-- +goose Down
+DROP SCHEMA IF EXISTS app CASCADE;
