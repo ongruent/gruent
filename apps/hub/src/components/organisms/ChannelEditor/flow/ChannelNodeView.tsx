@@ -1,6 +1,6 @@
 'use client'
 
-import { RemixIcon, riErrorWarningFill } from '@mwarnerdotme/react-remixicon'
+import { CircleAlertIcon } from 'lucide-react'
 import { Handle, type NodeProps, Position } from '@xyflow/react'
 import { memo } from 'react'
 import { HIDDEN_INPUT_IDS, HIDDEN_OUTPUT_IDS, ioKey } from './convert'
@@ -95,7 +95,7 @@ const ChannelNodeView = ({ data, selected }: NodeProps<ChannelFlowNode>) => {
       {/* Validation errors */}
       {errors.length > 0 && (
         <span title={errors.join('\n')} className="absolute -left-[42px] top-0 text-error">
-          <RemixIcon icon={riErrorWarningFill} size="xl" />
+          <CircleAlertIcon size="1.5em" />
         </span>
       )}
 

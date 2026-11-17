@@ -1,14 +1,13 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import {
-  RemixIcon,
-  riHome4Line,
-  riInstanceLine,
-  riKey2Line,
-  riRouterLine,
-  riSettings3Line,
-  riShieldUserLine,
-} from '@mwarnerdotme/react-remixicon'
+  CogIcon,
+  HouseIcon,
+  KeyRoundIcon,
+  RouterIcon,
+  ShapesIcon,
+  ShieldUserIcon,
+} from 'lucide-react'
 import styles from './layout.module.css'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
 import FeedbackButton from '@gruent/hub/components/molecules/FeedbackButton'
@@ -43,33 +42,33 @@ const Layout = async ({ children, params }) => {
             <ul className="flex flex-col gap-4 mt-4">
               <li id="spaceHome">
                 <Link href={`/organizations/${orgId}/spaces/${spaceId}`}>
-                  <RemixIcon icon={riHome4Line} size={'xl'} className={styles.sidebarLink} />
+                  <HouseIcon size="1.5em" className={styles.sidebarLink} />
                 </Link>
               </li>
               <li id="spaceThings">
                 <Link href={`/organizations/${orgId}/spaces/${spaceId}/things`}>
-                  <RemixIcon icon={riRouterLine} size={'xl'} className={styles.sidebarLink} />
+                  <RouterIcon size="1.5em" className={styles.sidebarLink} />
                 </Link>
               </li>
               <li id="spaceModels">
                 <Link href={`/organizations/${orgId}/spaces/${spaceId}/models`}>
-                  <RemixIcon icon={riInstanceLine} size={'xl'} className={styles.sidebarLink} />
+                  <ShapesIcon size="1.5em" className={styles.sidebarLink} />
                 </Link>
               </li>
               <li id="spaceSecrets">
                 <Link href={`/organizations/${orgId}/spaces/${spaceId}/secrets`}>
-                  <RemixIcon icon={riKey2Line} size={'xl'} className={styles.sidebarLink} />
+                  <KeyRoundIcon size="1.5em" className={styles.sidebarLink} />
                 </Link>
               </li>
               <hr />
               <li id="spaceTeam">
                 <Link href={`/organizations/${orgId}/spaces/${spaceId}/team`}>
-                  <RemixIcon icon={riShieldUserLine} size={'xl'} className={styles.sidebarLink} />
+                  <ShieldUserIcon size="1.5em" className={styles.sidebarLink} />
                 </Link>
               </li>
               <li id="spaceSettings">
                 <Link href={`/organizations/${orgId}/spaces/${spaceId}/settings`}>
-                  <RemixIcon icon={riSettings3Line} size={'xl'} className={styles.sidebarLink} />
+                  <CogIcon size="1.5em" className={styles.sidebarLink} />
                 </Link>
               </li>
             </ul>

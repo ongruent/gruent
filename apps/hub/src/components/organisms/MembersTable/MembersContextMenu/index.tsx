@@ -7,7 +7,7 @@ import { PermissionSet } from '@prisma/client'
 import ContextMenu from '@gruent/hub/components/atoms/ContextMenu'
 import { handleChangeMemberRole, handleRemoveMember } from '@gruent/hub/actions/members'
 import EditUserPermissionsModal from '@gruent/hub/components/modals/EditUserPermissionsModal'
-import { riAdminLine, riDeleteBin7Line, riEdit2Line } from '@mwarnerdotme/react-remixicon'
+import { PencilLineIcon, Trash2Icon, UserLockIcon } from 'lucide-react'
 
 type Props = {
   userId: string
@@ -55,7 +55,7 @@ const MemberContextMenu: FC<Props> = ({
   const contextMenuButtons = useMemo(() => {
     const adminCmb = [
       {
-        icon: riAdminLine,
+        icon: UserLockIcon,
         title: 'Change role',
         description: 'Change role to member',
         onClick: () => {
@@ -66,7 +66,7 @@ const MemberContextMenu: FC<Props> = ({
 
     const memberCmb = [
       {
-        icon: riAdminLine,
+        icon: UserLockIcon,
         title: 'Change role',
         description: 'Change role to admin',
         onClick: () => {
@@ -74,12 +74,12 @@ const MemberContextMenu: FC<Props> = ({
         },
       },
       {
-        icon: riEdit2Line,
+        icon: PencilLineIcon,
         title: 'Edit',
         onClick: () => handleEditPermissions(),
       },
       {
-        icon: riDeleteBin7Line,
+        icon: Trash2Icon,
         title: 'Remove',
         description: "Revoke this member's access to this organization.",
         onClick: async () => {

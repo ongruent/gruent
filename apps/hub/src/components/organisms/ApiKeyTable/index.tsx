@@ -11,13 +11,7 @@ import {
 import { ApiKey, PermissionSet } from '@prisma/client'
 import ListTable from '@gruent/hub/components/atoms/ListTable'
 import ApiKeyContextMenu from './ApiKeyContextMenu'
-import {
-  RemixIcon,
-  riClipboardFill,
-  riInformationLine,
-  riKeyLine,
-  riListSettingsLine,
-} from '@mwarnerdotme/react-remixicon'
+import { ClipboardIcon, InfoIcon, KeyIcon, ListChecksIcon } from 'lucide-react'
 import copyToClipboard from '@gruent/libs/frontend/util/copyToClipboard'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { useRouter } from 'next/navigation'
@@ -66,7 +60,7 @@ const ApiKeysTable: FC<Props> = ({
     columnHelper.accessor('name', {
       header: () => (
         <div className="flex items-center">
-          <RemixIcon className="mr-1" icon={riInformationLine} />
+          <InfoIcon size="1em" className="mr-1" />
           <span>Name</span>
         </div>
       ),
@@ -76,7 +70,7 @@ const ApiKeysTable: FC<Props> = ({
     columnHelper.accessor('id', {
       header: () => (
         <div className="flex items-center">
-          <RemixIcon className="mr-1" icon={riKeyLine} />
+          <KeyIcon size="1em" className="mr-1" />
           <span>Key</span>
         </div>
       ),
@@ -85,8 +79,8 @@ const ApiKeysTable: FC<Props> = ({
         return (
           <div className="flex gap-2">
             <span>&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;</span>
-            <RemixIcon
-              icon={riClipboardFill}
+            <ClipboardIcon
+              size="1em"
               className="cursor-pointer"
               onClick={async () => {
                 const { error } = await copyToClipboard(apiKey)
@@ -111,7 +105,7 @@ const ApiKeysTable: FC<Props> = ({
     columnHelper.accessor('organizationPermissionSetId', {
       header: () => (
         <div className="flex items-center">
-          <RemixIcon className="mr-1" icon={riListSettingsLine} />
+          <ListChecksIcon size="1em" className="mr-1" />
           <span>Permission Set</span>
         </div>
       ),

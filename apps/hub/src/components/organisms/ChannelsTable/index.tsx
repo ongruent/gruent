@@ -14,14 +14,13 @@ import ListTable from '@gruent/hub/components/atoms/ListTable'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  RemixIcon,
-  riAddCircleLine,
-  riAddLine,
-  riBookShelfLine,
-  riCloudLine,
-  riEqualizerLine,
-  riInformationLine,
-} from '@mwarnerdotme/react-remixicon'
+  CirclePlusIcon,
+  CloudIcon,
+  InfoIcon,
+  LibraryIcon,
+  PlusIcon,
+  SlidersHorizontalIcon,
+} from 'lucide-react'
 import TagMenu from '../../modals/TagMenu'
 import Button from '@gruent/libs/frontend/components/atoms/Button'
 import { useClickOutside } from '@react-hooks-library/core'
@@ -79,7 +78,7 @@ const ChannelsTable: FC<Props> = ({
     columnHelper.accessor('name', {
       header: () => (
         <div className="flex items-center">
-          <RemixIcon className="mr-1" icon={riInformationLine} />
+          <InfoIcon size="1em" className="mr-1" />
           <span>Name</span>
         </div>
       ),
@@ -94,7 +93,7 @@ const ChannelsTable: FC<Props> = ({
     columnHelper.accessor('publishedAt', {
       header: () => (
         <div className="flex items-center">
-          <RemixIcon className="mr-1" icon={riCloudLine} />
+          <CloudIcon size="1em" className="mr-1" />
           <span>Published</span>
         </div>
       ),
@@ -119,7 +118,7 @@ const ChannelsTable: FC<Props> = ({
     columnHelper.accessor('tags', {
       header: () => (
         <div className="flex items-center">
-          <RemixIcon className="mr-1" icon={riBookShelfLine} />
+          <LibraryIcon size="1em" className="mr-1" />
           <span>Tags</span>
         </div>
       ),
@@ -159,7 +158,7 @@ const ChannelsTable: FC<Props> = ({
                 />
               )}
               <Button variant="underline" onClick={() => setTagCreateSubject(info.row.original)}>
-                <RemixIcon icon={riAddLine} size="sm" />
+                <PlusIcon size=".875em" />
               </Button>
             </div>
           )
@@ -167,7 +166,7 @@ const ChannelsTable: FC<Props> = ({
         return (
           <div className="relative">
             <Button variant="underline" onClick={() => setTagCreateSubject(info.row.original)}>
-              <RemixIcon icon={riAddLine} size="sm" />
+              <PlusIcon size=".875em" />
             </Button>
             {tagCreateSubject === info.row.original && (
               <TagMenu
@@ -189,7 +188,7 @@ const ChannelsTable: FC<Props> = ({
             className="hover:text-green-700 mr-2"
             href={`/organizations/${orgId}/spaces/${spaceId}/channels/${info.row.id}/edit`}
           >
-            <RemixIcon icon={riEditBoxLine} size="lg" />
+            <SquarePenIcon size="1.3333em" />
           </Link> */}
           <ChannelContextMenu spaceId={spaceId} channel={info.row.original} />
         </div>
@@ -267,10 +266,10 @@ const ChannelsTable: FC<Props> = ({
                 className="px-2"
                 onClick={() => setShowFilterOptions((current) => !current)}
               >
-                <RemixIcon icon={riEqualizerLine} size="lg" />
+                <SlidersHorizontalIcon size="1.3333em" />
               </Button>
               <Button variant="transparent" className="text-sm" modalId="createChannel">
-                <RemixIcon className="mr-1" icon={riAddCircleLine} />
+                <CirclePlusIcon size="1em" className="mr-1" />
                 <span>Create</span>
               </Button>
               {showFilterOptions && (

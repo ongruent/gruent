@@ -1,7 +1,7 @@
 'use client'
 
 import useSettingsStore from '@gruent/hub/stores/settingsStore'
-import { RemixIcon, riMessage3Fill } from '@mwarnerdotme/react-remixicon'
+import { MessageSquareIcon } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Image from 'next/image'
 import { FC } from 'react'
@@ -33,11 +33,7 @@ const FeedbackButton: FC<Props> = ({ hidden }) => {
             className="flex items-center"
           >
             Feedback & support
-            <RemixIcon
-              icon={riMessage3Fill}
-              size={'lg'}
-              className="ml-2 text-gray-600 dark:text-gray-300"
-            />
+            <MessageSquareIcon size="1.3333em" className="ml-2 text-gray-600 dark:text-gray-300" />
           </a>
         </div>
 

@@ -6,7 +6,7 @@ import Modal from '@gruent/libs/frontend/components/organisms/Modal'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import { ChannelNode, ThresholdConditionalNodeConfig } from '@gruent/libs/legacy/engine/nodes/v1'
 import { Condition, Operator } from '@gruent/libs/legacy/engine/nodes/v1/src/conditional/threshold'
-import { RemixIcon, riAddLine, riCloseLine } from '@mwarnerdotme/react-remixicon'
+import { PlusIcon, XIcon } from 'lucide-react'
 import {
   ChangeEvent,
   Dispatch,
@@ -115,7 +115,7 @@ const ThresholdConditionalOptions: FC<Props> = ({ models, orgId, spaceId }) => {
           onChange={(e) => setModel(models.find((m) => m.id === e.target.value))}
         />
         <Button className="my-3" onClick={() => openModal('createModel')}>
-          <RemixIcon icon={riAddLine} />
+          <PlusIcon size="1em" />
         </Button>
       </div>
       <FormFieldSelect
@@ -311,8 +311,8 @@ const ThresholdNodeModal: FC<ThresholdModalProps> = ({
                   id={`${attributeLabel}-${index}`}
                   className="relative"
                 >
-                  <RemixIcon
-                    icon={riCloseLine}
+                  <XIcon
+                    size="1em"
                     className="absolute top-1 right-0 cursor-pointer"
                     onClick={() => handleRemoveCondition(index)}
                   />

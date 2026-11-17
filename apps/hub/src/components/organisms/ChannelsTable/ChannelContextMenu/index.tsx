@@ -9,7 +9,7 @@ import {
   handleUnpublishChannel,
 } from '@gruent/hub/actions/channels'
 import { Channel } from '@prisma/client'
-import { riCloudLine, riCloudOffLine, riDeleteBin7Line } from '@mwarnerdotme/react-remixicon'
+import { CloudIcon, CloudOffIcon, Trash2Icon } from 'lucide-react'
 
 type Props = {
   channel: Channel
@@ -21,7 +21,7 @@ const ChannelContextMenu: FC<Props> = ({ channel, spaceId }) => {
   const publishOption = (() => {
     if (!channel.publishedAt)
       return {
-        icon: riCloudLine,
+        icon: CloudIcon,
         title: 'Publish',
         onClick: async () => {
           const { error } = await handlePublishChannel(spaceId, channel.id)
@@ -42,7 +42,7 @@ const ChannelContextMenu: FC<Props> = ({ channel, spaceId }) => {
       }
 
     return {
-      icon: riCloudOffLine,
+      icon: CloudOffIcon,
       title: 'Unpublish',
       onClick: async () => {
         const { error } = await handleUnpublishChannel(spaceId, channel.id)
@@ -66,7 +66,7 @@ const ChannelContextMenu: FC<Props> = ({ channel, spaceId }) => {
   const contextMenuButtons = [
     publishOption,
     {
-      icon: riDeleteBin7Line,
+      icon: Trash2Icon,
       title: 'Delete',
       onClick: async () => {
         const { error } = await handleDeleteChannel(spaceId, channel.id)

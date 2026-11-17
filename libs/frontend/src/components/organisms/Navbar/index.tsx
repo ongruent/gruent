@@ -5,7 +5,7 @@ import Container from '../../templates/Container'
 import Image from 'next/image'
 import Link from 'next/link'
 import Button from '../../atoms/Button'
-import { RemixIcon, riMenu2Fill } from '@mwarnerdotme/react-remixicon'
+import { MenuIcon } from 'lucide-react'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 
 const Navbar: FC = () => {
@@ -67,7 +67,7 @@ const Navbar: FC = () => {
             className="block md:hidden w-9 h-9 flex justify-center items-center bg-secondary cursor-pointer transition rounded-full text-white"
             onClick={() => openModal('mobileNav')}
           >
-            <RemixIcon icon={riMenu2Fill} />
+            <MenuIcon size="1em" />
           </div>
         </div>
       </Container>

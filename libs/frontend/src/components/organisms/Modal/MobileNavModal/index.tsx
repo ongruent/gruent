@@ -2,19 +2,14 @@
 
 import Modal from '@gruent/libs/frontend/components/organisms/Modal'
 import { closeModal } from '@gruent/libs/frontend/hooks/useModal'
-import { RemixIcon, riCloseFill } from '@mwarnerdotme/react-remixicon'
+import { XIcon } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
 const MobileNavModal = () => {
   return (
     <Modal id="mobileNav" showAccept={false} className="relative">
-      <RemixIcon
-        icon={riCloseFill}
-        size="lg"
-        className="absolute top-8 right-5"
-        onClick={closeModal}
-      />
+      <XIcon size="1.3333em" className="absolute top-8 right-5" onClick={closeModal} />
       <Image
         src="/img/logos/mark-cutout-secondary.png"
         alt="GRUENT logo"

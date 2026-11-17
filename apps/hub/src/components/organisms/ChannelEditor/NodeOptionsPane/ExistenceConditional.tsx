@@ -6,7 +6,7 @@ import { FC, useCallback, useEffect, useMemo, useState } from 'react'
 import { ModelAttribute, ModelAttributes } from '@gruent/libs/engine/dependencies/models'
 import Button from '@gruent/libs/frontend/components/atoms/Button'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
-import { RemixIcon, riAddLine } from '@mwarnerdotme/react-remixicon'
+import { PlusIcon } from 'lucide-react'
 
 type Props = {
   models: Model[]
@@ -137,7 +137,7 @@ const ExistenceConditionalOptions: FC<Props> = ({ models }) => {
           onChange={(e) => setModel(models.find((m) => m.id === e.target.value))}
         />
         <Button className="my-3" onClick={() => openModal('createModel')}>
-          <RemixIcon icon={riAddLine} />
+          <PlusIcon size="1em" />
         </Button>
       </div>
       {model && (

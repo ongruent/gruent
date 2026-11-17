@@ -3,7 +3,7 @@ import CreateThingModal from '@gruent/hub/components/modals/CreateThingModal'
 import ThingsTable from '@gruent/hub/components/organisms/ThingsTable'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
 import Button from '@gruent/libs/frontend/components/atoms/Button'
-import { RemixIcon, riAddCircleLine, riRouterLine } from '@mwarnerdotme/react-remixicon'
+import { CirclePlusIcon, RouterIcon } from 'lucide-react'
 import Container from '@gruent/libs/frontend/components/templates/Container'
 import ListTablePlaceholder from '@gruent/hub/components/molecules/ListTablePlaceholder'
 import Callout from '@gruent/libs/frontend/components/molecules/Callout'
@@ -117,10 +117,10 @@ const ThingsPage = async ({ params, searchParams }) => {
               title="Things"
               description="Devices, APIs, databases, message queues - anything you need to connect."
             >
-              <RemixIcon icon={riRouterLine} className="text-gray-600 mb-2" size="3x" />
+              <RouterIcon size="3em" className="text-gray-600 mb-2" />
               <p className="text-gray-600 text-center mb-2">No things... yet!</p>
               <Button variant="primary" className="text-sm" modalId="createThing">
-                <RemixIcon className="mr-1" icon={riAddCircleLine} />
+                <CirclePlusIcon size="1em" className="mr-1" />
                 <span>Create your first thing</span>
               </Button>
             </ListTablePlaceholder>

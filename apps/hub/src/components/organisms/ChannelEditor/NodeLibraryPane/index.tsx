@@ -1,12 +1,7 @@
 import { DragEvent, FC, useMemo, useState } from 'react'
 import NodeLibrarySection from './NodeLibrarySection'
 import { ChannelNodeType, defaultNodes } from '@gruent/libs/legacy/engine/nodes/v1'
-import {
-  RemixIcon,
-  riCloseFill,
-  riFilePaperLine,
-  riSearch2Line,
-} from '@mwarnerdotme/react-remixicon'
+import { ScrollTextIcon, SearchIcon, XIcon } from 'lucide-react'
 
 const NodeLibraryPane: FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>()
@@ -52,7 +47,7 @@ const NodeLibraryPane: FC = () => {
         Nodes
       </h2>
       <div className="flex relative w-full items-bottom mb-2">
-        <RemixIcon icon={riSearch2Line} className="mr-1 text-gray-700" size="sm" />
+        <SearchIcon size=".875em" className="mr-1 text-gray-700" />
         <input
           name="nodeSearch"
           type="text"
@@ -64,10 +59,10 @@ const NodeLibraryPane: FC = () => {
           className="outline-hidden border-0 border-b bg-transparent transition border-gray-400 hover:border-gray-800 focus:border-gray-800 text-xs mt-0 grow"
         />
         {searchQuery && searchQuery.length > 0 && (
-          <RemixIcon
+          <XIcon
+            size="1em"
             onClick={() => setSearchQuery('')}
             className="absolute right-0 t-1/2 cursor-pointer"
-            icon={riCloseFill}
           />
         )}
       </div>
@@ -103,7 +98,7 @@ const NodeLibraryPane: FC = () => {
           className="my-1 px-1 select-none dark:text-gray-200 text-sm cursor-grab flex items-center"
           onDragStart={(e) => handleNoteDragStart(e)}
         >
-          <RemixIcon icon={riFilePaperLine} className="mr-1" />
+          <ScrollTextIcon size="1em" className="mr-1" />
           <span>Note</span>
         </div>
       </section>

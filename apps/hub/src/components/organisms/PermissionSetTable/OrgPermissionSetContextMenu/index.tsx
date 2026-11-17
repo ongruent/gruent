@@ -9,7 +9,7 @@ import UpdateOrgPermissionSetModal from '@gruent/hub/components/modals/UpdateOrg
 import { PermissionSet } from '@prisma/client'
 import ContextMenu from '@gruent/hub/components/atoms/ContextMenu'
 import { handleRemovePermissionSet } from '@gruent/hub/actions/permissionSets'
-import { riDeleteBin7Line, riEdit2Line } from '@mwarnerdotme/react-remixicon'
+import { PencilLineIcon, Trash2Icon } from 'lucide-react'
 import useAuth from '@gruent/hub/hooks/useAuth'
 
 type Props = {
@@ -55,7 +55,7 @@ const OrgPermissionSetContextMenu: FC<Props> = ({ permissionSetId, orgId }) => {
 
   const contextMenuButtons = [
     {
-      icon: riEdit2Line,
+      icon: PencilLineIcon,
       title: 'Edit',
       onClick: () => {
         handleEditPermissionSet.mutate()
@@ -63,7 +63,7 @@ const OrgPermissionSetContextMenu: FC<Props> = ({ permissionSetId, orgId }) => {
       },
     },
     {
-      icon: riDeleteBin7Line,
+      icon: Trash2Icon,
       title: 'Delete',
       onClick: async () => {
         const { error } = await handleRemovePermissionSet(orgId, permissionSetId)

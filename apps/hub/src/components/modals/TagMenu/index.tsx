@@ -4,7 +4,7 @@ import { Dispatch, FC, SetStateAction, useCallback, useMemo, useRef, useState } 
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { Thing, Model, Channel, Tag, AppliedTag } from '@prisma/client'
 import { handleApplyTag, handleCreateTag, handleRemoveTag } from '@gruent/hub/actions/tags'
-import { RemixIcon, riAddLine, riCloseLine, riLoader2Line } from '@mwarnerdotme/react-remixicon'
+import { LoaderCircleIcon, PlusIcon, XIcon } from 'lucide-react'
 import { useClickOutside } from '@react-hooks-library/core'
 
 type Props = {
@@ -160,12 +160,7 @@ const TagMenu: FC<Props> = ({ spaceId, onClose, onSubmit, subject, setSubject, t
           className="absolute w-[300px] top-0 left-0 w-fit p-3 border border-gray-300 dark:border-gray-700 bg-gray-200 dark:bg-gray-900 shadow-md rounded-md z-10"
         >
           <div className="absolute top-0 right-1">
-            <RemixIcon
-              className="cursor-pointer"
-              icon={riCloseLine}
-              size="sm"
-              onClick={() => setSubject(undefined)}
-            />
+            <XIcon size=".875em" className="cursor-pointer" onClick={() => setSubject(undefined)} />
           </div>
           <div className="flex flex-wrap gap-2 items-center">
             {usedTags.map((tag) => (
@@ -179,7 +174,7 @@ const TagMenu: FC<Props> = ({ spaceId, onClose, onSubmit, subject, setSubject, t
                   className="w-4 h-4 flex items-center justify-center transition hover:bg-gray-400 dark:hover:bg-gray-600 rounded-full text-xs hover:bg-gray-500 dark:hover:bg-gray-500"
                   onClick={() => handleClickRemoveTag(tag.id)}
                 >
-                  <RemixIcon icon={riCloseLine} size="sm" />
+                  <XIcon size=".875em" />
                 </button>
               </div>
             ))}
@@ -203,7 +198,7 @@ const TagMenu: FC<Props> = ({ spaceId, onClose, onSubmit, subject, setSubject, t
             ))}
             {shouldShowCreateTag && isCreateTagLoading && (
               <div className="px-2 py-1 cursor-pointer text-sm text-gray-800 dark:text-gray-200 transition rounded-sm block">
-                <RemixIcon icon={riLoader2Line} className="animate-spin" size="sm" />
+                <LoaderCircleIcon size=".875em" className="animate-spin" />
               </div>
             )}
             {shouldShowCreateTag && !isCreateTagLoading && (
@@ -211,7 +206,7 @@ const TagMenu: FC<Props> = ({ spaceId, onClose, onSubmit, subject, setSubject, t
                 onClick={() => handleNewTag()}
                 className="px-2 py-1 cursor-pointer text-sm text-gray-800 dark:text-gray-200 transition rounded-sm block border border-transparent hover:bg-green-100 dark:hover:bg-green-800 hover:border-green-200 dark:hover:border-green-700 hover:text-green-700 dark:hover:text-green-300"
               >
-                Create {search} <RemixIcon icon={riAddLine} size="sm" />
+                Create {search} <PlusIcon size=".875em" />
               </div>
             )}
           </div>

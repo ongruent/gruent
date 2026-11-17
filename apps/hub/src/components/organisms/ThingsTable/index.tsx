@@ -14,13 +14,12 @@ import Link from 'next/link'
 import ThingContextMenu from './ThingContextMenu'
 import { useRouter } from 'next/navigation'
 import {
-  riAddCircleLine,
-  riAddLine,
-  riBookShelfLine,
-  riEqualizerLine,
-  riInformationLine,
-} from '@mwarnerdotme/react-remixicon'
-import { RemixIcon } from '@mwarnerdotme/react-remixicon'
+  CirclePlusIcon,
+  InfoIcon,
+  LibraryIcon,
+  PlusIcon,
+  SlidersHorizontalIcon,
+} from 'lucide-react'
 import Button from '@gruent/libs/frontend/components/atoms/Button'
 import TagMenu from '../../modals/TagMenu'
 import SearchBar from '../../molecules/SearchBar'
@@ -80,7 +79,7 @@ const ThingsTable: FC<Props> = ({
     columnHelper.accessor('name', {
       header: () => (
         <div className="flex items-center">
-          <RemixIcon className="mr-1" icon={riInformationLine} />
+          <InfoIcon size="1em" className="mr-1" />
           <span>Name</span>
         </div>
       ),
@@ -94,7 +93,7 @@ const ThingsTable: FC<Props> = ({
     columnHelper.accessor('thingCategory', {
       header: () => (
         <div className="flex items-center">
-          <RemixIcon className="mr-1" icon={riBookShelfLine} />
+          <LibraryIcon size="1em" className="mr-1" />
           <span>Category</span>
         </div>
       ),
@@ -105,7 +104,7 @@ const ThingsTable: FC<Props> = ({
     columnHelper.accessor('tags', {
       header: () => (
         <div className="flex items-center">
-          <RemixIcon className="mr-1" icon={riBookShelfLine} />
+          <LibraryIcon size="1em" className="mr-1" />
           <span>Tags</span>
         </div>
       ),
@@ -146,7 +145,7 @@ const ThingsTable: FC<Props> = ({
                 />
               )}
               <Button variant="underline" onClick={() => setTagCreateSubject(info.row.original)}>
-                <RemixIcon icon={riAddLine} size="sm" />
+                <PlusIcon size=".875em" />
               </Button>
             </div>
           )
@@ -154,7 +153,7 @@ const ThingsTable: FC<Props> = ({
         return (
           <div className="relative">
             <Button variant="underline" onClick={() => setTagCreateSubject(info.row.original)}>
-              <RemixIcon icon={riAddLine} size="sm" />
+              <PlusIcon size=".875em" />
             </Button>
             {tagCreateSubject === info.row.original && (
               <TagMenu
@@ -245,10 +244,10 @@ const ThingsTable: FC<Props> = ({
               className="px-2"
               onClick={() => setShowFilterOptions((current) => !current)}
             >
-              <RemixIcon icon={riEqualizerLine} size="lg" />
+              <SlidersHorizontalIcon size="1.3333em" />
             </Button>
             <Button variant="transparent" className="text-sm" modalId="createThing">
-              <RemixIcon className="mr-1" icon={riAddCircleLine} />
+              <CirclePlusIcon size="1em" className="mr-1" />
               <span>Create</span>
             </Button>
             {showFilterOptions && (

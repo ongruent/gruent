@@ -8,7 +8,7 @@ import KafkaActionOptions from './KafkaActionOptions'
 import NatsActionOptions from './NatsActionOptions'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import Button from '@gruent/libs/frontend/components/atoms/Button'
-import { RemixIcon, riAddLine } from '@mwarnerdotme/react-remixicon'
+import { PlusIcon } from 'lucide-react'
 
 type Props = {
   things: Thing[]
@@ -146,7 +146,7 @@ const MessageQueueActionOptions: FC<Props> = ({ things, orgId, spaceId }) => {
           }
         />
         <Button className="my-3" onClick={() => openModal('createThing')}>
-          <RemixIcon icon={riAddLine} />
+          <PlusIcon size="1em" />
         </Button>
       </div>
       {selectedSubnodeOptions}

@@ -2,7 +2,7 @@
 
 import { FC, useState } from 'react'
 import dayjs from 'dayjs'
-import { RemixIcon, riArrowDownSLine, riArrowUpSLine } from '@mwarnerdotme/react-remixicon'
+import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
 
 type LogAttributes = {
   execution_id: string
@@ -84,9 +84,9 @@ const NodeExecutionLogEntry: FC<{
         </p>
         <div className="grow" />
         {open ? (
-          <RemixIcon className="text-gray-500" icon={riArrowUpSLine} />
+          <ChevronUpIcon size="1em" className="text-gray-500" />
         ) : (
-          <RemixIcon className="text-gray-500" icon={riArrowDownSLine} />
+          <ChevronDownIcon size="1em" className="text-gray-500" />
         )}
       </div>
       {open && (

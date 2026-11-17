@@ -4,7 +4,7 @@ import CreateModelModal from '@gruent/hub/components/modals/CreateModelModal'
 import ModelsTable from '@gruent/hub/components/organisms/ModelsTable'
 import Container from '@gruent/libs/frontend/components/templates/Container'
 import Button from '@gruent/libs/frontend/components/atoms/Button'
-import { RemixIcon, riAddCircleLine, riInstanceLine } from '@mwarnerdotme/react-remixicon'
+import { CirclePlusIcon, ShapesIcon } from 'lucide-react'
 import ListTablePlaceholder from '@gruent/hub/components/molecules/ListTablePlaceholder'
 import Callout from '@gruent/libs/frontend/components/molecules/Callout'
 import { Tag } from '@prisma/client'
@@ -117,10 +117,10 @@ const ModelsPage = async ({ params, searchParams }) => {
           )}
           {Number(totalResults) <= 0 && !filter && !tagFilter && (
             <ListTablePlaceholder title="Models" description="Define the structure of your data.">
-              <RemixIcon icon={riInstanceLine} className="text-gray-600 mb-2" size="3x" />
+              <ShapesIcon size="3em" className="text-gray-600 mb-2" />
               <p className="text-gray-600 text-center mb-2">No models... yet!</p>
               <Button variant="primary" className="text-sm" modalId="createModel">
-                <RemixIcon className="mr-1" icon={riAddCircleLine} />
+                <CirclePlusIcon size="1em" className="mr-1" />
                 <span>Create your first model</span>
               </Button>
             </ListTablePlaceholder>

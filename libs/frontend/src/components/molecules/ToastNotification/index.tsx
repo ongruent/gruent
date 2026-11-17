@@ -1,6 +1,6 @@
 'use client'
 
-import { RemixIcon, riCloseFill } from '@mwarnerdotme/react-remixicon'
+import { XIcon } from 'lucide-react'
 import type { FC } from 'react'
 import { useMemo } from 'react'
 import type { Notification } from '../../../hooks/useToast'
@@ -27,8 +27,8 @@ const ToastNotification: FC<Props> = ({ keyName, title, body, level }) => {
     <div
       className={`toastNotification relative border-l-4 pl-4 ${borderColor} w-80 bg-gray-50 dark:bg-gray-900 rounded-xs px-4 pt-2 pb-4 shadow-md`}
     >
-      <RemixIcon
-        icon={riCloseFill}
+      <XIcon
+        size="1em"
         className="absolute top-2 right-2 cursor-pointer dark:text-gray-200"
         onClick={() => removeToast(keyName)}
       />

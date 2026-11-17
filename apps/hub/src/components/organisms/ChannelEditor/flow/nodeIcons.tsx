@@ -1,20 +1,19 @@
 import {
-  RemixIcon,
-  riBarChartBoxLine,
-  riCodeBoxFill,
-  riDatabase2Line,
-  riFileTextLine,
-  riFilter3Fill,
-  riFlowChart,
-  riFolderCloudLine,
-  riNotification4Line,
-  riPlayFill,
-  riQuestionFill,
-  riShapesLine,
-  riShareFill,
-  riTimerLine,
-  riWebhookFill,
-} from '@mwarnerdotme/react-remixicon'
+  BellIcon,
+  ChartColumnBigIcon,
+  CircleQuestionMarkIcon,
+  DatabaseIcon,
+  FileTextIcon,
+  FolderIcon,
+  ListFilterIcon,
+  PlayIcon,
+  ShapesIcon,
+  Share2Icon,
+  SquareCodeIcon,
+  TimerIcon,
+  WebhookIcon,
+  WorkflowIcon,
+} from 'lucide-react'
 import { FC } from 'react'
 import type { ChannelNodeType } from './types'
 
@@ -39,17 +38,17 @@ const MessageQueueIcon: FC<IconProps> = ({ className }) => (
 export const NodeTypeIcon: FC<IconProps & { type: ChannelNodeType }> = ({ type, className }) => {
   switch (type) {
     case 'source':
-      return <RemixIcon size="sm" icon={riPlayFill} className={className} />
+      return <PlayIcon size=".875em" className={className} />
     case 'processing':
-      return <RemixIcon size="sm" icon={riFilter3Fill} className={className} />
+      return <ListFilterIcon size=".875em" className={className} />
     case 'action':
-      return <RemixIcon size="sm" icon={riPlayFill} className={`rotate-180 ${className ?? ''}`} />
+      return <PlayIcon size=".875em" className={`rotate-180 ${className ?? ''}`} />
     case 'conditional':
-      return <RemixIcon size="sm" icon={riShareFill} className={className} />
+      return <Share2Icon size=".875em" className={className} />
     case 'custom':
-      return <RemixIcon size="sm" icon={riCodeBoxFill} className={className} />
+      return <SquareCodeIcon size=".875em" className={className} />
     default:
-      return <RemixIcon size="sm" icon={riQuestionFill} className={className} />
+      return <CircleQuestionMarkIcon size=".875em" className={className} />
   }
 }
 
@@ -60,28 +59,28 @@ export const NodeLabelIcon: FC<IconProps & { label: string }> = ({ label, classN
       return <MessageQueueIcon className={className} />
     case 'http':
     case 'httpResponse':
-      return <RemixIcon size="3x" icon={riWebhookFill} className={className} />
+      return <WebhookIcon size="3em" className={className} />
     case 'timer':
-      return <RemixIcon size="3x" icon={riTimerLine} className={className} />
+      return <TimerIcon size="3em" className={className} />
     case 'fileStorage':
-      return <RemixIcon size="3x" icon={riFolderCloudLine} className={className} />
+      return <FolderIcon size="3em" className={className} />
     case 'documentDb':
     case 'timeSeriesDb':
-      return <RemixIcon size="3x" icon={riDatabase2Line} className={className} />
+      return <DatabaseIcon size="3em" className={className} />
     case 'log':
-      return <RemixIcon size="3x" icon={riFileTextLine} className={className} />
+      return <FileTextIcon size="3em" className={className} />
     case 'metric':
-      return <RemixIcon size="3x" icon={riBarChartBoxLine} className={className} />
+      return <ChartColumnBigIcon size="3em" className={className} />
     case 'notification':
-      return <RemixIcon size="3x" icon={riNotification4Line} className={className} />
+      return <BellIcon size="3em" className={className} />
     case 'boolean':
     case 'stringCompare':
     case 'threshold':
     case 'existence':
-      return <RemixIcon size="3x" icon={riFlowChart} className={className} />
+      return <WorkflowIcon size="3em" className={className} />
     case 'transform':
-      return <RemixIcon size="3x" icon={riShapesLine} className={className} />
+      return <ShapesIcon size="3em" className={className} />
     default:
-      return <RemixIcon size="3x" icon={riQuestionFill} className={className} />
+      return <CircleQuestionMarkIcon size="3em" className={className} />
   }
 }

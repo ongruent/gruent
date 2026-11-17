@@ -5,14 +5,13 @@ import Link from 'next/link'
 import {
   RemixIcon,
   riBlueskyFill,
-  riCupFill,
   riDiscordFill,
   riGithubFill,
-  riHeartFill,
   riLinkedinFill,
   riTwitterXFill,
   riYoutubeFill,
 } from '@mwarnerdotme/react-remixicon'
+import { CoffeeIcon, HeartIcon } from 'lucide-react'
 import MailchimpNewsletterForm from './MailchimpNewsletterForm'
 
 const Footer = async () => {
@@ -62,8 +61,8 @@ const Footer = async () => {
             </ul>
             <p className="mt-2 text-gray-500">&copy; {new Date().getFullYear()} GRUENT, Inc.</p>
             <p className="text-gray-400 text-sm">
-              Made with <RemixIcon className="text-red-700" icon={riHeartFill} /> and plenty of{' '}
-              <RemixIcon className="text-green-700" icon={riCupFill} />
+              Made with <HeartIcon size="1em" className="text-red-700" /> and plenty of{' '}
+              <CoffeeIcon size="1em" className="text-green-700" />
             </p>
           </section>
           <section>

@@ -6,7 +6,7 @@ import Modal from '@gruent/libs/frontend/components/organisms/Modal'
 import FormFieldText from '../../../atoms/FormFieldText'
 import { closeModal } from '@gruent/libs/frontend/hooks/useModal'
 import addNewsletterMember from '@gruent/site/actions/addNewsletterMember'
-import { RemixIcon, riLoader2Fill } from '@mwarnerdotme/react-remixicon'
+import { LoaderCircleIcon } from 'lucide-react'
 import { useMutation } from '@tanstack/react-query'
 
 type Props = {}
@@ -71,7 +71,7 @@ const BetaSignupModal: FC<Props> = ({}) => {
         </div>
         {isPending && (
           <p>
-            <RemixIcon icon={riLoader2Fill} size="sm" />
+            <LoaderCircleIcon size=".875em" />
           </p>
         )}
         {data?.message && (

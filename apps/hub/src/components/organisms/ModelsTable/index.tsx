@@ -14,13 +14,12 @@ import Link from 'next/link'
 import ModelContextMenu from './ModelContextMenu'
 import { useRouter } from 'next/navigation'
 import {
-  RemixIcon,
-  riAddCircleLine,
-  riAddLine,
-  riBookShelfLine,
-  riEqualizerLine,
-} from '@mwarnerdotme/react-remixicon'
-import { riInformationLine } from '@mwarnerdotme/react-remixicon'
+  CirclePlusIcon,
+  InfoIcon,
+  LibraryIcon,
+  PlusIcon,
+  SlidersHorizontalIcon,
+} from 'lucide-react'
 import TagMenu from '../../modals/TagMenu'
 import Button from '@gruent/libs/frontend/components/atoms/Button'
 import { useClickOutside } from '@react-hooks-library/core'
@@ -78,7 +77,7 @@ const ModelsTable: FC<Props> = ({
     columnHelper.accessor('name', {
       header: () => (
         <div className="flex items-center">
-          <RemixIcon className="mr-1" icon={riInformationLine} />
+          <InfoIcon size="1em" className="mr-1" />
           <span>Name</span>
         </div>
       ),
@@ -92,7 +91,7 @@ const ModelsTable: FC<Props> = ({
     columnHelper.accessor('tags', {
       header: () => (
         <div className="flex items-center">
-          <RemixIcon className="mr-1" icon={riBookShelfLine} />
+          <LibraryIcon size="1em" className="mr-1" />
           <span>Tags</span>
         </div>
       ),
@@ -132,7 +131,7 @@ const ModelsTable: FC<Props> = ({
                 />
               )}
               <Button variant="underline" onClick={() => setTagCreateSubject(info.row.original)}>
-                <RemixIcon icon={riAddLine} size="sm" />
+                <PlusIcon size=".875em" />
               </Button>
             </div>
           )
@@ -140,7 +139,7 @@ const ModelsTable: FC<Props> = ({
         return (
           <div className="relative">
             <Button variant="underline" onClick={() => setTagCreateSubject(info.row.original)}>
-              <RemixIcon icon={riAddLine} size="sm" />
+              <PlusIcon size=".875em" />
             </Button>
             {tagCreateSubject === info.row.original && (
               <TagMenu
@@ -229,10 +228,10 @@ const ModelsTable: FC<Props> = ({
               className="px-2"
               onClick={() => setShowFilterOptions((current) => !current)}
             >
-              <RemixIcon icon={riEqualizerLine} size="lg" />
+              <SlidersHorizontalIcon size="1.3333em" />
             </Button>
             <Button variant="transparent" className="text-sm" modalId="createModel">
-              <RemixIcon className="mr-1" icon={riAddCircleLine} />
+              <CirclePlusIcon size="1em" className="mr-1" />
               <span>Create</span>
             </Button>
             {showFilterOptions && (

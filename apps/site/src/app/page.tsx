@@ -3,19 +3,18 @@ import Button from '@gruent/libs/frontend/components/atoms/Button'
 
 import styles from './page.module.scss'
 import {
-  RemixIcon,
-  riFunctionLine,
-  riCodeBoxLine,
-  riDragDropLine,
-  riPlugLine,
-  riPriceTagLine,
-  riCollapseDiagonal2Line,
-  riServerLine,
-  riDonutChartFill,
-  riBarChart2Fill,
-  riLineChartFill,
-  riErrorWarningLine,
-} from '@mwarnerdotme/react-remixicon'
+  ChartLineIcon,
+  ChartNoAxesColumnIncreasingIcon,
+  ChartPieIcon,
+  CircleAlertIcon,
+  LayoutGridIcon,
+  Minimize2Icon,
+  PlugIcon,
+  ServerIcon,
+  SquareCodeIcon,
+  SquareDashedMousePointerIcon,
+  TagIcon,
+} from 'lucide-react'
 import { Metadata } from 'next'
 import RotatingVideoPlayer from '../components/RotatingVideoPlayer'
 import Image from 'next/image'
@@ -139,7 +138,7 @@ const HomePage = () => {
             </div>
             <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               <div>
-                <RemixIcon icon={riFunctionLine} size="2x" className="text-green-500" />
+                <LayoutGridIcon size="2em" className="text-green-500" />
                 <h3 className="font-bold text-gray-700 mt-3 mb-1">Developer friendly</h3>
                 <p className="text-gray-500">
                   Bringing custom hardware and software is easy. Libraries and SDKs will soon be
@@ -147,7 +146,7 @@ const HomePage = () => {
                 </p>
               </div>
               <div>
-                <RemixIcon icon={riPlugLine} size="2x" className="text-green-500" />
+                <PlugIcon size="2em" className="text-green-500" />
                 <h3 className="font-bold text-gray-700 mt-3 mb-1">
                   Plug-and-play solutions (coming soon)
                 </h3>
@@ -157,7 +156,7 @@ const HomePage = () => {
                 </p>
               </div>
               <div>
-                <RemixIcon icon={riDragDropLine} size="2x" className="text-green-500" />
+                <SquareDashedMousePointerIcon size="2em" className="text-green-500" />
                 <h3 className="font-bold text-gray-700 mt-3 mb-1">No-code</h3>
                 <p className="text-gray-500">
                   Deploy production ready integrations without writing a single line of code. Build
@@ -165,7 +164,7 @@ const HomePage = () => {
                 </p>
               </div>
               <div>
-                <RemixIcon icon={riCodeBoxLine} size="2x" className="text-green-500" />
+                <SquareCodeIcon size="2em" className="text-green-500" />
                 <h3 className="font-bold text-gray-700 mt-3 mb-1">
                   Customize with code (coming soon)
                 </h3>
@@ -196,14 +195,14 @@ const HomePage = () => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div>
-                  <RemixIcon icon={riPriceTagLine} size="2x" className="text-green-500" />
+                  <TagIcon size="2em" className="text-green-500" />
                   <h3 className="font-bold text-gray-700 mt-3 mb-1">Pay for usage</h3>
                   <p className="text-gray-500">
                     Stop spending more for team-based subscriptions. Pay only for what you use.
                   </p>
                 </div>
                 <div>
-                  <RemixIcon icon={riCollapseDiagonal2Line} size="2x" className="text-green-500" />
+                  <Minimize2Icon size="2em" className="text-green-500" />
                   <h3 className="font-bold text-gray-700 mt-3 mb-1">
                     Scale down to zero (coming soon)
                   </h3>
@@ -307,8 +306,8 @@ const HomePage = () => {
               <div className={`${styles.performanceSection}`}>
                 <h3>Production Scale</h3>
                 <p>
-                  Have thousands of things, channels, and requests per second? GRUENT is designed for
-                  your high-throughput projects.
+                  Have thousands of things, channels, and requests per second? GRUENT is designed
+                  for your high-throughput projects.
                 </p>
                 <div className={styles.throughputGrid}>
                   {Array.from({ length: 96 }).map((_, i) => (
@@ -352,16 +351,16 @@ const HomePage = () => {
                     />
                   </div>
                   <div className="mt-4 w-20 h-20 bg-gray-200 rounded flex items-center justify-center">
-                    <RemixIcon icon={riServerLine} size="2x" className="text-green-700" />
+                    <ServerIcon size="2em" className="text-green-700" />
                   </div>
                   <div className="mt-4 w-20 h-20 bg-gray-200 rounded flex items-center justify-center">
-                    <RemixIcon icon={riServerLine} size="2x" className="text-green-700" />
+                    <ServerIcon size="2em" className="text-green-700" />
                   </div>
                   <div className="mt-4 w-20 h-20 bg-gray-200 rounded flex items-center justify-center hidden sm:flex">
-                    <RemixIcon icon={riServerLine} size="2x" className="text-green-700" />
+                    <ServerIcon size="2em" className="text-green-700" />
                   </div>
                   <div className="mt-4 w-20 h-20 bg-gray-200 rounded flex items-center justify-center hidden md:flex">
-                    <RemixIcon icon={riServerLine} size="2x" className="text-green-700" />
+                    <ServerIcon size="2em" className="text-green-700" />
                   </div>
                 </div>
               </div>
@@ -373,18 +372,17 @@ const HomePage = () => {
                 </p>
                 <div className="grid grid-cols-6 gap-2 justify-between p-2 h-20 w-full mt-4 rounded">
                   <div className="transition-all col-span-2 duration-300 bg-blue-500 w-full flex items-center justify-center rounded">
-                    <RemixIcon icon={riBarChart2Fill} size="2x" className="text-white" />
+                    <ChartNoAxesColumnIncreasingIcon size="2em" className="text-white" />
                   </div>
                   <div className="transition-all col-span-2 sm:col-span-3 duration-300 bg-blue-600 w-full flex items-center justify-center rounded">
-                    <RemixIcon icon={riLineChartFill} size="2x" className="text-white" />
+                    <ChartLineIcon size="2em" className="text-white" />
                   </div>
                   <div className="relative -translate-y-2 col-span-2 sm:col-span-1 transition-all duration-300 bg-orange-700 w-full flex items-center justify-center rounded">
-                    <RemixIcon
-                      icon={riErrorWarningLine}
-                      size="lg"
+                    <CircleAlertIcon
+                      size="1.3333em"
                       className="absolute -right-2 -top-2 text-white bg-orange-900 rounded-full p-1 shadow"
                     />
-                    <RemixIcon icon={riDonutChartFill} size="2x" className="text-white" />
+                    <ChartPieIcon size="2em" className="text-white" />
                   </div>
                 </div>
               </div>

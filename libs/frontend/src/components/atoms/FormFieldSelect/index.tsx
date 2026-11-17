@@ -2,14 +2,7 @@
 
 import { ChangeEvent, FC, useMemo, useRef, useState, useEffect } from 'react'
 import noop from '@gruent/libs/frontend/util/noop'
-import {
-  RemixIcon,
-  riArrowDownSLine,
-  riArrowUpSLine,
-  riCheckboxBlankCircleLine,
-  riCheckboxCircleFill,
-  riCloseLine,
-} from '@mwarnerdotme/react-remixicon'
+import { ChevronDownIcon, ChevronUpIcon, CircleCheckIcon, CircleIcon, XIcon } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 type Option = {
@@ -274,10 +267,9 @@ const FormFieldSelect: FC<Props> = ({
                         transition={{ duration: 0.1, ease: 'easeInOut' }}
                         className="flex items-center justify-center"
                       >
-                        <RemixIcon
-                          icon={riCheckboxCircleFill}
+                        <CircleCheckIcon
+                          size=".875em"
                           className="text-green-800 dark:text-green-400"
-                          size="sm"
                         />
                       </motion.div>
                     ) : (
@@ -289,11 +281,7 @@ const FormFieldSelect: FC<Props> = ({
                         transition={{ duration: 0.1, ease: 'easeInOut' }}
                         className="flex items-center justify-center"
                       >
-                        <RemixIcon
-                          icon={riCheckboxBlankCircleLine}
-                          className="text-green-800 dark:text-green-400"
-                          size="sm"
-                        />
+                        <CircleIcon size=".875em" className="text-green-800 dark:text-green-400" />
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -357,7 +345,7 @@ const FormFieldSelect: FC<Props> = ({
             className="absolute transition cursor-pointer text-red-500 hover:text-red-600 dark:hover:text-red-400 top-1/2 -translate-y-1/2 -right-7"
             aria-label="Clear selection"
           >
-            <RemixIcon icon={riCloseLine} size="lg" />
+            <XIcon size="1.3333em" />
           </button>
         )}
         <AnimatePresence initial={false} mode="wait">
@@ -368,12 +356,11 @@ const FormFieldSelect: FC<Props> = ({
             exit={{ opacity: 0, y: isOpen ? -5 : 5 }}
             transition={{ duration: 0.1 }}
           >
-            <RemixIcon
-              icon={isOpen ? riArrowUpSLine : riArrowDownSLine}
-              size="lg"
-              className="cursor-pointer"
-              aria-hidden="true"
-            />
+            {isOpen ? (
+              <ChevronUpIcon size="1.3333em" className="cursor-pointer" aria-hidden="true" />
+            ) : (
+              <ChevronDownIcon size="1.3333em" className="cursor-pointer" aria-hidden="true" />
+            )}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -411,7 +398,7 @@ const FormFieldSelect: FC<Props> = ({
                         transition={{ duration: 0.1, ease: 'easeInOut' }}
                         className="flex items-center justify-center"
                       >
-                        <RemixIcon icon={riCheckboxCircleFill} className="text-green-800" />
+                        <CircleCheckIcon size="1em" className="text-green-800" />
                       </motion.div>
                     ) : (
                       <motion.div
@@ -422,7 +409,7 @@ const FormFieldSelect: FC<Props> = ({
                         transition={{ duration: 0.1, ease: 'easeInOut' }}
                         className="flex items-center justify-center"
                       >
-                        <RemixIcon icon={riCheckboxBlankCircleLine} className="text-green-800" />
+                        <CircleIcon size="1em" className="text-green-800" />
                       </motion.div>
                     )}
                   </AnimatePresence>

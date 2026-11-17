@@ -1,4 +1,4 @@
-import { RemixIcon, riHome4Line, riUser3Line } from '@mwarnerdotme/react-remixicon'
+import { HouseIcon, UserIcon } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import styles from './layout.module.css'
@@ -31,12 +31,12 @@ const Layout = async ({ children }) => {
             <ul className="flex flex-col gap-4 mt-4">
               <li>
                 <Link href={`/dashboard`}>
-                  <RemixIcon icon={riHome4Line} size={'xl'} className={styles.sidebarLink} />
+                  <HouseIcon size="1.5em" className={styles.sidebarLink} />
                 </Link>
               </li>
               <li>
                 <Link href={`/profiles/${userId}`}>
-                  <RemixIcon icon={riUser3Line} className={styles.sidebarLink} size="lg" />
+                  <UserIcon size="1.3333em" className={styles.sidebarLink} />
                 </Link>
               </li>
             </ul>

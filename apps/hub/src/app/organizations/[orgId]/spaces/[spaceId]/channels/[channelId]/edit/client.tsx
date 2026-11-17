@@ -8,22 +8,21 @@ import type { ChannelConfig } from '@gruent/libs/engine/channels/index'
 import { useQuery } from '@tanstack/react-query'
 import gruentClient from '@gruent/hub/lib/gruent'
 import {
-  RemixIcon,
-  riClipboardFill,
-  riLoader3Fill,
-  riCloseLine,
-  riAddCircleLine,
-  riDeleteBin7Line,
-  riGitForkFill,
-  riUserCommunityFill,
-  riCircleLine,
-  riHistoryLine,
-  riFileSearchLine,
-  riShare2Line,
-  riSave3Line,
-  riLayout3Line,
-  riCloudLine,
-} from '@mwarnerdotme/react-remixicon'
+  CircleIcon,
+  CirclePlusIcon,
+  ClipboardIcon,
+  CloudIcon,
+  FileSearchIcon,
+  GitForkIcon,
+  HistoryIcon,
+  LoaderCircleIcon,
+  PanelsTopLeftIcon,
+  SaveIcon,
+  ShareIcon,
+  Trash2Icon,
+  UsersIcon,
+  XIcon,
+} from 'lucide-react'
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
 import NodeLibraryPane from '@gruent/hub/components/organisms/ChannelEditor/NodeLibraryPane'
 import NodeOptionsPane from '@gruent/hub/components/organisms/ChannelEditor/NodeOptionsPane'
@@ -499,7 +498,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
   if (getChannelConfigStatus === 'pending') {
     return (
       <div className="w-full h-full flex justify-center items-center">
-        <RemixIcon className="animate-spin" icon={riLoader3Fill} size="3x" />
+        <LoaderCircleIcon size="3em" className="animate-spin" />
       </div>
     )
   }
@@ -526,7 +525,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
             className="flex items-center gap-1 transition text-gray-700 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-200"
           >
             <div className="w-5 h-5 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xs">
-              <RemixIcon icon={riUserCommunityFill} size={'sm'} />
+              <UsersIcon size=".875em" />
             </div>
             {organization?.name}
           </Link>
@@ -536,14 +535,14 @@ const ChannelByIdEditClientPage: FC<Props> = ({
             className="flex items-center gap-1 transition text-gray-700 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-200"
           >
             <div className="w-5 h-5 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xs">
-              <RemixIcon icon={riCircleLine} size={'sm'} />
+              <CircleIcon size=".875em" />
             </div>
             {space?.name}
           </Link>
           <span>/</span>
           <div className="flex items-center gap-1">
             <div className="w-5 h-5 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xs">
-              <RemixIcon icon={riGitForkFill} size={'sm'} className="rotate-180" />
+              <GitForkIcon size=".875em" className="rotate-180" />
             </div>
             <Link
               href={`/organizations/${orgId}/spaces/${spaceId}/channels/${channelId}`}
@@ -576,7 +575,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.1 }}
                     >
-                      <RemixIcon icon={riLoader3Fill} size="lg" className="animate-spin" />
+                      <LoaderCircleIcon size="1.3333em" className="animate-spin" />
                       <span className="py-1 px-3 bg-orange-600 text-white rounded-full">
                         Initializing
                       </span>
@@ -632,15 +631,13 @@ const ChannelByIdEditClientPage: FC<Props> = ({
               {dayjs(channel?.updatedAt).format('hh:mm a')}
             </p>
             <Button text="Save" variant="transparent" className="text-xs" onClick={handleSave} />
-            <RemixIcon
-              icon={riFileSearchLine}
-              size="xl"
+            <FileSearchIcon
+              size="1.5em"
               className="transition cursor-pointer hover:text-green-700"
               onClick={() => openModal('channelExecutionsTable')}
             />
-            <RemixIcon
-              icon={riHistoryLine}
-              size="xl"
+            <HistoryIcon
+              size="1.5em"
               className="transition cursor-pointer hover:text-green-700"
               onClick={() =>
                 addToast({
@@ -651,10 +648,10 @@ const ChannelByIdEditClientPage: FC<Props> = ({
               }
             />
             <ContextMenu
-              iconSize="lg"
+              iconSize="1.3333em"
               contextMenuButtons={[
                 {
-                  icon: riShare2Line,
+                  icon: ShareIcon,
                   title: 'Export',
                   hotkey: {
                     modifiers: ['ctrlOrMeta'],
@@ -663,7 +660,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
                   onClick: () => openModal('exportChannel'),
                 },
                 {
-                  icon: riSave3Line,
+                  icon: SaveIcon,
                   title: 'Save',
                   hotkey: {
                     modifiers: ['ctrlOrMeta'],
@@ -672,7 +669,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
                   onClick: handleSave,
                 },
                 {
-                  icon: riLayout3Line,
+                  icon: PanelsTopLeftIcon,
                   title: 'Switch modes',
                   hotkey: {
                     modifiers: ['ctrlOrMeta'],
@@ -681,7 +678,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
                   onClick: () => openModal('channelExecutionsTable'),
                 },
                 {
-                  icon: riDeleteBin7Line,
+                  icon: Trash2Icon,
                   title: 'Delete',
                   onClick: async () => {
                     const { error } = await handleDeleteChannel(spaceId, channelId)
@@ -712,7 +709,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
       >
         <Modal id="channelExecutionsTable" showAccept={false}>
           <p>
-            <RemixIcon className="mr-1" icon={riCloudLine} />
+            <CloudIcon size="1em" className="mr-1" />
             {channelStatus === 'PUBLISHED' && (
               <span className="py-1 px-3 text-sm rounded-full bg-green-600 dark:bg-green-300 text-white dark:text-green-900">
                 Published
@@ -814,11 +811,10 @@ const ChannelByIdEditClientPage: FC<Props> = ({
             className="overflow-scroll bg-gray-900 text-sm text-gray-200 rounded-sm p-3"
           >
             <pre className="relative">
-              <RemixIcon
-                icon={riClipboardFill}
+              <ClipboardIcon
+                size="1.3333em"
                 className="absolute top-0 right-0 cursor-pointer hover:text-gray-100"
                 onClick={handleCopyChannelConfig}
-                size="lg"
               />
               {JSON.stringify(channelConfig, null, 2)}
             </pre>
@@ -836,17 +832,15 @@ const ChannelByIdEditClientPage: FC<Props> = ({
                 transition={{ duration: 0.1 }}
               >
                 {nodeLibraryOpen ? (
-                  <RemixIcon
+                  <XIcon
+                    size="1.5em"
                     className="transition text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
-                    icon={riCloseLine}
-                    size="xl"
                     onClick={() => setNodeLibraryOpen(false)}
                   />
                 ) : (
-                  <RemixIcon
+                  <CirclePlusIcon
+                    size="1.5em"
                     className="transition text-gray-700 dark:text-gray-300 hover:text-primary bg-gray-50 dark:bg-gray-900"
-                    icon={riAddCircleLine}
-                    size="xl"
                     onClick={() => setNodeLibraryOpen(true)}
                   />
                 )}
@@ -867,10 +861,9 @@ const ChannelByIdEditClientPage: FC<Props> = ({
                 transition={{ duration: 0.1 }}
               >
                 {(currentNode || currentEdge || currentNote) && (
-                  <RemixIcon
+                  <Trash2Icon
+                    size="1.5em"
                     className="hover:text-red-500"
-                    icon={riDeleteBin7Line}
-                    size="xl"
                     onClick={() => {
                       if (currentNode) removeNode(currentNode.id)
                       if (currentEdge) removeEdge(currentEdge.id)

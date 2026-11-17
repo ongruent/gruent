@@ -1,12 +1,15 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
 import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
 import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
-import { HttpActionNodeConfig, HttpMethod } from '@gruent/libs/legacy/engine/nodes/v1/src/action/http'
+import {
+  HttpActionNodeConfig,
+  HttpMethod,
+} from '@gruent/libs/legacy/engine/nodes/v1/src/action/http'
 import { Thing } from '@prisma/client'
 import { FC, useEffect, useMemo, useState } from 'react'
 import Button from '@gruent/libs/frontend/components/atoms/Button'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
-import { RemixIcon, riAddLine } from '@mwarnerdotme/react-remixicon'
+import { PlusIcon } from 'lucide-react'
 
 type Props = {
   things: Thing[]
@@ -130,7 +133,7 @@ const HttpActionOptions: FC<Props> = ({ things }) => {
           }
         />
         <Button className="my-3" onClick={() => openModal('createThing')}>
-          <RemixIcon icon={riAddLine} />
+          <PlusIcon size="1em" />
         </Button>
       </div>
       <FormFieldSelect

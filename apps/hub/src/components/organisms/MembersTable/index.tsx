@@ -12,8 +12,7 @@ import { OrganizationMember, PermissionSet, User } from '@prisma/client'
 import ListTable from '@gruent/hub/components/atoms/ListTable'
 import { useRouter } from 'next/navigation'
 import MemberContextMenu from './MembersContextMenu'
-import { riAdminLine, riMailLine, riUserSettingsLine } from '@mwarnerdotme/react-remixicon'
-import { RemixIcon } from '@mwarnerdotme/react-remixicon'
+import { MailIcon, UserCogIcon, UserLockIcon } from 'lucide-react'
 // import IndeterminateCheckbox from "../../atoms/IndeterminateCheckbox"
 
 type Member = OrganizationMember & {
@@ -61,7 +60,7 @@ const MembersTable: FC<Props> = ({
     columnHelper.accessor('user.email', {
       header: () => (
         <div className="flex items-center">
-          <RemixIcon className="mr-1" icon={riMailLine} />
+          <MailIcon size="1em" className="mr-1" />
           <span>Email</span>
         </div>
       ),
@@ -71,7 +70,7 @@ const MembersTable: FC<Props> = ({
     columnHelper.accessor('role', {
       header: () => (
         <div className="flex items-center">
-          <RemixIcon className="mr-1" icon={riAdminLine} />
+          <UserLockIcon size="1em" className="mr-1" />
           <span>Role</span>
         </div>
       ),
@@ -82,7 +81,7 @@ const MembersTable: FC<Props> = ({
     columnHelper.accessor('organizationPermissionSetId', {
       header: () => (
         <div className="flex items-center">
-          <RemixIcon className="mr-1" icon={riUserSettingsLine} />
+          <UserCogIcon size="1em" className="mr-1" />
           <span>Permission Set</span>
         </div>
       ),

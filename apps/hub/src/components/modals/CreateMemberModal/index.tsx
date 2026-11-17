@@ -9,12 +9,7 @@ import gruentClient from '@gruent/hub/lib/gruent'
 import { handleAddMember, handleInviteMember } from '@gruent/hub/actions/members'
 import { closeModal } from '@gruent/libs/frontend/hooks/useModal'
 import { useDebounce } from '@react-hooks-library/core'
-import {
-  RemixIcon,
-  riLoader2Fill,
-  riMailAddLine,
-  riMailCheckLine,
-} from '@mwarnerdotme/react-remixicon'
+import { LoaderCircleIcon, MailCheckIcon, MailPlusIcon } from 'lucide-react'
 import useAuth from '@gruent/hub/hooks/useAuth'
 
 type Props = {
@@ -113,7 +108,7 @@ const CreateMemberModal: FC<Props> = ({ orgId }) => {
           <ul className="absolute top-11 bg-white dark:bg-gray-900 border border-gray-200 w-full rounded-b">
             {userList.length <= 0 && isSearchMembersLoading && (
               <li className="py-3 px-5 border-b border-gray-200 dark:border-gray-700 text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition cursor-pointer">
-                <RemixIcon className="animate-spin" icon={riLoader2Fill} />
+                <LoaderCircleIcon size="1em" className="animate-spin" />
               </li>
             )}
             {userList.length <= 0 && !isSearchMembersLoading && !isInputValidEmail && (
@@ -161,18 +156,18 @@ const CreateMemberModal: FC<Props> = ({ orgId }) => {
                   className="py-3 px-5 flex items-center text-gray-600 hover:text-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 transition cursor-pointer"
                   onClick={() => handleSendInvitation(emailInput)}
                 >
-                  <RemixIcon icon={riMailAddLine} className="mr-1 dark:text-gray-300" />
+                  <MailPlusIcon size="1em" className="mr-1 dark:text-gray-300" />
                   <p>Invite {emailInput}</p>
                 </li>
               )}
             {isMemberInvitePending && !isMemberInviteSuccess && (
               <li className="py-3 px-5 border-b border-gray-200 dark:border-gray-700 text-gray-600 hover:text-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 transition cursor-pointer">
-                <RemixIcon className="animate-spin" icon={riLoader2Fill} />
+                <LoaderCircleIcon size="1em" className="animate-spin" />
               </li>
             )}
             {isMemberInviteSuccess && (
               <li className="py-3 px-5 flex items-center border-b border-gray-200 dark:border-gray-700 text-gray-600 hover:text-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
-                <RemixIcon icon={riMailCheckLine} className="mr-1 dark:text-gray-300" />
+                <MailCheckIcon size="1em" className="mr-1 dark:text-gray-300" />
                 <p>Invite sent!</p>
               </li>
             )}

@@ -1,7 +1,7 @@
 import { ChannelNode, defaultNodes } from '@gruent/libs/legacy/engine/nodes/v1'
 import { DragEvent, FC } from 'react'
 import styles from './NodeLibrarySectionNode.module.css'
-import { RemixIcon, riDraggable } from '@mwarnerdotme/react-remixicon'
+import { GripVerticalIcon } from 'lucide-react'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 
 type Props = {
@@ -32,9 +32,9 @@ const NodeLibrarySectionNode: FC<Props> = ({ label, defaultNode }) => {
           handleDragStart(e, label)
         }}
       >
-        <RemixIcon
+        <GripVerticalIcon
+          size="1em"
           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-600"
-          icon={riDraggable}
         />
         <h3 className={styles.name}>{defaultNode?.metadata?.name ?? label}</h3>
         {defaultNode?.metadata?.description && (
