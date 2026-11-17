@@ -1,6 +1,6 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
 import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
-import { ChannelNode } from '@gruent/libs/engine/nodes/v1'
+import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import { S3ActionSubnodeConfig } from '@gruent/libs/engine/nodes/v1/src/action/fileStorage/lib/awsS3'
 import { Thing } from '@prisma/client'
 import { FC, useEffect, useMemo, useState } from 'react'

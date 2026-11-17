@@ -1,6 +1,6 @@
 import { DragEvent, FC, useMemo, useState } from 'react'
 import NodeLibrarySection from './NodeLibrarySection'
-import { ChannelNodeType, defaultNodes } from '@gruent/libs/engine/nodes/v1'
+import { ChannelNodeType, defaultNodes } from '@gruent/libs/legacy/engine/nodes/v1'
 import {
   RemixIcon,
   riCloseFill,

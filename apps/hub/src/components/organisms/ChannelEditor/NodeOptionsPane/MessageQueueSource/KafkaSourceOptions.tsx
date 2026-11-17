@@ -1,6 +1,6 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
 import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
-import { ChannelNode } from '@gruent/libs/engine/nodes/v1'
+import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import { MessageQueueSourceNodeConfig } from '@gruent/libs/engine/nodes/v1/src/source/messageQueue'
 import { Thing } from '@prisma/client'
 import { FC, useEffect, useState } from 'react'

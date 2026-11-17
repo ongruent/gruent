@@ -1,6 +1,6 @@
-import { ChannelNode, defaultNodes } from '@gruent/libs/engine/nodes/v1'
+import { ChannelNode, defaultNodes } from '@gruent/libs/legacy/engine/nodes/v1'
 import { DragEvent, FC } from 'react'
-import styles from './NodeLibrarySectionNode.module.scss'
+import styles from './NodeLibrarySectionNode.module.css'
 import { RemixIcon, riDraggable } from '@mwarnerdotme/react-remixicon'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 

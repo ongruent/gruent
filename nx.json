@@ -80,5 +80,6 @@
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "useInferencePlugins": false,
   "neverConnectToCloud": true,
-  "useLegacyCache": false
+  "useLegacyCache": false,
+  "analytics": false
 }

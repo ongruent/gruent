@@ -21,6 +21,8 @@
       "@gruent/libs/engine/channels/*": ["libs/engine/channels/*"],
       "@gruent/libs/engine/dependencies/*": ["libs/engine/dependencies/*"],
       "@gruent/libs/engine/nodes/*": ["libs/engine/nodes/*"],
+      "@gruent/libs/legacy/engine/channels/*": ["libs/legacy/engine/channels/*"],
+      "@gruent/libs/legacy/engine/nodes/*": ["libs/legacy/engine/nodes/*"],
       "@gruent/libs/frontend/*": ["libs/frontend/src/*"],
       "@gruent/libs/http/*": ["libs/http/*"],
       "@gruent/libs/gruent-js/*": ["libs/gruent-js/*"],

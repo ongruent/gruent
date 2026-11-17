@@ -1,11 +1,11 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
 import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
-import { ChannelNode } from '@gruent/libs/engine/nodes/v1'
+import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import {
   StringCompareConditionalNodeConfig,
   StringComparison,
   StringComparisonOperator,
-} from '@gruent/libs/engine/nodes/v1/src/conditional/stringCompare'
+} from '@gruent/libs/legacy/engine/nodes/v1/src/conditional/stringCompare'
 import { Model } from '@prisma/client'
 import {
   ChangeEvent,

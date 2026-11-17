@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5"
 	gruenthttp "github.com/ongruent/gruent/libs/http"
 	"github.com/ongruent/gruent/services/http-api/services/sqlc"
-	"github.com/jackc/pgx/v5"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 )

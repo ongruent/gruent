@@ -4,8 +4,8 @@ import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSel
 import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
 import Modal from '@gruent/libs/frontend/components/organisms/Modal'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
-import { ChannelNode, ThresholdConditionalNodeConfig } from '@gruent/libs/engine/nodes/v1'
-import { Condition, Operator } from '@gruent/libs/engine/nodes/v1/src/conditional/threshold'
+import { ChannelNode, ThresholdConditionalNodeConfig } from '@gruent/libs/legacy/engine/nodes/v1'
+import { Condition, Operator } from '@gruent/libs/legacy/engine/nodes/v1/src/conditional/threshold'
 import { RemixIcon, riAddLine, riCloseLine } from '@mwarnerdotme/react-remixicon'
 import {
   ChangeEvent,

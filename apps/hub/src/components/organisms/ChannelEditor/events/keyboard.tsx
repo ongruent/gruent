@@ -1,23 +1,51 @@
 'use client'
 
-import { useKeyDown } from '@react-hooks-library/core'
-import { RefObject } from 'react'
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
-import { EditorHooks } from '..'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
+import { useKeyDown } from '@react-hooks-library/core'
+import { RefObject, useEffect, useRef } from 'react'
+import { EditorHooks } from '..'
 
 export const useChannelEditorKeyboardEvents = (
-  editorRef: RefObject<HTMLCanvasElement | null>,
+  editorRef: RefObject<HTMLDivElement | null>,
   hooks?: EditorHooks,
 ) => {
+  // Track whether the editor canvas was the last thing the user interacted with. xyflow can
+  // re-render the element under the pointer (e.g. a newly selected edge), which drops focus to
+  // <body>, so focus alone is not a reliable signal.
+  const isEditorActive = useRef(false)
+
+  useEffect(() => {
+    const handlePointerDown = (e: PointerEvent) => {
+      isEditorActive.current = !!editorRef.current?.contains(e.target as Node)
+    }
+    const handleFocusIn = (e: FocusEvent) => {
+      if (!editorRef.current?.contains(e.target as Node)) isEditorActive.current = false
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown, true)
+    document.addEventListener('focusin', handleFocusIn)
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown, true)
+      document.removeEventListener('focusin', handleFocusIn)
+    }
+  }, [editorRef])
+
+  // Only handle editing shortcuts while the editor canvas is in use (e.g. not while typing in a form)
+  const isEditorFocused = () => {
+    const activeElement = document.activeElement
+    const isFocusInEditor =
+      !activeElement ||
+      activeElement === document.body ||
+      !!editorRef.current?.contains(activeElement)
+    return isEditorActive.current && isFocusInEditor
+  }
+
   // set up store
   const currentNode = useChannelEditorStore((state) => state.currentNode)
   const removeNode = useChannelEditorStore((state) => state.removeNode)
   const setCurrentNode = useChannelEditorStore((state) => state.setCurrentNode)
-  const edges = useChannelEditorStore((state) => state.edges)
   const removeEdge = useChannelEditorStore((state) => state.removeEdge)
-  const ioPoints = useChannelEditorStore((state) => state.ioPoints)
-  const removeIoPoint = useChannelEditorStore((state) => state.removeIoPoint)
   const currentEdge = useChannelEditorStore((state) => state.currentEdge)
   const setCurrentEdge = useChannelEditorStore((state) => state.setCurrentEdge)
   const currentNote = useChannelEditorStore((state) => state.currentNote)
@@ -25,28 +53,10 @@ export const useChannelEditorKeyboardEvents = (
   const removeNote = useChannelEditorStore((state) => state.removeNote)
 
   const handleDeleteKeypress = () => {
-    if (!editorRef || !editorRef.current) return
-    if (document.activeElement !== editorRef.current) return
+    if (!isEditorFocused()) return
 
     if (currentNode) {
-      // update nodes map
-      const currentNodeEdges = Array.from(edges.values()).map((edge) => {
-        if (edge.from.nodeId === currentNode.id) return [edge.id, true]
-        if (edge.to.nodeId === currentNode.id) return [edge.id, true]
-        return [edge.id, false]
-      })
-
-      for (const currentNodeEdge of currentNodeEdges) {
-        const [edgeId, isAttachedToEdge] = currentNodeEdge
-        if (isAttachedToEdge) removeEdge(edgeId as string)
-      }
-
-      // update IO points map
-      for (const [id, _] of ioPoints) {
-        if (id.includes(currentNode.id)) removeIoPoint(id)
-      }
-
-      // update nodes map
+      // update nodes map (attached edges are removed with the node)
       removeNode(currentNode.id)
 
       // reset current node
@@ -92,7 +102,7 @@ export const useChannelEditorKeyboardEvents = (
   }
 
   const handleUndoKeypress = (e: KeyboardEvent) => {
-    if (document.activeElement !== editorRef.current) return
+    if (!isEditorFocused()) return
 
     // Handle redo (shift)
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'z') {
@@ -117,7 +127,7 @@ export const useChannelEditorKeyboardEvents = (
   }
 
   const handleCopyKeypress = (e: KeyboardEvent) => {
-    if (document.activeElement !== editorRef.current) return
+    if (!isEditorFocused()) return
 
     // Handle copy
     if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
@@ -131,7 +141,7 @@ export const useChannelEditorKeyboardEvents = (
   }
 
   const handlePasteKeypress = (e: KeyboardEvent) => {
-    if (document.activeElement !== editorRef.current) return
+    if (!isEditorFocused()) return
 
     // Handle paste
     if ((e.ctrlKey || e.metaKey) && e.key === 'v') {

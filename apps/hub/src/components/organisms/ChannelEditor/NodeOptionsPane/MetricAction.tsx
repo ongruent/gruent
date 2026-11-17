@@ -1,7 +1,7 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
 import Button from '@gruent/libs/frontend/components/atoms/Button'
 import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
-import { ChannelNode, MetricActionNodeConfig } from '@gruent/libs/engine/nodes/v1'
+import { ChannelNode, MetricActionNodeConfig } from '@gruent/libs/legacy/engine/nodes/v1'
 import { Model, Thing } from '@prisma/client'
 import { FC, useEffect, useMemo, useState } from 'react'
 import { RemixIcon, riAddLine } from '@mwarnerdotme/react-remixicon'

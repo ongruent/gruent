@@ -32,7 +32,7 @@ const ChannelByIdEditPage = async ({ params }) => {
 
   const { data: organization, errors: organizationErrors } = await gruentClient(
     accessToken,
-  ).organizations.get(space?.organizationId ?? '')
+  ).organizations.get(orgId ?? '')
 
   if (organizationErrors && organizationErrors.length > 0) {
     return (

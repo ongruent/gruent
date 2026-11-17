@@ -9,7 +9,7 @@ import {
   riSettings3Line,
   riShieldUserLine,
 } from '@mwarnerdotme/react-remixicon'
-import styles from './layout.module.scss'
+import styles from './layout.module.css'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
 import FeedbackButton from '@gruent/hub/components/molecules/FeedbackButton'
 

@@ -1,5 +1,5 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
-import { ChannelNode } from '@gruent/libs/engine/nodes/v1'
+import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import { TimeSeriesDbNodeConfig } from '@gruent/libs/engine/nodes/v1/src/action/timeSeriesDb'
 import { Thing } from '@prisma/client'
 import { FC, useEffect, useMemo, useState } from 'react'

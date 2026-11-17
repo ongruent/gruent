@@ -44,7 +44,7 @@ func New() *Api {
 		AppName:           "http-api",
 		Prefork:           prefork,
 		ServerHeader:      "Fiber",
-		EnablePrintRoutes: true,
+		EnablePrintRoutes: false,
 	})
 
 	// Add middleware

@@ -1,6 +1,6 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
 import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
-import { ChannelNode, ExistenceConditionalNodeConfig } from '@gruent/libs/engine/nodes/v1'
+import { ChannelNode, ExistenceConditionalNodeConfig } from '@gruent/libs/legacy/engine/nodes/v1'
 import { Model } from '@prisma/client'
 import { FC, useCallback, useEffect, useMemo, useState } from 'react'
 import { ModelAttribute, ModelAttributes } from '@gruent/libs/engine/dependencies/models'
