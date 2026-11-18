@@ -58,8 +58,8 @@ const Layout = async ({ children, params }) => {
                   <HouseIcon size="1.5em" className={styles.sidebarLink} />
                 </Link>
               </li>
-              <li id="spaceThings">
-                <Link href={`/organizations/${orgId}/spaces/${spaceId}/things`}>
+              <li id="spaceConnections">
+                <Link href={`/organizations/${orgId}/spaces/${spaceId}/connections`}>
                   <RouterIcon size="1.5em" className={styles.sidebarLink} />
                 </Link>
               </li>

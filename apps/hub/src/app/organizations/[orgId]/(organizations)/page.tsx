@@ -51,7 +51,7 @@ const DashboardPage = async ({ params }) => {
           <div>
             <h2>Spaces</h2>
             <p>
-              <small>Manage channels, things, data, and more.</small>
+              <small>Manage channels, connections, data, and more.</small>
             </p>
           </div>
           <div className="grow" />

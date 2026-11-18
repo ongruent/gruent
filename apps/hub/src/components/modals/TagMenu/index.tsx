@@ -2,7 +2,7 @@
 
 import { Dispatch, FC, SetStateAction, useCallback, useMemo, useRef, useState } from 'react'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
-import { Thing, Model, Channel, Tag, AppliedTag } from '@prisma/client'
+import { Connection, Model, Channel, Tag, AppliedTag } from '@prisma/client'
 import { handleApplyTag, handleCreateTag, handleRemoveTag } from '@gruent/hub/actions/tags'
 import { LoaderCircleIcon, PlusIcon, XIcon } from 'lucide-react'
 import { useClickOutside } from '@react-hooks-library/core'
@@ -14,8 +14,8 @@ type Props = {
   spaceId: string
   onClose?: () => void
   onSubmit?: () => void
-  subject?: (Thing | Model | Channel) & { tags?: (AppliedTag & { tag: Tag })[] }
-  setSubject: Dispatch<SetStateAction<Thing | Model | Channel | undefined>>
+  subject?: (Connection | Model | Channel) & { tags?: (AppliedTag & { tag: Tag })[] }
+  setSubject: Dispatch<SetStateAction<Connection | Model | Channel | undefined>>
   tags: Tag[]
 }
 

@@ -1,4 +1,4 @@
-import { Model, Organization, Space, Thing } from '@prisma/client'
+import { Model, Organization, Space, Connection } from '@prisma/client'
 import { ListRequestOptions } from './request'
 import type { ChannelConfig } from '@gruent/libs/engine/channels/index'
 import healthcheck from './healthcheck'
@@ -47,13 +47,13 @@ import {
   createChannel,
 } from './channels'
 import {
-  createThing,
-  deleteThing,
-  listThings,
-  getThing,
-  healthcheckThing,
-  updateThing,
-} from './things'
+  createConnection,
+  deleteConnection,
+  listConnections,
+  getConnection,
+  healthcheckConnection,
+  updateConnection,
+} from './connections'
 import { getCertificate } from './certificates'
 import { listSecrets, createSecret, updateSecret, deleteSecret } from './secrets'
 import { listTags, createTag, deleteTag } from './tags'
@@ -231,7 +231,7 @@ export class Client {
     }
   }
 
-  public get things() {
+  public get connections() {
     return {
       list: (
         spaceId: string,
@@ -240,16 +240,20 @@ export class Client {
           filter?: string
           tagFilter?: string[]
         },
-      ) => listThings(this.key, this._config, spaceId, options),
-      get: (spaceId: string, thingId: string) => getThing(this.key, this._config, spaceId, thingId),
-      delete: (spaceId: string, thingId: string) =>
-        deleteThing(this.key, this._config, spaceId, thingId),
+      ) => listConnections(this.key, this._config, spaceId, options),
+      get: (spaceId: string, connectionId: string) =>
+        getConnection(this.key, this._config, spaceId, connectionId),
+      delete: (spaceId: string, connectionId: string) =>
+        deleteConnection(this.key, this._config, spaceId, connectionId),
       create: (spaceId: string, name: string, category: string, attributes: Object) =>
-        createThing(this.key, this._config, spaceId, name, category, attributes),
-      update: (spaceId: string, thingId: string, thingInput: Pick<Thing, 'name' | 'attributes'>) =>
-        updateThing(this.key, this._config, spaceId, thingId, thingInput),
-      healthcheck: (spaceId: string, thingCategory: string, attributes: Record<string, any>) =>
-        healthcheckThing(this.key, this._config, spaceId, thingCategory, attributes),
+        createConnection(this.key, this._config, spaceId, name, category, attributes),
+      update: (
+        spaceId: string,
+        connectionId: string,
+        connectionInput: Pick<Connection, 'name' | 'attributes'>,
+      ) => updateConnection(this.key, this._config, spaceId, connectionId, connectionInput),
+      healthcheck: (spaceId: string, connectionCategory: string, attributes: Record<string, any>) =>
+        healthcheckConnection(this.key, this._config, spaceId, connectionCategory, attributes),
     }
   }
 
@@ -285,7 +289,7 @@ export class Client {
 
   public get tags() {
     return {
-      list: (spaceId: string, category?: 'things' | 'channels' | 'models') =>
+      list: (spaceId: string, category?: 'connections' | 'channels' | 'models') =>
         listTags(this.key, this._config, spaceId, category),
       create: (spaceId: string, name: string) => createTag(this.key, this._config, spaceId, name),
       delete: (spaceId: string, tagId: string) => deleteTag(this.key, this._config, spaceId, tagId),

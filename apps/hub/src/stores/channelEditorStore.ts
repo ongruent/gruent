@@ -1,58 +1,62 @@
-import { ChannelEdge, ChannelNote, ChannelRuntime } from '@gruent/libs/legacy/engine/channels/channels'
+import {
+  ChannelEdge,
+  ChannelNote,
+  ChannelRuntime,
+} from '@gruent/libs/legacy/engine/channels/channels'
 import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
-import { Model, Thing } from '@prisma/client'
+import { Model, Connection } from '@prisma/client'
 import { create } from 'zustand'
 
 type State = {
-  nodes: Map<string, ChannelNode>
+  steps: Map<string, ChannelNode>
   edges: Map<string, ChannelEdge>
   notes: Map<string, ChannelNote>
   channelName: string
-  currentNode: ChannelNode | null
+  currentStep: ChannelNode | null
   currentEdge: ChannelEdge | null
   currentNote: ChannelNote | null
   runtime: ChannelRuntime
   validationErrors: {
     channelErrors: string[] | null
-    nodeErrors: Record<string, string[]> | null
+    stepErrors: Record<string, string[]> | null
   } | null
   status?: 'PUBLISHED' | 'UNPUBLISHED' | 'INITIALIZING'
   models: Model[]
-  things: Thing[]
+  connections: Connection[]
 }
 
 type Action = {
   reset: () => void
-  upsertNode: (nodeId: string, node: ChannelNode) => void
-  moveNode: (nodeId: string, coordinates: { x: number; y: number }) => void
-  removeNode: (nodeId: string) => void
+  upsertStep: (stepId: string, step: ChannelNode) => void
+  moveStep: (stepId: string, coordinates: { x: number; y: number }) => void
+  removeStep: (stepId: string) => void
   upsertEdge: (edgeId: string, edge: ChannelEdge) => void
   removeEdge: (edgeId: string) => void
   upsertNote: (noteId: string, note: ChannelNote) => void
   moveNote: (noteId: string, coordinates: { x: number; y: number }) => void
   removeNote: (noteId: string) => void
   setChannelName: (channelName: string) => void
-  setCurrentNode: (currentNode: ChannelNode | null) => void
+  setCurrentStep: (currentStep: ChannelNode | null) => void
   setCurrentEdge: (edge: ChannelEdge | null) => void
   setCurrentNote: (note: ChannelNote | null) => void
   setRuntime: (runtime: ChannelRuntime) => void
   setValidationErrors: (
     validationErrors: {
       channelErrors: string[] | null
-      nodeErrors: Record<string, string[]> | null
+      stepErrors: Record<string, string[]> | null
     } | null,
   ) => void
   setStatus: (status: 'PUBLISHED' | 'UNPUBLISHED' | 'INITIALIZING') => void
   setModels: (models: Model[]) => void
-  setThings: (things: Thing[]) => void
+  setConnections: (connections: Connection[]) => void
 }
 
 const initialState: State = {
-  nodes: new Map([]),
+  steps: new Map([]),
   edges: new Map([]),
   notes: new Map([]),
   channelName: '',
-  currentNode: null,
+  currentStep: null,
   currentEdge: null,
   currentNote: null,
   runtime: {
@@ -60,43 +64,43 @@ const initialState: State = {
   },
   validationErrors: null,
   models: [],
-  things: [],
+  connections: [],
 }
 
 const useChannelEditorStore = create<State & Action>((set, get) => ({
   ...initialState,
   reset: () => set(initialState),
-  upsertNode: (nodeId, node) => {
-    const nodes = get().nodes
-    const updatedNodes = new Map(nodes)
-    updatedNodes.delete(nodeId) // deleting plus setting causes the node to go to the top of the map, rendering on top in the editor
-    updatedNodes.set(nodeId, node)
-    set({ nodes: updatedNodes })
+  upsertStep: (stepId, step) => {
+    const steps = get().steps
+    const updatedSteps = new Map(steps)
+    updatedSteps.delete(stepId) // deleting plus setting causes the step to go to the top of the map, rendering on top in the editor
+    updatedSteps.set(stepId, step)
+    set({ steps: updatedSteps })
   },
-  moveNode: (nodeId, coordinates) => {
-    const { nodes, currentNode } = get()
-    const node = nodes.get(nodeId)
-    if (!node) return
-    const updatedNode = { ...node, coordinates }
-    const updatedNodes = new Map(nodes)
-    updatedNodes.set(nodeId, updatedNode)
+  moveStep: (stepId, coordinates) => {
+    const { steps, currentStep } = get()
+    const step = steps.get(stepId)
+    if (!step) return
+    const updatedStep = { ...step, coordinates }
+    const updatedSteps = new Map(steps)
+    updatedSteps.set(stepId, updatedStep)
     // Keep the selected copy in sync so option panes don't write stale coordinates back
     set({
-      nodes: updatedNodes,
-      ...(currentNode?.id === nodeId ? { currentNode: updatedNode } : {}),
+      steps: updatedSteps,
+      ...(currentStep?.id === stepId ? { currentStep: updatedStep } : {}),
     })
   },
-  removeNode: (nodeId) => {
-    const { nodes, edges } = get()
-    const updatedNodes = new Map(nodes)
-    updatedNodes.delete(nodeId)
-    // Remove edges attached to the node so the channel config never references a missing node
+  removeStep: (stepId) => {
+    const { steps, edges } = get()
+    const updatedSteps = new Map(steps)
+    updatedSteps.delete(stepId)
+    // Remove edges attached to the step so the channel config never references a missing step
     const updatedEdges = new Map(
       Array.from(edges).filter(
-        ([_, edge]) => edge.from.nodeId !== nodeId && edge.to.nodeId !== nodeId,
+        ([_, edge]) => edge.from.nodeId !== stepId && edge.to.nodeId !== stepId,
       ),
     )
-    set({ nodes: updatedNodes, edges: updatedEdges })
+    set({ steps: updatedSteps, edges: updatedEdges })
   },
   upsertEdge: (edgeId, edge) => {
     const edges = get().edges
@@ -137,14 +141,14 @@ const useChannelEditorStore = create<State & Action>((set, get) => ({
     set({ notes: updatedNotes })
   },
   setChannelName: (channelName) => set({ channelName }),
-  setCurrentNode: (currentNode) => set({ currentNode, currentEdge: null, currentNote: null }),
-  setCurrentEdge: (currentEdge) => set({ currentNode: null, currentEdge, currentNote: null }),
-  setCurrentNote: (currentNote) => set({ currentNode: null, currentEdge: null, currentNote }),
+  setCurrentStep: (currentStep) => set({ currentStep, currentEdge: null, currentNote: null }),
+  setCurrentEdge: (currentEdge) => set({ currentStep: null, currentEdge, currentNote: null }),
+  setCurrentNote: (currentNote) => set({ currentStep: null, currentEdge: null, currentNote }),
   setRuntime: (runtime) => set({ runtime }),
   setValidationErrors: (validationErrors) => set({ validationErrors }),
   setStatus: (status) => set({ status }),
   setModels: (models) => set({ models }),
-  setThings: (things) => set({ things }),
+  setConnections: (connections) => set({ connections }),
 }))
 
 export default useChannelEditorStore

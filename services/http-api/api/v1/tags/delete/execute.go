@@ -33,7 +33,7 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 	dbSpan.End()
 
 	if appliedTagCount > 0 {
-		errMessage := fmt.Sprintf("tag is used in %d thing(s), model(s), or channel(s)", appliedTagCount)
+		errMessage := fmt.Sprintf("tag is used in %d connection(s), model(s), or channel(s)", appliedTagCount)
 		request.Span.SetAttributes(
 			attribute.String("error.type", "context_validation"),
 			attribute.String("error.message", errMessage),

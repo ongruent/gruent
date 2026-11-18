@@ -6,7 +6,7 @@ plugins {
 java { toolchain { languageVersion.set(JavaLanguageVersion.of(21)) } }
 
 dependencies {
-    implementation(project(":libs:engine:nodes:api"))
+    implementation(project(":libs:engine:steps:api"))
 
     // Logging / metrics
     implementation("ch.qos.logback:logback-classic:1.5.6")

@@ -9,7 +9,7 @@ import (
 	gruentpermissions "github.com/ongruent/gruent/libs/http/permissions"
 	"github.com/ongruent/gruent/libs/legacy/engine/channels"
 	resolveModels "github.com/ongruent/gruent/libs/legacy/engine/dependencies/models/resolve"
-	resolveThings "github.com/ongruent/gruent/libs/legacy/engine/dependencies/things/resolve"
+	resolveConnections "github.com/ongruent/gruent/libs/legacy/engine/dependencies/things/resolve"
 	"github.com/ongruent/gruent/services/http-api/config"
 	"github.com/ongruent/gruent/services/http-api/services/sqlc"
 	"github.com/jackc/pgx/v5"
@@ -86,26 +86,26 @@ func contextValidate(request *gruenthttp.Request[Input]) error {
 	}
 
 	// Expand the channel config
-	for i, node := range c.Nodes {
+	for i, step := range c.Nodes {
 		modelsResolveConfig := resolveModels.ResolveConfig{
-			Metadata:    &node.Metadata,
+			Metadata:    &step.Metadata,
 			SqlcQueries: sqlc.Queries,
 		}
 
 		if err := resolveModels.ResolveInNode(&modelsResolveConfig); err != nil {
-			validationErrors.NodeErrors[node.Id] = append(validationErrors.NodeErrors[node.Id], fmt.Sprintf("could not expand models in node %v, %v", node.Metadata.Name, err))
+			validationErrors.NodeErrors[step.Id] = append(validationErrors.NodeErrors[step.Id], fmt.Sprintf("could not expand models in step %v, %v", step.Metadata.Name, err))
 		}
 
-		thingsExpandConfig := resolveThings.ExpandConfig{
-			Metadata:    &node.Metadata,
+		connectionsExpandConfig := resolveConnections.ExpandConfig{
+			Metadata:    &step.Metadata,
 			SqlcQueries: sqlc.Queries,
 		}
 
-		if err := resolveThings.ExpandInNode(&thingsExpandConfig); err != nil {
-			validationErrors.NodeErrors[node.Id] = append(validationErrors.NodeErrors[node.Id], fmt.Sprintf("could not expand things in node %v, %v", node.Metadata.Name, err))
+		if err := resolveConnections.ExpandInNode(&connectionsExpandConfig); err != nil {
+			validationErrors.NodeErrors[step.Id] = append(validationErrors.NodeErrors[step.Id], fmt.Sprintf("could not expand connections in step %v, %v", step.Metadata.Name, err))
 		}
 
-		c.Nodes[i] = node
+		c.Nodes[i] = step
 	}
 
 	// Validate the expanded channel config
@@ -114,13 +114,13 @@ func contextValidate(request *gruenthttp.Request[Input]) error {
 	// Combined validation errors
 	if ve != nil {
 		validationErrors.ChannelErrors = append(validationErrors.ChannelErrors, ve.ChannelErrors...)
-		validationErrors.NodeErrors = mergeNodeErrors(validationErrors.NodeErrors, ve.NodeErrors)
+		validationErrors.NodeErrors = mergeStepErrors(validationErrors.NodeErrors, ve.NodeErrors)
 	}
 
 	// Combine into a single slice
 	var combinedErrors []string
-	for _, nodeErrors := range validationErrors.NodeErrors {
-		combinedErrors = append(combinedErrors, nodeErrors...)
+	for _, stepErrors := range validationErrors.NodeErrors {
+		combinedErrors = append(combinedErrors, stepErrors...)
 	}
 	combinedErrors = append(combinedErrors, validationErrors.ChannelErrors...)
 
@@ -148,12 +148,12 @@ func contextValidate(request *gruenthttp.Request[Input]) error {
 	return nil
 }
 
-func mergeNodeErrors(existingErrors map[string][]string, newErrors map[string][]string) map[string][]string {
-	for nodeId, errors := range newErrors {
-		if existingErrors[nodeId] == nil {
-			existingErrors[nodeId] = []string{}
+func mergeStepErrors(existingErrors map[string][]string, newErrors map[string][]string) map[string][]string {
+	for stepId, errors := range newErrors {
+		if existingErrors[stepId] == nil {
+			existingErrors[stepId] = []string{}
 		}
-		existingErrors[nodeId] = append(existingErrors[nodeId], errors...)
+		existingErrors[stepId] = append(existingErrors[stepId], errors...)
 	}
 	return existingErrors
 }

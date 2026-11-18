@@ -29,47 +29,47 @@ subprojects {
     }
   }
 
-  // Java-only projects (like :libs:engine:nodes:api) still get JUnit Platform
+  // Java-only projects (like :libs:engine:steps:api) still get JUnit Platform
   tasks.withType(Test::class.java).configureEach { useJUnitPlatform() }
 }
 
 // ---- Helper aggregate tasks
-tasks.register("buildNodes") {
+tasks.register("buildSteps") {
   // Extract just the task paths during configuration
   val bundleTaskPaths = subprojects
     .filter { p ->
-      p.path.startsWith(":libs:engine:nodes:plugins:") &&
-      p.tasks.findByName("bundleNode") != null
+      p.path.startsWith(":libs:engine:steps:plugins:") &&
+      p.tasks.findByName("bundleStep") != null
     }
-    .map { "${it.path}:bundleNode" }
+    .map { "${it.path}:bundleStep" }
   
   dependsOn(bundleTaskPaths)
 }
 
-tasks.register("distNodes") {
-  dependsOn("buildNodes")
+tasks.register("distSteps") {
+  dependsOn("buildSteps")
   
-  // Extract node metadata during configuration phase
-  val nodeProjectsData = subprojects
-    .filter { it.path.startsWith(":libs:engine:nodes:plugins:") }
+  // Extract step metadata during configuration phase
+  val stepProjectsData = subprojects
+    .filter { it.path.startsWith(":libs:engine:steps:plugins:") }
     .mapNotNull { p ->
-      val nodeJsonFile = p.projectDir.resolve("node.json")
-      if (!nodeJsonFile.exists()) {
+      val stepJsonFile = p.projectDir.resolve("step.json")
+      if (!stepJsonFile.exists()) {
         null
       } else {
         try {
           // Read and parse JSON during configuration time
-          val nodeJsonText = nodeJsonFile.readText()
-          val nodeJson = groovy.json.JsonSlurper().parseText(nodeJsonText) as Map<*, *>
+          val stepJsonText = stepJsonFile.readText()
+          val stepJson = groovy.json.JsonSlurper().parseText(stepJsonText) as Map<*, *>
           mapOf(
             "path" to p.path,
             "projectDir" to p.projectDir.absolutePath,
-            "category" to (nodeJson["category"] as String),
-            "name" to (nodeJson["name"] as String),
-            "version" to (nodeJson["version"] as String)
+            "category" to (stepJson["category"] as String),
+            "name" to (stepJson["name"] as String),
+            "version" to (stepJson["version"] as String)
           )
         } catch (e: Exception) {
-          println("Warning: Could not parse node.json for project ${p.path}: ${e.message}")
+          println("Warning: Could not parse step.json for project ${p.path}: ${e.message}")
           null
         }
       }
@@ -79,27 +79,27 @@ tasks.register("distNodes") {
   val rootBuildDir = layout.buildDirectory
   
   doLast {
-    val dest = rootBuildDir.dir("dist/nodes").get().asFile
+    val dest = rootBuildDir.dir("dist/steps").get().asFile
     dest.mkdirs()
 
-    nodeProjectsData.forEach { projectInfo ->
+    stepProjectsData.forEach { projectInfo ->
       val projectDir = projectInfo["projectDir"] as String
-      val nodeCategory = projectInfo["category"] as String
-      val nodeName = projectInfo["name"] as String
-      val nodeVersion = projectInfo["version"] as String
+      val stepCategory = projectInfo["category"] as String
+      val stepName = projectInfo["name"] as String
+      val stepVersion = projectInfo["version"] as String
       
       
       // Construct the jar path using standard File operations
-      val jarFile = File("$projectDir/build/libs/$nodeCategory-$nodeName-$nodeVersion.jar")
+      val jarFile = File("$projectDir/build/libs/$stepCategory-$stepName-$stepVersion.jar")
       
       if (jarFile.exists()) {
-        println("Copying node $nodeCategory-$nodeName-$nodeVersion to $dest/$nodeCategory-$nodeName-$nodeVersion.jar...")
+        println("Copying step $stepCategory-$stepName-$stepVersion to $dest/$stepCategory-$stepName-$stepVersion.jar...")
         jarFile.copyTo(
-          target = File(dest, "$nodeCategory-$nodeName-$nodeVersion.jar"),
+          target = File(dest, "$stepCategory-$stepName-$stepVersion.jar"),
           overwrite = true
         )
       } else {
-        println("Warning: JAR file not found for $nodeCategory-$nodeName-$nodeVersion: $jarFile")
+        println("Warning: JAR file not found for $stepCategory-$stepName-$stepVersion: $jarFile")
       }
     }
   }

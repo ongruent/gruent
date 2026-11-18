@@ -230,7 +230,7 @@ const Pricing = async ({ searchParams }) => {
                 <h3 className="text-lg my-4">Drag and drop configurations</h3>
                 <ul className="text-gray-500 ml-4" style={{ listStyleType: 'disclosure-closed' }}>
                   <li>Supports any major protocol</li>
-                  <li>Up to 100 nodes in a channel</li>
+                  <li>Up to 100 steps in a channel</li>
                   <li>Deploys within seconds</li>
                 </ul>
               </div>
@@ -238,8 +238,8 @@ const Pricing = async ({ searchParams }) => {
                 <RouterIcon size="2em" className="text-green-700" />
                 <h3 className="text-lg my-4">Simple service and device management</h3>
                 <ul className="text-gray-500 ml-4" style={{ listStyleType: 'disclosure-closed' }}>
-                  <li>Create and manage up to 10,000 things</li>
-                  <li>Thing categories and tags</li>
+                  <li>Create and manage up to 10,000 connections</li>
+                  <li>Connection categories and tags</li>
                   <li>Use across multiple channels</li>
                 </ul>
               </div>
@@ -257,7 +257,7 @@ const Pricing = async ({ searchParams }) => {
                 <h3 className="text-lg my-4">Define your own data models</h3>
                 <ul className="text-gray-500 ml-4" style={{ listStyleType: 'disclosure-closed' }}>
                   <li>Ensure data integrity</li>
-                  <li>Use between any node</li>
+                  <li>Use between any step</li>
                   <li>Import common models from the community</li>
                 </ul>
               </div>
@@ -358,13 +358,13 @@ const Pricing = async ({ searchParams }) => {
                     <h5 className="text-xl mt-2">Up to 10,000</h5>
                     <p className="text-gray-400">channels per space</p>
                     <h5 className="text-xl mt-2">Up to 100</h5>
-                    <p className="text-gray-400">nodes per channel</p>
+                    <p className="text-gray-400">steps per channel</p>
                   </div>
                 </div>
                 <div className="flex flex-col md:flex-row gap-4 mt-4">
                   <div className="grow">
                     <h4 className="flex items-center gap-1 text-lg mt-4 font-normal">
-                      <RouterIcon size="1.3333em" className="text-green-700" /> Things
+                      <RouterIcon size="1.3333em" className="text-green-700" /> Connections
                     </h4>
                     <p className="text-gray-500 max-w-lg">
                       Integrate devices, APIs, third-party services, databases, messages queues, and
@@ -376,7 +376,7 @@ const Pricing = async ({ searchParams }) => {
                     style={{ minWidth: '16rem' }}
                   >
                     <h5 className="text-xl">Included</h5>
-                    <p className="text-gray-400">up to 10,000 things</p>
+                    <p className="text-gray-400">up to 10,000 connections</p>
                   </div>
                 </div>
                 <div className="flex flex-col md:flex-row gap-4 mt-4">
@@ -419,7 +419,7 @@ const Pricing = async ({ searchParams }) => {
                       <KeyRoundIcon size="1.3333em" className="text-green-700" /> Secrets
                     </h4>
                     <p className="text-gray-500 max-w-lg">
-                      Securely store and manage secrets for your channels and things.
+                      Securely store and manage secrets for your channels and connections.
                     </p>
                   </div>
                   <div
@@ -454,7 +454,7 @@ const Pricing = async ({ searchParams }) => {
                 </div>
               </div>
               <div className="px-10 py-6 shadow-md border border-gray-100 mt-6">
-                <h3 className="text-2xl">Managed things</h3>
+                <h3 className="text-2xl">Managed connections</h3>
                 <h4 className="text-gray-600 font-normal">
                   Built-in databases, file storage, and message brokers
                 </h4>

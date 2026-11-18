@@ -77,13 +77,13 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 
 	dbSpan.End()
 
-	// Delete things
-	dbCtx, dbSpan = otel.Tracer("sqlc").Start(request.Context, "Delete things")
-	err = sqlc.Queries.DeleteThingsBySpace(dbCtx, spaceId)
+	// Delete connections
+	dbCtx, dbSpan = otel.Tracer("sqlc").Start(request.Context, "Delete connections")
+	err = sqlc.Queries.DeleteConnectionsBySpace(dbCtx, spaceId)
 	if err != nil {
 		dbSpan.SetAttributes(
 			attribute.String("error.type", "database"),
-			attribute.String("error.message", fmt.Sprintf("error deleting things from the database: %s", err)),
+			attribute.String("error.message", fmt.Sprintf("error deleting connections from the database: %s", err)),
 		)
 		dbSpan.End()
 		return nil, err

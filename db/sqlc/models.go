@@ -167,16 +167,16 @@ type AppApiKey struct {
 }
 
 type AppAppliedTag struct {
-	ID        string    `json:"id"`
-	SpaceID   string    `json:"space_id"`
-	TagID     string    `json:"tag_id"`
-	ChannelID *string   `json:"channel_id"`
-	ModelID   *string   `json:"model_id"`
-	ThingID   *string   `json:"thing_id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	CreatedBy string    `json:"created_by"`
-	UpdatedBy string    `json:"updated_by"`
+	ID           string    `json:"id"`
+	SpaceID      string    `json:"space_id"`
+	TagID        string    `json:"tag_id"`
+	ChannelID    *string   `json:"channel_id"`
+	ModelID      *string   `json:"model_id"`
+	ConnectionID *string   `json:"connection_id"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	CreatedBy    string    `json:"created_by"`
+	UpdatedBy    string    `json:"updated_by"`
 }
 
 type AppAuthToken struct {
@@ -206,6 +206,19 @@ type AppChannel struct {
 	UpdatedBy   string             `json:"updated_by"`
 	PublishedAt pgtype.Timestamptz `json:"published_at"`
 	PublishedBy *string            `json:"published_by"`
+}
+
+type AppConnection struct {
+	ID                 string    `json:"id"`
+	Name               string    `json:"name"`
+	SpaceID            string    `json:"space_id"`
+	Attributes         []byte    `json:"attributes"`
+	Internal           bool      `json:"internal"`
+	CreatedAt          time.Time `json:"created_at"`
+	UpdatedAt          time.Time `json:"updated_at"`
+	CreatedBy          string    `json:"created_by"`
+	UpdatedBy          string    `json:"updated_by"`
+	ConnectionCategory string    `json:"connection_category"`
 }
 
 type AppEnvironment struct {
@@ -294,19 +307,6 @@ type AppTag struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	CreatedBy string    `json:"created_by"`
 	UpdatedBy string    `json:"updated_by"`
-}
-
-type AppThing struct {
-	ID            string    `json:"id"`
-	Name          string    `json:"name"`
-	SpaceID       string    `json:"space_id"`
-	Attributes    []byte    `json:"attributes"`
-	Internal      bool      `json:"internal"`
-	CreatedAt     time.Time `json:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at"`
-	CreatedBy     string    `json:"created_by"`
-	UpdatedBy     string    `json:"updated_by"`
-	ThingCategory string    `json:"thing_category"`
 }
 
 type AppUser struct {

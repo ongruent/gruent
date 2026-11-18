@@ -1,0 +1,813 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:gruent:step-definition:v1",
+  "title": "Gruent step definition (contract v1)",
+  "description": "Envelope for a versioned step plugin definition. configSchema is a closed subset of JSON Schema draft 2020-12 with rendering annotations embedded under x-ui. Cross-field rules (enum/static option agreement, pointer resolution, unique order, defaults) are enforced by the contract validators in Go and TypeScript in addition to this schema. See libs/engine/steps/README.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "pluginType",
+    "pluginVersion",
+    "displayName",
+    "description",
+    "category",
+    "configSchema"
+  ],
+  "properties": {
+    "contractVersion": {
+      "description": "Version of this metadata contract format. Independent of pluginVersion.",
+      "const": 1
+    },
+    "pluginType": {
+      "description": "Stable plugin identity. Lowercase kebab-case.",
+      "$ref": "#/$defs/slug"
+    },
+    "pluginVersion": {
+      "description": "Exact, linear plugin version (1, 2, 3, ...). Every release, including behavior-only releases, gets a new version.",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "displayName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "category": {
+      "$ref": "#/$defs/category"
+    },
+    "configSchema": {
+      "$ref": "#/$defs/configSchema"
+    }
+  },
+  "$defs": {
+    "slug": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "source",
+        "processing",
+        "action",
+        "conditional",
+        "custom"
+      ]
+    },
+    "fieldName": {
+      "description": "Configuration property name. camelCase ASCII so it maps to identifiers in every consumer without escaping. Keep in sync with the patternProperties keys that use the same expression.",
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z0-9]{0,63}$"
+    },
+    "fieldPointer": {
+      "description": "JSON Pointer to a top-level configuration field.",
+      "type": "string",
+      "pattern": "^/[a-z][a-zA-Z0-9]{0,63}$"
+    },
+    "scalar": {
+      "type": [
+        "string",
+        "number",
+        "boolean"
+      ]
+    },
+    "safeInteger": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "nonNegativeInteger": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "pattern": {
+      "description": "Regular expression (unanchored search). Must compile as RE2 (Go), ECMAScript with the u flag (TypeScript) and java.util.regex (Kotlin).",
+      "type": "string",
+      "minLength": 1
+    },
+    "format": {
+      "enum": [
+        "date-time"
+      ]
+    },
+    "stringEnum": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "order": {
+      "description": "Render order. Unique across all fields of a definition.",
+      "$ref": "#/$defs/nonNegativeInteger"
+    },
+    "placeholder": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "configSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$schema",
+        "type",
+        "additionalProperties",
+        "properties"
+      ],
+      "properties": {
+        "$schema": {
+          "const": "https://json-schema.org/draft/2020-12/schema"
+        },
+        "type": {
+          "const": "object"
+        },
+        "additionalProperties": {
+          "const": false
+        },
+        "title": {
+          "$ref": "#/$defs/text"
+        },
+        "description": {
+          "$ref": "#/$defs/text"
+        },
+        "required": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/fieldName"
+          }
+        },
+        "properties": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-z][a-zA-Z0-9]{0,63}$": {
+              "$ref": "#/$defs/field"
+            }
+          },
+          "additionalProperties": false
+        },
+        "x-ui": {
+          "$ref": "#/$defs/rootUi"
+        }
+      }
+    },
+    "rootUi": {
+      "description": "Schema-level presentation. Groups are layout only and never add object-valued configuration.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/group"
+          }
+        }
+      }
+    },
+    "group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/slug"
+        },
+        "title": {
+          "$ref": "#/$defs/text"
+        },
+        "description": {
+          "$ref": "#/$defs/text"
+        },
+        "visibleWhen": {
+          "$ref": "#/$defs/condition"
+        }
+      }
+    },
+    "condition": {
+      "description": "Declarative visibility condition. Presentation only: hidden fields keep their values and are still validated.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "field"
+      ],
+      "properties": {
+        "field": {
+          "$ref": "#/$defs/fieldPointer"
+        },
+        "equals": {
+          "$ref": "#/$defs/scalar"
+        },
+        "in": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/scalar"
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "equals"
+          ]
+        },
+        {
+          "required": [
+            "in"
+          ]
+        }
+      ]
+    },
+    "field": {
+      "type": "object",
+      "required": [
+        "type",
+        "title",
+        "x-ui"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "string",
+            "number",
+            "integer",
+            "boolean",
+            "array"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "string"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/stringField"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "number"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/numberField"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "integer"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/integerField"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "boolean"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/booleanField"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "array"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/arrayField"
+          }
+        }
+      ]
+    },
+    "stringField": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "string"
+        },
+        "title": {
+          "$ref": "#/$defs/text"
+        },
+        "description": {
+          "$ref": "#/$defs/text"
+        },
+        "minLength": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "maxLength": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "pattern": {
+          "$ref": "#/$defs/pattern"
+        },
+        "format": {
+          "$ref": "#/$defs/format"
+        },
+        "enum": {
+          "$ref": "#/$defs/stringEnum"
+        },
+        "default": {
+          "type": "string"
+        },
+        "x-ui": {
+          "$ref": "#/$defs/stringUi"
+        }
+      }
+    },
+    "numberField": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "number"
+        },
+        "title": {
+          "$ref": "#/$defs/text"
+        },
+        "description": {
+          "$ref": "#/$defs/text"
+        },
+        "minimum": {
+          "type": "number"
+        },
+        "maximum": {
+          "type": "number"
+        },
+        "exclusiveMinimum": {
+          "type": "number"
+        },
+        "exclusiveMaximum": {
+          "type": "number"
+        },
+        "default": {
+          "type": "number"
+        },
+        "x-ui": {
+          "$ref": "#/$defs/numberUi"
+        }
+      }
+    },
+    "integerField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minimum",
+        "maximum"
+      ],
+      "properties": {
+        "type": {
+          "const": "integer"
+        },
+        "title": {
+          "$ref": "#/$defs/text"
+        },
+        "description": {
+          "$ref": "#/$defs/text"
+        },
+        "minimum": {
+          "$ref": "#/$defs/safeInteger"
+        },
+        "maximum": {
+          "$ref": "#/$defs/safeInteger"
+        },
+        "default": {
+          "$ref": "#/$defs/safeInteger"
+        },
+        "x-ui": {
+          "$ref": "#/$defs/numberUi"
+        }
+      }
+    },
+    "booleanField": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "boolean"
+        },
+        "title": {
+          "$ref": "#/$defs/text"
+        },
+        "description": {
+          "$ref": "#/$defs/text"
+        },
+        "default": {
+          "type": "boolean"
+        },
+        "x-ui": {
+          "$ref": "#/$defs/booleanUi"
+        }
+      }
+    },
+    "arrayField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "type": {
+          "const": "array"
+        },
+        "title": {
+          "$ref": "#/$defs/text"
+        },
+        "description": {
+          "$ref": "#/$defs/text"
+        },
+        "items": {
+          "$ref": "#/$defs/arrayItems"
+        },
+        "minItems": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "maxItems": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "uniqueItems": {
+          "type": "boolean"
+        },
+        "default": {
+          "type": "array"
+        },
+        "x-ui": {
+          "$ref": "#/$defs/arrayUi"
+        }
+      }
+    },
+    "arrayItems": {
+      "description": "Array items are primitives only. Objects (and therefore per-item selectors) are not supported in contract v1.",
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "string",
+            "number",
+            "integer"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "string"
+              }
+            }
+          },
+          "then": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "string"
+              },
+              "minLength": {
+                "$ref": "#/$defs/nonNegativeInteger"
+              },
+              "maxLength": {
+                "$ref": "#/$defs/nonNegativeInteger"
+              },
+              "pattern": {
+                "$ref": "#/$defs/pattern"
+              },
+              "enum": {
+                "$ref": "#/$defs/stringEnum"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "number"
+              }
+            }
+          },
+          "then": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "number"
+              },
+              "minimum": {
+                "type": "number"
+              },
+              "maximum": {
+                "type": "number"
+              },
+              "exclusiveMinimum": {
+                "type": "number"
+              },
+              "exclusiveMaximum": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "integer"
+              }
+            }
+          },
+          "then": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "minimum",
+              "maximum"
+            ],
+            "properties": {
+              "type": {
+                "const": "integer"
+              },
+              "minimum": {
+                "$ref": "#/$defs/safeInteger"
+              },
+              "maximum": {
+                "$ref": "#/$defs/safeInteger"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "stringUi": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "control",
+        "order"
+      ],
+      "properties": {
+        "control": {
+          "enum": [
+            "text",
+            "textarea",
+            "select",
+            "datetime"
+          ]
+        },
+        "order": {
+          "$ref": "#/$defs/order"
+        },
+        "group": {
+          "$ref": "#/$defs/slug"
+        },
+        "placeholder": {
+          "$ref": "#/$defs/placeholder"
+        },
+        "visibleWhen": {
+          "$ref": "#/$defs/condition"
+        },
+        "options": {
+          "$ref": "#/$defs/options"
+        }
+      },
+      "if": {
+        "properties": {
+          "control": {
+            "const": "select"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "options"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "options"
+          ]
+        }
+      }
+    },
+    "numberUi": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "control",
+        "order"
+      ],
+      "properties": {
+        "control": {
+          "const": "number"
+        },
+        "order": {
+          "$ref": "#/$defs/order"
+        },
+        "group": {
+          "$ref": "#/$defs/slug"
+        },
+        "placeholder": {
+          "$ref": "#/$defs/placeholder"
+        },
+        "visibleWhen": {
+          "$ref": "#/$defs/condition"
+        },
+        "step": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "booleanUi": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "control",
+        "order"
+      ],
+      "properties": {
+        "control": {
+          "const": "toggle"
+        },
+        "order": {
+          "$ref": "#/$defs/order"
+        },
+        "group": {
+          "$ref": "#/$defs/slug"
+        },
+        "visibleWhen": {
+          "$ref": "#/$defs/condition"
+        }
+      }
+    },
+    "arrayUi": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "control",
+        "order"
+      ],
+      "properties": {
+        "control": {
+          "enum": [
+            "multiselect",
+            "list"
+          ]
+        },
+        "order": {
+          "$ref": "#/$defs/order"
+        },
+        "group": {
+          "$ref": "#/$defs/slug"
+        },
+        "placeholder": {
+          "$ref": "#/$defs/placeholder"
+        },
+        "visibleWhen": {
+          "$ref": "#/$defs/condition"
+        },
+        "options": {
+          "$ref": "#/$defs/options"
+        }
+      },
+      "if": {
+        "properties": {
+          "control": {
+            "const": "multiselect"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "options"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "options"
+          ]
+        }
+      }
+    },
+    "options": {
+      "description": "Option sources. static entries are fixed; named identifies a parent-supplied collection (never an endpoint or code).",
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "static": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/option"
+          }
+        },
+        "named": {
+          "$ref": "#/$defs/namedOptions"
+        }
+      }
+    },
+    "option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "label"
+      ],
+      "properties": {
+        "value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "disabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "namedOptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/slug"
+        },
+        "params": {
+          "description": "Constant parameters passed to the parent with search/load-more events.",
+          "type": "object",
+          "patternProperties": {
+            "^[a-z][a-zA-Z0-9]{0,63}$": {
+              "$ref": "#/$defs/scalar"
+            }
+          },
+          "additionalProperties": false
+        },
+        "paramsFromFields": {
+          "description": "Parameters derived from other configuration fields, as JSON Pointers.",
+          "type": "object",
+          "patternProperties": {
+            "^[a-z][a-zA-Z0-9]{0,63}$": {
+              "$ref": "#/$defs/fieldPointer"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    }
+  }
+}

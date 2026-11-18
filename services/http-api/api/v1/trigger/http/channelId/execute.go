@@ -64,15 +64,15 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 		return nil, fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	sourceNode, err := func() (*channels.Node, error) {
-		// find the channel's source node
+	sourceStep, err := func() (*channels.Node, error) {
+		// find the channel's source step
 		for _, n := range channelConfig.Nodes {
 			if n.Metadata.Type == "source" {
 				return &n, nil
 			}
 		}
 
-		return nil, fmt.Errorf("source node not found")
+		return nil, fmt.Errorf("source step not found")
 	}()
 
 	if err != nil {
@@ -80,13 +80,13 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 	}
 
 	// find all dependenices
-	thingsFindConfig := resolve.FindConfig{
-		Metadata: &sourceNode.Metadata,
+	connectionsFindConfig := resolve.FindConfig{
+		Metadata: &sourceStep.Metadata,
 	}
 
-	dependencies, err := resolve.FindDependenciesInNode(&thingsFindConfig)
+	dependencies, err := resolve.FindDependenciesInNode(&connectionsFindConfig)
 	if err != nil {
-		errorMessage := fmt.Sprintf("could not resolve things in node %v, %v", sourceNode.Metadata.Name, err)
+		errorMessage := fmt.Sprintf("could not resolve connections in step %v, %v", sourceStep.Metadata.Name, err)
 		request.Span.SetAttributes(
 			attribute.String("error.type", "database"),
 			attribute.String("error.message", errorMessage),
@@ -98,12 +98,12 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 	// get the first HTTP server dependency in the list of dependencies
 	httpServerDependency, err := func() (*things.HttpServer, error) {
 		for _, d := range dependencies {
-			if d.ThingCategory == things.HttpServerThingCategory.String() {
+			if d.ConnectionCategory == things.HttpServerThingCategory.String() {
 				// attempt to unmarshal as an HTTP server
 				var server things.HttpServer
 				err := json.Unmarshal(d.Attributes, &server)
 				if err != nil {
-					err = fmt.Errorf("thing with ID %s was not a valid HTTP server - %s", d.ID, err.Error())
+					err = fmt.Errorf("connection with ID %s was not a valid HTTP server - %s", d.ID, err.Error())
 					request.Span.SetAttributes(
 						attribute.String("error.type", "database"),
 						attribute.String("error.message", err.Error()),
@@ -122,7 +122,7 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 		return nil, fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	// trigger source node using HTTP server dependency host and port
+	// trigger source step using HTTP server dependency host and port
 	var proxiedRequestBodyReader io.Reader = nil
 	var contentType = "application/json" // Default to JSON
 	if request.Input.Method != fiber.MethodGet && request.Input.Method != fiber.MethodHead {

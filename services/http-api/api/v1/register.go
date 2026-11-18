@@ -6,6 +6,7 @@ import (
 	"github.com/ongruent/gruent/services/http-api/api/v1/auth"
 	"github.com/ongruent/gruent/services/http-api/api/v1/certificates"
 	"github.com/ongruent/gruent/services/http-api/api/v1/channels"
+	"github.com/ongruent/gruent/services/http-api/api/v1/connections"
 	"github.com/ongruent/gruent/services/http-api/api/v1/models"
 	"github.com/ongruent/gruent/services/http-api/api/v1/organizations"
 	"github.com/ongruent/gruent/services/http-api/api/v1/permissions"
@@ -13,7 +14,6 @@ import (
 	"github.com/ongruent/gruent/services/http-api/api/v1/secrets"
 	"github.com/ongruent/gruent/services/http-api/api/v1/spaces"
 	"github.com/ongruent/gruent/services/http-api/api/v1/tags"
-	"github.com/ongruent/gruent/services/http-api/api/v1/things"
 	trigger "github.com/ongruent/gruent/services/http-api/api/v1/trigger/http"
 	"github.com/ongruent/gruent/services/http-api/api/v1/users"
 )
@@ -54,8 +54,8 @@ func Register(app *fiber.App) {
 	// tags
 	tags.Register(v1)
 
-	// things
-	things.Register(v1)
+	// connections
+	connections.Register(v1)
 
 	// triggers
 	trigger.Register(v1)

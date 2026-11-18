@@ -25,8 +25,8 @@ import {
   XIcon,
 } from 'lucide-react'
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
-import NodeLibraryPane from '@gruent/hub/components/organisms/ChannelEditor/NodeLibraryPane'
-import NodeOptionsPane from '@gruent/hub/components/organisms/ChannelEditor/NodeOptionsPane'
+import StepLibraryPane from '@gruent/hub/components/organisms/ChannelEditor/StepLibraryPane'
+import StepOptionsPane from '@gruent/hub/components/organisms/ChannelEditor/StepOptionsPane'
 import ChannelOptionsPane from '@gruent/hub/components/organisms/ChannelEditor/ChannelOptionsPane'
 import NoteOptionsPane from '@gruent/hub/components/organisms/ChannelEditor/NoteOptionsPane'
 import Modal from '@gruent/libs/frontend/components/Modal'
@@ -38,13 +38,13 @@ import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import Link from 'next/link'
 import dayjs from 'dayjs'
 import Loading from '../loading'
-import NodeExecutionLogEntry from '@gruent/libs/frontend/components/NodeExecutionLogEntry'
+import StepExecutionLogEntry from '@gruent/libs/frontend/components/StepExecutionLogEntry'
 import { Space } from '@prisma/client'
 import { Organization } from '@prisma/client'
 import { handleDeleteChannel } from '@gruent/hub/actions/channels'
 import { useRouter } from 'next/navigation'
 import CreateModelModal from '@gruent/hub/components/modals/CreateModelModal'
-import CreateThingModal from '@gruent/hub/components/modals/CreateThingModal'
+import CreateConnectionModal from '@gruent/hub/components/modals/CreateConnectionModal'
 import useAuth from '@gruent/hub/hooks/useAuth'
 import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 import { Button } from '@gruent/libs/frontend/components/core/button'
@@ -88,13 +88,13 @@ const ChannelByIdEditClientPage: FC<Props> = ({
   const [channelExecutionsTotalResults, setChannelExecutionsTotalResults] = useState(0)
   const [channelExecutionsStatusFilter, setChannelExecutionsStatusFilter] = useState<string>()
   const [currentExecutionId, setCurrentExecutionId] = useState<string>()
-  const [nodeLibraryOpen, setNodeLibraryOpen] = useState(false)
+  const [stepLibraryOpen, setStepLibraryOpen] = useState(false)
   const { accessToken } = useAuth()
 
-  const currentNode = useChannelEditorStore((state) => state.currentNode)
+  const currentStep = useChannelEditorStore((state) => state.currentStep)
   const currentEdge = useChannelEditorStore((state) => state.currentEdge)
   const currentNote = useChannelEditorStore((state) => state.currentNote)
-  const upsertNode = useChannelEditorStore((state) => state.upsertNode)
+  const upsertStep = useChannelEditorStore((state) => state.upsertStep)
   const upsertEdge = useChannelEditorStore((state) => state.upsertEdge)
   const upsertNote = useChannelEditorStore((state) => state.upsertNote)
   const channelName = useChannelEditorStore((state) => state.channelName)
@@ -104,20 +104,20 @@ const ChannelByIdEditClientPage: FC<Props> = ({
   const setRuntime = useChannelEditorStore((state) => state.setRuntime)
   const channelStatus = useChannelEditorStore((state) => state.status)
   const setChannelStatus = useChannelEditorStore((state) => state.setStatus)
-  const nodes = useChannelEditorStore((state) => state.nodes)
+  const steps = useChannelEditorStore((state) => state.steps)
   const edges = useChannelEditorStore((state) => state.edges)
   const notes = useChannelEditorStore((state) => state.notes)
-  const removeNode = useChannelEditorStore((state) => state.removeNode)
+  const removeStep = useChannelEditorStore((state) => state.removeStep)
   const removeEdge = useChannelEditorStore((state) => state.removeEdge)
   const removeNote = useChannelEditorStore((state) => state.removeNote)
-  const setCurrentNode = useChannelEditorStore((state) => state.setCurrentNode)
+  const setCurrentStep = useChannelEditorStore((state) => state.setCurrentStep)
   const setCurrentEdge = useChannelEditorStore((state) => state.setCurrentEdge)
   const setCurrentNote = useChannelEditorStore((state) => state.setCurrentNote)
   const setValidationErrors = useChannelEditorStore((state) => state.setValidationErrors)
   const setModels = useChannelEditorStore((state) => state.setModels)
-  const setThings = useChannelEditorStore((state) => state.setThings)
+  const setConnections = useChannelEditorStore((state) => state.setConnections)
 
-  const channelConfig = useChannelConfig(channelId, channelName, runtime, nodes, edges, notes)
+  const channelConfig = useChannelConfig(channelId, channelName, runtime, steps, edges, notes)
 
   const {
     status: getChannelConfigStatus,
@@ -222,16 +222,16 @@ const ChannelByIdEditClientPage: FC<Props> = ({
       )
     if (!currentExecution) return
 
-    const { nodeExecutionLogs } = currentExecution
+    const { stepExecutionLogs } = currentExecution
 
-    return nodeExecutionLogs.map((nodeExecutionLog, index) => {
-      const { level, timestamp, logAttributes } = nodeExecutionLog
-      const { node } = logAttributes
+    return stepExecutionLogs.map((stepExecutionLog, index) => {
+      const { level, timestamp, logAttributes } = stepExecutionLog
+      const { node: step } = logAttributes
 
       return (
-        <NodeExecutionLogEntry
-          key={`${node}-${level}-${timestamp}-${index}`}
-          nodeExecutionLog={nodeExecutionLog}
+        <StepExecutionLogEntry
+          key={`${step}-${level}-${timestamp}-${index}`}
+          stepExecutionLog={stepExecutionLog}
         />
       )
     })
@@ -239,20 +239,23 @@ const ChannelByIdEditClientPage: FC<Props> = ({
     return <></>
   }, [currentExecution, isCurrentExecutionLoading, getCurrentExecutionError])
 
-  const { error: listThingsError, refetch: refetchThings } = useQuery({
-    queryKey: ['things', spaceId],
+  const { error: listConnectionsError, refetch: refetchConnections } = useQuery({
+    queryKey: ['connections', spaceId],
     queryFn: async () => {
       if (!accessToken) throw new Error('Invalid auth session.')
 
-      const { data: things, errors } = await gruentClient(accessToken).things.list(spaceId, {
-        resultsPerPage: 100,
-      })
+      const { data: connections, errors } = await gruentClient(accessToken).connections.list(
+        spaceId,
+        {
+          resultsPerPage: 100,
+        },
+      )
 
       if (errors && errors.length > 0) throw new Error(errors[0])
 
-      if (things) setThings(things)
+      if (connections) setConnections(connections)
 
-      return things
+      return connections
     },
   })
 
@@ -273,10 +276,10 @@ const ChannelByIdEditClientPage: FC<Props> = ({
   })
 
   useEffect(() => {
-    if (listThingsError) {
+    if (listConnectionsError) {
       addToast({
-        title: 'Could not retrieve things',
-        body: listThingsError.message,
+        title: 'Could not retrieve connections',
+        body: listConnectionsError.message,
         level: 'error',
       })
     }
@@ -288,14 +291,14 @@ const ChannelByIdEditClientPage: FC<Props> = ({
         level: 'error',
       })
     }
-  }, [listThingsError, listModelsError])
+  }, [listConnectionsError, listModelsError])
 
-  const onThingModalSubmit = useCallback(async () => {
-    // Ensure enough time has passed for the thing to be created
+  const onConnectionModalSubmit = useCallback(async () => {
+    // Ensure enough time has passed for the connection to be created
     setTimeout(() => {
-      refetchThings()
+      refetchConnections()
     }, 1000)
-  }, [refetchThings])
+  }, [refetchConnections])
 
   const onModelModalSubmit = useCallback(async () => {
     // Ensure enough time has passed for the model to be created
@@ -309,16 +312,16 @@ const ChannelByIdEditClientPage: FC<Props> = ({
     resetChannelEditorStore()
   }, [channelId, resetChannelEditorStore])
 
-  // Update nodes and edges whenever the database is queried
+  // Update steps and edges whenever the database is queried
   useEffect(() => {
     if (!channel) return
     const channelConfig = channel.config as ChannelConfig
-    const { nodes, edges, notes, runtime } = channelConfig
+    const { nodes: steps, edges, notes, runtime } = channelConfig
 
-    // Set nodes
-    if (nodes) {
-      for (const node of nodes) {
-        upsertNode(node.id, node)
+    // Set steps
+    if (steps) {
+      for (const step of steps) {
+        upsertStep(step.id, step)
       }
     }
 
@@ -341,7 +344,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
 
     // Set name
     setChannelName(channel.name)
-  }, [channel, setChannelName, upsertNode, upsertEdge, upsertNote, setRuntime])
+  }, [channel, setChannelName, upsertStep, upsertEdge, upsertNote, setRuntime])
 
   const handleChannelExecutionsPageChange = (newPage: number) => {
     setChannelExecutionsPage(newPage)
@@ -828,23 +831,23 @@ const ChannelByIdEditClientPage: FC<Props> = ({
           <div className="p-2 cursor-pointer z-30">
             <AnimatePresence initial={false} mode="wait">
               <motion.div
-                key={nodeLibraryOpen ? 'close' : 'open'}
+                key={stepLibraryOpen ? 'close' : 'open'}
                 initial={{ opacity: 0, rotate: -90 }}
                 animate={{ opacity: 1, rotate: 0 }}
                 exit={{ opacity: 0, rotate: 90 }}
                 transition={{ duration: 0.1 }}
               >
-                {nodeLibraryOpen ? (
+                {stepLibraryOpen ? (
                   <XIcon
                     size="1.5em"
                     className="transition text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
-                    onClick={() => setNodeLibraryOpen(false)}
+                    onClick={() => setStepLibraryOpen(false)}
                   />
                 ) : (
                   <CirclePlusIcon
                     size="1.5em"
                     className="transition text-gray-700 dark:text-gray-300 hover:text-brand-primary bg-gray-50 dark:bg-gray-900"
-                    onClick={() => setNodeLibraryOpen(true)}
+                    onClick={() => setStepLibraryOpen(true)}
                   />
                 )}
               </motion.div>
@@ -854,7 +857,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
             <AnimatePresence initial={false} mode="wait">
               <motion.div
                 key={
-                  currentNode || currentEdge || currentNote
+                  currentStep || currentEdge || currentNote
                     ? 'showDeleteSelection'
                     : 'hideDeleteSelection'
                 }
@@ -863,15 +866,15 @@ const ChannelByIdEditClientPage: FC<Props> = ({
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.1 }}
               >
-                {(currentNode || currentEdge || currentNote) && (
+                {(currentStep || currentEdge || currentNote) && (
                   <Trash2Icon
                     size="1.5em"
                     className="hover:text-red-500"
                     onClick={() => {
-                      if (currentNode) removeNode(currentNode.id)
+                      if (currentStep) removeStep(currentStep.id)
                       if (currentEdge) removeEdge(currentEdge.id)
                       if (currentNote) removeNote(currentNote.id)
-                      setCurrentNode(null)
+                      setCurrentStep(null)
                       setCurrentEdge(null)
                       setCurrentNote(null)
                     }}
@@ -882,7 +885,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
           </div>
         </div>
         <AnimatePresence>
-          {nodeLibraryOpen && (
+          {stepLibraryOpen && (
             <motion.div
               className="absolute top-5 left-5 pl-8 pr-2 py-3 w-fit max-w-[300px] bg-gray-50 dark:bg-gray-900 rounded-sm border border-green-700 dark:border-green-300 z-20 overflow-y-scroll"
               style={{ boxShadow: '3px 3px 6px 0 rgba(0, 0, 0, 0.03)', maxHeight: '80%' }}
@@ -891,13 +894,17 @@ const ChannelByIdEditClientPage: FC<Props> = ({
               exit={{ opacity: 0, scale: 0, transformOrigin: 'top left' }}
               transition={{ duration: 0.2, ease: 'easeInOut' }}
             >
-              <NodeLibraryPane />
+              <StepLibraryPane />
             </motion.div>
           )}
         </AnimatePresence>
 
         <CreateModelModal spaceId={spaceId} onSubmit={() => onModelModalSubmit()} />
-        <CreateThingModal spaceId={spaceId} orgId={orgId} onSubmit={() => onThingModalSubmit()} />
+        <CreateConnectionModal
+          spaceId={spaceId}
+          orgId={orgId}
+          onSubmit={() => onConnectionModalSubmit()}
+        />
 
         <ChannelEditor
           hooks={{
@@ -911,9 +918,9 @@ const ChannelByIdEditClientPage: FC<Props> = ({
           className="border-l border-gray-200 dark:border-gray-800 flex flex-col overflow-y-scroll"
           style={{ width: '35%', minWidth: 350 }}
         >
-          {currentNode && <NodeOptionsPane spaceId={spaceId} orgId={orgId} channelId={channelId} />}
+          {currentStep && <StepOptionsPane spaceId={spaceId} orgId={orgId} channelId={channelId} />}
           {currentNote && <NoteOptionsPane />}
-          {(currentNode || currentNote) && <hr className="border-gray-200 dark:border-gray-800" />}
+          {(currentStep || currentNote) && <hr className="border-gray-200 dark:border-gray-800" />}
           <ChannelOptionsPane spaceId={spaceId} channel={channel} />
         </div>
       </div>

@@ -45,14 +45,14 @@ const ChannelOptionsPane: FC<Props> = ({ channel, spaceId }) => {
   const { accessToken } = useAuth()
 
   // set up store
-  const nodes = useChannelEditorStore((state) => state.nodes)
+  const steps = useChannelEditorStore((state) => state.steps)
   const edges = useChannelEditorStore((state) => state.edges)
   const notes = useChannelEditorStore((state) => state.notes)
   const runtime = useChannelEditorStore((state) => state.runtime)
   const setRuntime = useChannelEditorStore((state) => state.setRuntime)
   const setValidationErrors = useChannelEditorStore((state) => state.setValidationErrors)
 
-  const channelConfig = useChannelConfig(channel.id, channel.name, runtime, nodes, edges, notes)
+  const channelConfig = useChannelConfig(channel.id, channel.name, runtime, steps, edges, notes)
 
   const debouncedChannelConfig = useDebounce(channelConfig, 500) // 500ms delay
 

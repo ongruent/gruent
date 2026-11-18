@@ -12,12 +12,12 @@ const useChannelConfig = (
   id: string,
   name: string,
   runtime: ChannelRuntime,
-  nodes: Map<string, ChannelNode>,
+  steps: Map<string, ChannelNode>,
   edges: Map<string, ChannelEdge>,
   notes: Map<string, ChannelNote>,
 ) => {
   const channelConfig = useMemo<ChannelConfig>(() => {
-    const nodesArray = Array.from(nodes.values())
+    const stepsArray = Array.from(steps.values())
     const edgesArray = Array.from(edges.values())
     const notesArray = Array.from(notes.values())
 
@@ -25,11 +25,11 @@ const useChannelConfig = (
       id,
       name,
       runtime,
-      nodes: nodesArray,
+      nodes: stepsArray,
       edges: edgesArray,
       notes: notesArray,
     }
-  }, [id, name, runtime, nodes, edges, notes])
+  }, [id, name, runtime, steps, edges, notes])
 
   return channelConfig
 }

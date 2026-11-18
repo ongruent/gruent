@@ -13,8 +13,8 @@ type IdGenerator interface {
 	NewOrganizationId() (*string, error)
 	NewSpaceId() (*string, error)
 	NewModelId() (*string, error)
-	NewThingId() (*string, error)
-	NewNodeId() (*string, error)
+	NewConnectionId() (*string, error)
+	NewStepId() (*string, error)
 	NewChannelId() (*string, error)
 	NewApiKeyId() (*string, error)
 	NewPermissionSetId() (*string, error)
@@ -61,11 +61,11 @@ func (idg *StandardIdGenerator) NewModelId() (*string, error) {
 	return idg.generateId("m")
 }
 
-func (idg *StandardIdGenerator) NewThingId() (*string, error) {
+func (idg *StandardIdGenerator) NewConnectionId() (*string, error) {
 	return idg.generateId("t")
 }
 
-func (idg *StandardIdGenerator) NewNodeId() (*string, error) {
+func (idg *StandardIdGenerator) NewStepId() (*string, error) {
 	return idg.generateId("n")
 }
 
@@ -127,11 +127,11 @@ func (idg *MockStandardIdGenerator) NewModelId() (*string, error) {
 	return idg.generateId("m")
 }
 
-func (idg *MockStandardIdGenerator) NewThingId() (*string, error) {
+func (idg *MockStandardIdGenerator) NewConnectionId() (*string, error) {
 	return idg.generateId("t")
 }
 
-func (idg *MockStandardIdGenerator) NewNodeId() (*string, error) {
+func (idg *MockStandardIdGenerator) NewStepId() (*string, error) {
 	return idg.generateId("n")
 }
 

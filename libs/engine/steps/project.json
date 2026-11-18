@@ -1,0 +1,71 @@
+{
+  "name": "steps",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/engine/steps",
+  "projectType": "library",
+  "targets": {
+    "compile": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "go run ./compiler compile ."
+      }
+    },
+    "check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "go run ./compiler compile --check ."
+      }
+    },
+    "create": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "go run ./compiler create",
+        "tty": true
+      }
+    },
+    "new-version": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "go run ./compiler new-version"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}",
+        "parallel": false,
+        "commands": [
+          "nx run steps:test-go",
+          "nx run steps:test-ts",
+          "nx run steps:test-kotlin"
+        ]
+      }
+    },
+    "test-go": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}/libs/engine",
+        "command": "go test ./steps/..."
+      }
+    },
+    "test-ts": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/libs/engine/steps"],
+      "options": {
+        "jestConfig": "libs/engine/steps/ts/jest.config.ts"
+      }
+    },
+    "test-kotlin": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}",
+        "command": "./gradlew :libs:engine:steps:kotlin:test"
+      }
+    }
+  },
+  "tags": ["go", "kotlin", "typescript"]
+}

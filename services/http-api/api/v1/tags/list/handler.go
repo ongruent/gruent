@@ -6,10 +6,10 @@ import (
 )
 
 type ExpandedTag struct {
-	Tag      sqldb.AppTag `json:"tag"`
-	Things   []string     `json:"things"`
-	Channels []string     `json:"channels"`
-	Models   []string     `json:"models"`
+	Tag         sqldb.AppTag `json:"tag"`
+	Connections []string     `json:"connections"`
+	Channels    []string     `json:"channels"`
+	Models      []string     `json:"models"`
 }
 
 type Input struct {

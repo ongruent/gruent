@@ -35,10 +35,10 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 	tagMap := make(map[string]ExpandedTag, len(tags))
 	for _, tag := range tags {
 		expandedTag := ExpandedTag{
-			Tag:      tag,
-			Things:   []string{},
-			Channels: []string{},
-			Models:   []string{},
+			Tag:         tag,
+			Connections: []string{},
+			Channels:    []string{},
+			Models:      []string{},
 		}
 
 		appliedTags, listAppliedTagsErr := sqlc.Queries.ListAppliedTagsByTag(dbCtx, tag.ID)
@@ -46,8 +46,8 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 			return nil, listAppliedTagsErr
 		}
 		for _, appliedTag := range appliedTags {
-			if appliedTag.ThingID != nil {
-				expandedTag.Things = append(expandedTag.Things, *appliedTag.ThingID)
+			if appliedTag.ConnectionID != nil {
+				expandedTag.Connections = append(expandedTag.Connections, *appliedTag.ConnectionID)
 			}
 			if appliedTag.ChannelID != nil {
 				expandedTag.Channels = append(expandedTag.Channels, *appliedTag.ChannelID)

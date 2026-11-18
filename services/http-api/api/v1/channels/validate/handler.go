@@ -13,7 +13,7 @@ type Input struct {
 
 type Output struct {
 	ChannelErrors []string            `json:"channelErrors"`
-	NodeErrors    map[string][]string `json:"nodeErrors"`
+	StepErrors    map[string][]string `json:"stepErrors"`
 }
 
 // @Summary Validate a channel configuration

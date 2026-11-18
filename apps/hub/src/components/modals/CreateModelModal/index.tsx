@@ -63,7 +63,7 @@ const CreateModelModal: FC<Props> = ({ spaceId, onClose, onSubmit }) => {
     >
       <h2>Add a model</h2>
       <p className="text-gray-500">
-        <small>Add data formations to define specific inputs and outputs for nodes.</small>
+        <small>Add data formations to define specific inputs and outputs for steps.</small>
       </p>
       <ModelSettingsForm
         spaceId={spaceId}

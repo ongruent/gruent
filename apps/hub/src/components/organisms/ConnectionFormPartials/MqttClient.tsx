@@ -1,0 +1,175 @@
+'use client'
+
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
+import useAuth from '@gruent/hub/hooks/useAuth'
+import gruentClient from '@gruent/hub/lib/gruent'
+import { openModal } from '@gruent/libs/frontend/hooks/useModal'
+import { Connection } from '@prisma/client'
+import { useQuery } from '@tanstack/react-query'
+import { Dispatch, FC, useEffect, useMemo, useState } from 'react'
+
+type Props = {
+  setFormData: Dispatch<Map<string, string | number | string[] | number[]>>
+  spaceId: string
+  orgId: string
+  secretOptions: { label: string; value: string }[]
+  initial?: Partial<Connection>
+}
+
+const MqttClient: FC<Props> = ({ setFormData, spaceId, secretOptions, initial }) => {
+  const attributes = useMemo(() => {
+    if (initial && initial.attributes && typeof initial.attributes === 'string')
+      return JSON.parse(initial.attributes)
+
+    if (initial && initial.attributes && typeof initial.attributes === 'object')
+      return initial.attributes
+
+    return undefined
+  }, [initial])
+
+  const [broker, setBroker] = useState<string>(attributes?.broker)
+  const [username, setUsername] = useState<string>(attributes?.username)
+  const [password, setPassword] = useState<string>(() => {
+    if (secretOptions.length === 1 && !attributes?.password) {
+      return secretOptions[0].value
+    }
+    return attributes?.password ?? ''
+  })
+  const [clientId, setClientId] = useState<string>(attributes?.clientId)
+  const [certificateId, _setCertificateId] = useState<string>(attributes?.certificateId)
+  const [keypair, _setKeypair] = useState<string>(attributes?.keypair)
+
+  const { accessToken } = useAuth()
+
+  const {
+    status: getMqttBrokersStatus,
+    data: mqttBrokers,
+    error: getMqttBrokersError,
+  } = useQuery({
+    queryKey: ['connections', spaceId],
+    queryFn: async () => {
+      if (!accessToken) throw new Error('Invalid auth session.')
+
+      const { data: connections, errors } = await gruentClient(accessToken).connections.list(
+        spaceId,
+        {
+          category: 'MQTT_BROKER',
+        },
+      )
+
+      if (errors && errors.length > 0) throw new Error(errors[0])
+
+      return connections
+    },
+  })
+
+  const mqttBrokerOptions = useMemo(() => {
+    if (getMqttBrokersError) return []
+    if (getMqttBrokersStatus !== 'success') return []
+    if (!mqttBrokers) return []
+
+    return mqttBrokers.map((mqttBroker) => {
+      return {
+        label: mqttBroker.name,
+        value: mqttBroker.id,
+      }
+    })
+  }, [mqttBrokers, getMqttBrokersError, getMqttBrokersStatus])
+
+  useEffect(() => {
+    const updatedFormData = new Map()
+    updatedFormData.set('broker', broker)
+    updatedFormData.set('username', username)
+    updatedFormData.set('password', password)
+    updatedFormData.set('clientId', clientId)
+    updatedFormData.set('certificateId', certificateId)
+    updatedFormData.set('keypair', keypair)
+    setFormData(updatedFormData)
+  }, [broker, username, password, clientId, certificateId, keypair, setFormData])
+
+  if (!mqttBrokers || getMqttBrokersStatus !== 'success') return
+
+  if (mqttBrokers.length <= 0) {
+    return (
+      <p>
+        No MQTT brokers were found in this space. You'll have to&nbsp;
+        <Button variant="link" onClick={() => openModal('createConnection')}>
+          create an MQTT broker
+        </Button>
+        &nbsp;in this space before creating an MQTT client.
+      </p>
+    )
+  }
+
+  return (
+    <>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="broker">Broker</FieldLabel>
+        <Select name="broker" value={broker ?? ''} onValueChange={(value) => setBroker(value)}>
+          <SelectTrigger id="broker" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            {mqttBrokerOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="username">Username (optional)</FieldLabel>
+        <Input
+          id="username"
+          name="username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="password">Password (optional)</FieldLabel>
+        <Select
+          name="password"
+          value={password ?? ''}
+          onValueChange={(value) => setPassword(value)}
+        >
+          <SelectTrigger id="password" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            {secretOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="clientId">Client ID (optional)</FieldLabel>
+        <Input
+          id="clientId"
+          name="clientId"
+          value={clientId}
+          onChange={(e) => setClientId(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+    </>
+  )
+}
+
+export default MqttClient

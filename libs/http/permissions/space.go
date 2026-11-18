@@ -4,7 +4,7 @@ var NamespaceSpaceApiKeys Namespace = "space-api-keys"
 var NamespaceChannels Namespace = "channels"
 var NamespaceChannelExecutions Namespace = "channel-executions"
 var NamespaceAnalytics Namespace = "analytics"
-var NamespaceThings Namespace = "things"
+var NamespaceConnections Namespace = "connections"
 var NamespaceModels Namespace = "models"
 var NamespaceData Namespace = "data"
 var NamespacePolicies Namespace = "policies"
@@ -37,12 +37,12 @@ var DefaultMemberSpacePermissions = []string{
 	// Marshal(NamespaceAnalytics, ActionUpdate),
 	// Marshal(NamespaceAnalytics, ActionDelete),
 
-	// Things
-	Marshal(NamespaceThings, ActionList),
-	Marshal(NamespaceThings, ActionCreate),
-	Marshal(NamespaceThings, ActionGet),
-	Marshal(NamespaceThings, ActionUpdate),
-	// Marshal(NamespaceThings, ActionDelete),
+	// Connections
+	Marshal(NamespaceConnections, ActionList),
+	Marshal(NamespaceConnections, ActionCreate),
+	Marshal(NamespaceConnections, ActionGet),
+	Marshal(NamespaceConnections, ActionUpdate),
+	// Marshal(NamespaceConnections, ActionDelete),
 
 	// Models
 	Marshal(NamespaceModels, ActionList),

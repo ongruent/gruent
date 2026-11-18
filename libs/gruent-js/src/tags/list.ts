@@ -6,7 +6,7 @@ import apiRequest from '../request'
 type ResponseData = {
   [key: string]: {
     tag: Tag
-    things: string[]
+    connections: string[]
     channels: string[]
     models: string[]
   }
@@ -16,7 +16,7 @@ const listTags = async (
   key: string,
   config: ClientConfig,
   spaceId: string,
-  category?: 'things' | 'channels' | 'models',
+  category?: 'connections' | 'channels' | 'models',
 ): Promise<ApiResponse<ResponseData>> => {
   const url = new URL(config.url)
   url.pathname = `v1/tags`

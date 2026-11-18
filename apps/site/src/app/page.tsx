@@ -88,7 +88,7 @@ const HomePage = () => {
                   Integrate any hardware, software, or protocol
                 </h2>
                 <p className="text-2xl text-white text-center">
-                  With a growing node library, we support your preferred services, databases,
+                  With a growing step library, we support your preferred services, databases,
                   message queues, and protocols. Bring your own devices and services, or use ours to
                   build ideas quicker than ever before.
                 </p>
@@ -99,7 +99,7 @@ const HomePage = () => {
             <RotatingVideoPlayer
               videos={[
                 { src: '/videos/channel_management.mp4', hash: '#workflows-video' },
-                { src: '/videos/thing_management.mp4', hash: '#things-video' },
+                { src: '/videos/connection_management.mp4', hash: '#connections-video' },
                 { src: '/videos/model_management.mp4', hash: '#models-video' },
                 { src: '/videos/secret_management.mp4', hash: '#secrets-video' },
               ]}
@@ -112,8 +112,8 @@ const HomePage = () => {
               <a href="#workflows-video" className="transition text-gray-700 hover:text-gray-800">
                 Workflows
               </a>
-              <a href="#things-video" className="transition text-gray-700 hover:text-gray-800">
-                Things
+              <a href="#connections-video" className="transition text-gray-700 hover:text-gray-800">
+                Connections
               </a>
               <a href="#models-video" className="transition text-gray-700 hover:text-gray-800">
                 Models
@@ -308,8 +308,8 @@ const HomePage = () => {
               <div className={`${styles.performanceSection}`}>
                 <h3>Production Scale</h3>
                 <p>
-                  Have thousands of things, channels, and requests per second? GRUENT is designed
-                  for your high-throughput projects.
+                  Have thousands of connections, channels, and requests per second? GRUENT is
+                  designed for your high-throughput projects.
                 </p>
                 <div className={styles.throughputGrid}>
                   {Array.from({ length: 96 }).map((_, i) => (
@@ -324,7 +324,7 @@ const HomePage = () => {
               <div className={`${styles.performanceSection}`}>
                 <h3>Realtime Capable</h3>
                 <p>
-                  Nodes and channels can execute in milliseconds¹, even with thousands of requests
+                  Steps and channels can execute in milliseconds¹, even with thousands of requests
                   per second.
                 </p>
                 <div className="relative">

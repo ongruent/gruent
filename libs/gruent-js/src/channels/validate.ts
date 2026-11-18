@@ -5,7 +5,7 @@ import apiRequest from '../request'
 
 type ResponseData = {
   channelErrors: string[] | null
-  nodeErrors: Record<string, string[]> | null
+  stepErrors: Record<string, string[]> | null
 } | null
 
 const validateChannel = async (

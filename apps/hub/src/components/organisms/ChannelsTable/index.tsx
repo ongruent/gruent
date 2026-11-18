@@ -267,7 +267,11 @@ const ChannelsTable: FC<Props> = ({
         headerContent={
           <>
             <div className="flex flex-wrap items-end gap-2 mb-1 relative">
-              <SearchBar paramKey="q" initialFilter={searchFilter} placeholder="Search things" />
+              <SearchBar
+                paramKey="q"
+                initialFilter={searchFilter}
+                placeholder="Search connections"
+              />
               <div className="grow" />
               <Button
                 variant="outline"

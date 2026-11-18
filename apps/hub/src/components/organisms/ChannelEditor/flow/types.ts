@@ -4,8 +4,8 @@ import type { Edge, Node } from '@xyflow/react'
 
 export type ChannelNodeType = ChannelNode['metadata']['type']
 
-export type ChannelFlowNodeData = {
-  node: ChannelNode
+export type ChannelFlowStepData = {
+  step: ChannelNode
   errors: string[]
   // Colors of the IO handles that are active (attached to the selection), keyed by `ioKey`
   activeIo: Record<string, string>
@@ -15,9 +15,9 @@ export type ChannelFlowNoteData = {
   note: ChannelNote
 }
 
-export type ChannelFlowNode = Node<ChannelFlowNodeData, 'channelNode'>
+export type ChannelFlowStep = Node<ChannelFlowStepData, 'channelStep'>
 export type ChannelFlowNote = Node<ChannelFlowNoteData, 'channelNote'>
-export type ChannelFlowElement = ChannelFlowNode | ChannelFlowNote
+export type ChannelFlowElement = ChannelFlowStep | ChannelFlowNote
 
 export type ChannelFlowEdgeData = {
   edge: ChannelEdge
