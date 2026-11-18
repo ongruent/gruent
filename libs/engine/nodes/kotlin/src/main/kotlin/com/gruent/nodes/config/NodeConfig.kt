@@ -24,7 +24,7 @@ class ConfigValidationException(
 /**
  * Implemented by the companion object of every generated configuration type. The identity and digest tie the
  * generated class to exactly one immutable node.json; the runtime must select plugins by the same
- * (pluginType, pluginVersion) pair recorded in the deployment plan.
+ * (pluginType, pluginVersion) pair persisted by the channel.
  */
 interface NodeConfigDefinition<T> {
   val pluginType: String

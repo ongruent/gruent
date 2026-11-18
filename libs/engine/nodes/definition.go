@@ -30,7 +30,7 @@ var envelopeSchemaJSON []byte
 // EnvelopeSchema returns a copy of the machine-readable contract v1 envelope schema.
 func EnvelopeSchema() []byte { return bytes.Clone(envelopeSchemaJSON) }
 
-// Category classifies a plugin. Only sources have special meaning in channel validation (the DAG root).
+// Category classifies a plugin.
 type Category string
 
 const (

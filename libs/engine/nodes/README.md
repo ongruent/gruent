@@ -14,7 +14,7 @@ libs/engine/nodes/
   compiler/                                  compile / create / new-version CLI (Go)
   generated/manifest.json                    GENERATED: identity -> definition + digest + Kotlin type
   generated/kotlin/                          GENERATED: Kotlin configuration types
-  *.go, plan/                                Go consumer: ingestion, validation, registry, plan hydration
+  *.go                                       Go consumer: ingestion, validation, registry
   ts/                                        TypeScript consumer: ingestion, validation, form model
   kotlin/                                    Kotlin support library + tests for generated types
 ```
@@ -56,9 +56,8 @@ Decisions where the issue's proposal conflicted with itself:
   new version. Semantic version strings are rejected.
 - **No connection rules in definitions.** The issue's `io.inputs`/`io.outputs` allowlists were dropped: no
   current node needs custom rules for which nodes it may connect to. Definitions therefore say nothing about
-  edges. Channel validation keeps only the generic DAG shape (one source, one input per other node, no
-  hanging nodes, no cycles). Any node-specific connection rules belong to the interpretation layer for now;
-  declarative constraints may be added to a later contract version if they become necessary.
+  edges. Any node-specific connection rules belong to the interpretation layer for now; declarative
+  constraints may be added to a later contract version if they become necessary.
 - **Objects.** The only object is the configuration root. Object-valued fields are rejected, and
   dependencies such as models, secrets and things are referenced by ID through named selects. Grouping is
   layout only (`configSchema.x-ui.groups`), so it adds no configuration nesting.
@@ -134,9 +133,6 @@ double precision are outside the tested range.
 - **Go** (`github.com/ongruent/gruent/libs/engine/nodes`): `ParseDefinition`, `Definition.ValidateConfig`,
   `Definition.References` (named-select values minus static values, with resolved params), `Registry`
   (exact identity, immutable digests), and `LoadLibrary` (from the manifest, with digest checks).
-  `plan.Validate`/`plan.Hydrate` check the DAG shape, configuration and resource references through a
-  `ResourceResolver`. They produce a `DeploymentPlan` with topologically ordered nodes, exact identities,
-  digests, configuration, references, inputs/outputs, processing mode and resources.
 - **TypeScript** (`@gruent/libs/engine/nodes/ts`): `Definition.parse`, `DefinitionRegistry`, `validateConfig`,
   `createConfig`, and a headless `<NodeConfig />` model in `form.ts`: `describeForm`, `isVisible`,
   `optionsEvent` (the `{path, name, query, params}` payload for `onOptionsSearch`/`onOptionsLoadMore`),
@@ -154,8 +150,8 @@ double precision are outside the tested range.
   `generated/manifest.json` with its digest. After that, the definition is immutable. Fix mistakes,
   behavior-only releases and breaking changes alike by running `nx run nodes:new-version`. Registries in
   Go and TS refuse to re-register an identity with a different digest.
-- **Resolution.** Channels persist `pluginType` + `pluginVersion`. Editors, Go validation, deployment plans
-  and the Kotlin runtime all resolve that exact pair. Nothing resolves "latest", and a missing version is an
+- **Resolution.** Channels persist `pluginType` + `pluginVersion`. Editors, Go and TS validation and the
+  Kotlin runtime all resolve that exact pair. Nothing resolves "latest", and a missing version is an
   error rather than a silent fallback.
 - **Generated files.** `generated/` belongs to the compiler. Never edit it by hand. Run `nx run nodes:compile`
   after changing a definition and commit the result. `nx run nodes:check` and the Go and Kotlin tests fail
@@ -167,12 +163,12 @@ double precision are outside the tested range.
 
 ## Open questions (not decided here)
 
-- **Sizing and processing modes.** `plan.Policy` must be supplied by the caller. The plan carries the
-  channel's existing `small | medium | large` tier plus whatever resources and processing mode the policy
-  returns. The concrete CPU/memory policy and the processing-mode vocabulary still need to be specified.
+- **Deployment plans.** Channel graph validation, plan hydration, sizing and processing modes are deferred
+  to a separate issue once the plan format is defined. This library only validates definitions and
+  configurations.
 - **Connection rules and ports.** v1 definitions declare no I/O constraints, and edges connect nodes, not
   named ports. Conditional plugins with distinct pass/fail outputs need a port model before they can be
   expressed.
 - **Integration.** The API endpoints, definition storage and the React `<NodeConfig />` component that uses
   `form.ts` are follow-up work. Plugin runtime artifacts (WASM) and custom/third-party node packages are out
-  of scope: definitions and deployment plans carry no artifact fields yet.
+  of scope: definitions carry no artifact fields.

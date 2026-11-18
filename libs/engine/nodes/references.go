@@ -23,7 +23,7 @@ type Reference struct {
 
 // References extracts resource references from a configuration that has already passed ValidateConfig.
 // Options shown in an editor are never authoritative: callers must resolve every reference (existence and
-// permissions) before compiling a deployment plan.
+// permissions) before relying on them.
 func (d *Definition) References(config []byte) ([]Reference, error) {
 	var values map[string]json.RawMessage
 	if err := json.Unmarshal(config, &values); err != nil {
