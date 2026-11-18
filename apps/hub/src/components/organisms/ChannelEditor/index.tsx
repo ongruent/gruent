@@ -5,11 +5,11 @@ import '@xyflow/react/dist/style.css'
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
 import useSettingsStore from '@gruent/hub/stores/settingsStore'
 import { generateEdgeId, generateNodeId, generateNoteId } from '@gruent/hub/util/idGenerator'
-import type { ChannelNote } from '@gruent/libs/engine/channels/channels'
-import type { ChannelNode } from '@gruent/libs/engine/nodes/v1'
+import { Button } from '@gruent/libs/frontend/components/core/button'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
-import { CircleAlertIcon, LocateFixedIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react'
+import type { ChannelNote } from '@gruent/libs/legacy/engine/channels/channels'
+import type { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import {
   Background,
   BackgroundVariant,
@@ -22,6 +22,7 @@ import {
   ReactFlowProvider,
   useReactFlow,
 } from '@xyflow/react'
+import { CircleAlertIcon, LocateFixedIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react'
 import { DragEvent, FC, useCallback, useMemo, useRef } from 'react'
 import ChannelValidationErrorModal from './ChannelValidationErrorModal'
 import { useChannelEditorKeyboardEvents } from './events/keyboard'
@@ -29,7 +30,6 @@ import ChannelNodeView from './flow/ChannelNodeView'
 import ChannelNoteView from './flow/ChannelNoteView'
 import { GRID_SIZE, snapToGrid, toFlowEdges, toFlowNodes, validateConnection } from './flow/convert'
 import type { ChannelFlowElement } from './flow/types'
-import { Button } from '@gruent/libs/frontend/components/core/button'
 
 const MIN_ZOOM = 0.5
 const MAX_ZOOM = 1.5

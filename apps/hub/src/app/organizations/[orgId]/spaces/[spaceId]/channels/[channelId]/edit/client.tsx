@@ -3,7 +3,7 @@
 import { FC, useCallback, useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ChannelEditor from '@gruent/hub/components/organisms/ChannelEditor'
-import type { ChannelConfig } from '@gruent/libs/engine/channels/index'
+import type { ChannelConfig } from '@gruent/libs/legacy/engine/channels/index'
 import { useQuery } from '@tanstack/react-query'
 import gruentClient from '@gruent/hub/lib/gruent'
 import {
@@ -43,8 +43,6 @@ import { Space } from '@prisma/client'
 import { Organization } from '@prisma/client'
 import { handleDeleteChannel } from '@gruent/hub/actions/channels'
 import { useRouter } from 'next/navigation'
-import CreateModelModal from '@gruent/hub/components/modals/CreateModelModal'
-import CreateThingModal from '@gruent/hub/components/modals/CreateThingModal'
 import useAuth from '@gruent/hub/hooks/useAuth'
 import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 import { Button } from '@gruent/libs/frontend/components/core/button'
@@ -114,8 +112,6 @@ const ChannelByIdEditClientPage: FC<Props> = ({
   const setCurrentEdge = useChannelEditorStore((state) => state.setCurrentEdge)
   const setCurrentNote = useChannelEditorStore((state) => state.setCurrentNote)
   const setValidationErrors = useChannelEditorStore((state) => state.setValidationErrors)
-  const setModels = useChannelEditorStore((state) => state.setModels)
-  const setThings = useChannelEditorStore((state) => state.setThings)
 
   const channelConfig = useChannelConfig(channelId, channelName, runtime, nodes, edges, notes)
 
@@ -239,70 +235,6 @@ const ChannelByIdEditClientPage: FC<Props> = ({
     return <></>
   }, [currentExecution, isCurrentExecutionLoading, getCurrentExecutionError])
 
-  const { error: listThingsError, refetch: refetchThings } = useQuery({
-    queryKey: ['things', spaceId],
-    queryFn: async () => {
-      if (!accessToken) throw new Error('Invalid auth session.')
-
-      const { data: things, errors } = await gruentClient(accessToken).things.list(spaceId, {
-        resultsPerPage: 100,
-      })
-
-      if (errors && errors.length > 0) throw new Error(errors[0])
-
-      if (things) setThings(things)
-
-      return things
-    },
-  })
-
-  // Add models and  in the space
-  const { error: listModelsError, refetch: refetchModels } = useQuery({
-    queryKey: ['models', spaceId],
-    queryFn: async () => {
-      if (!accessToken) throw new Error('Invalid auth session.')
-
-      const { data: models, errors } = await gruentClient(accessToken).models.list(spaceId)
-
-      if (errors && errors.length > 0) throw new Error(errors[0])
-
-      if (models) setModels(models)
-
-      return models
-    },
-  })
-
-  useEffect(() => {
-    if (listThingsError) {
-      addToast({
-        title: 'Could not retrieve things',
-        body: listThingsError.message,
-        level: 'error',
-      })
-    }
-
-    if (listModelsError) {
-      addToast({
-        title: 'Could not retrieve models',
-        body: listModelsError.message,
-        level: 'error',
-      })
-    }
-  }, [listThingsError, listModelsError])
-
-  const onThingModalSubmit = useCallback(async () => {
-    // Ensure enough time has passed for the thing to be created
-    setTimeout(() => {
-      refetchThings()
-    }, 1000)
-  }, [refetchThings])
-
-  const onModelModalSubmit = useCallback(async () => {
-    // Ensure enough time has passed for the model to be created
-    setTimeout(() => {
-      refetchModels()
-    }, 1000)
-  }, [refetchModels])
 
   // Reset the channel editor store on initial load
   useEffect(() => {
@@ -896,9 +828,6 @@ const ChannelByIdEditClientPage: FC<Props> = ({
           )}
         </AnimatePresence>
 
-        <CreateModelModal spaceId={spaceId} onSubmit={() => onModelModalSubmit()} />
-        <CreateThingModal spaceId={spaceId} orgId={orgId} onSubmit={() => onThingModalSubmit()} />
-
         <ChannelEditor
           hooks={{
             onSave: handleSave,
@@ -911,7 +840,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
           className="border-l border-gray-200 dark:border-gray-800 flex flex-col overflow-y-scroll"
           style={{ width: '35%', minWidth: 350 }}
         >
-          {currentNode && <NodeOptionsPane spaceId={spaceId} orgId={orgId} channelId={channelId} />}
+          {currentNode && <NodeOptionsPane spaceId={spaceId} />}
           {currentNote && <NoteOptionsPane />}
           {(currentNode || currentNote) && <hr className="border-gray-200 dark:border-gray-800" />}
           <ChannelOptionsPane spaceId={spaceId} channel={channel} />

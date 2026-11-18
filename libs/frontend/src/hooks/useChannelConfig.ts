@@ -1,12 +1,11 @@
-import { useMemo } from 'react'
-import type { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
-
 import type {
   ChannelConfig,
   ChannelEdge,
   ChannelNote,
   ChannelRuntime,
-} from '@gruent/libs/engine/channels/index'
+} from '@gruent/libs/legacy/engine/channels/index'
+import type { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
+import { useMemo } from 'react'
 
 const useChannelConfig = (
   id: string,

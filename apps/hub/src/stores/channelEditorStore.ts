@@ -1,6 +1,9 @@
-import { ChannelEdge, ChannelNote, ChannelRuntime } from '@gruent/libs/legacy/engine/channels/channels'
+import {
+  ChannelEdge,
+  ChannelNote,
+  ChannelRuntime,
+} from '@gruent/libs/legacy/engine/channels/channels'
 import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
-import { Model, Thing } from '@prisma/client'
 import { create } from 'zustand'
 
 type State = {
@@ -17,14 +20,13 @@ type State = {
     nodeErrors: Record<string, string[]> | null
   } | null
   status?: 'PUBLISHED' | 'UNPUBLISHED' | 'INITIALIZING'
-  models: Model[]
-  things: Thing[]
 }
 
 type Action = {
   reset: () => void
   upsertNode: (nodeId: string, node: ChannelNode) => void
   moveNode: (nodeId: string, coordinates: { x: number; y: number }) => void
+  setNodeConfig: (nodeId: string, config: Record<string, unknown>) => void
   removeNode: (nodeId: string) => void
   upsertEdge: (edgeId: string, edge: ChannelEdge) => void
   removeEdge: (edgeId: string) => void
@@ -43,8 +45,6 @@ type Action = {
     } | null,
   ) => void
   setStatus: (status: 'PUBLISHED' | 'UNPUBLISHED' | 'INITIALIZING') => void
-  setModels: (models: Model[]) => void
-  setThings: (things: Thing[]) => void
 }
 
 const initialState: State = {
@@ -59,8 +59,6 @@ const initialState: State = {
     size: 'small',
   },
   validationErrors: null,
-  models: [],
-  things: [],
 }
 
 const useChannelEditorStore = create<State & Action>((set, get) => ({
@@ -81,6 +79,21 @@ const useChannelEditorStore = create<State & Action>((set, get) => ({
     const updatedNodes = new Map(nodes)
     updatedNodes.set(nodeId, updatedNode)
     // Keep the selected copy in sync so option panes don't write stale coordinates back
+    set({
+      nodes: updatedNodes,
+      ...(currentNode?.id === nodeId ? { currentNode: updatedNode } : {}),
+    })
+  },
+  setNodeConfig: (nodeId, config) => {
+    const { nodes, currentNode } = get()
+    const node = nodes.get(nodeId)
+    if (!node) return
+    const updatedNode = {
+      ...node,
+      metadata: { ...node.metadata, config: config as ChannelNode['metadata']['config'] },
+    }
+    const updatedNodes = new Map(nodes)
+    updatedNodes.set(nodeId, updatedNode)
     set({
       nodes: updatedNodes,
       ...(currentNode?.id === nodeId ? { currentNode: updatedNode } : {}),
@@ -143,8 +156,6 @@ const useChannelEditorStore = create<State & Action>((set, get) => ({
   setRuntime: (runtime) => set({ runtime }),
   setValidationErrors: (validationErrors) => set({ validationErrors }),
   setStatus: (status) => set({ status }),
-  setModels: (models) => set({ models }),
-  setThings: (things) => set({ things }),
 }))
 
 export default useChannelEditorStore

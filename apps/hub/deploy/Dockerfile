@@ -16,9 +16,9 @@ COPY ./libs/frontend ./libs/frontend
 COPY ./libs/id ./libs/id
 COPY ./libs/gruent-js ./libs/gruent-js
 COPY ./libs/http ./libs/http
-COPY ./libs/engine/channels ./libs/engine/channels
-COPY ./libs/engine/nodes/v1 ./libs/engine/nodes/v1
-COPY ./libs/engine/dependencies ./libs/engine/dependencies
+COPY ./libs/legacy/engine ./libs/legacy/engine
+COPY ./libs/engine/nodes/ts ./libs/engine/nodes/ts
+COPY ./libs/engine/nodes/contracts ./libs/engine/nodes/contracts
 COPY ./apps/hub ./apps/hub
 
 # Build the Next.js app
@@ -42,6 +42,10 @@ COPY --from=builder /build/pnpm-lock.yaml ./
 COPY --from=builder /build/pnpm-workspace.yaml ./
 COPY --from=builder /build/apps/hub/dist .
 COPY --from=builder /build/prisma ./prisma
+# Node definitions are read at request time; replacing this directory publishes definitions without a rebuild
+COPY ./libs/engine/nodes/generated/manifest.json ./node-library/generated/manifest.json
+COPY ./libs/engine/nodes/plugins ./node-library/plugins
+ENV GRUENT_NODE_LIBRARY_DIR=/hub/node-library
 RUN pnpm install --frozen-lockfile
 COPY --from=builder /build/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /build/node_modules/prisma ./node_modules/prisma
