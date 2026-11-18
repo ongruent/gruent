@@ -1,0 +1,37 @@
+{
+  "description": "Field names are camelCase ASCII.",
+  "definition": {
+    "contractVersion": 1,
+    "pluginType": "fixture",
+    "pluginVersion": 1,
+    "displayName": "Fixture",
+    "description": "Definition fixture.",
+    "category": "processing",
+    "configSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "x-ui": {
+            "control": "text",
+            "order": 1
+          }
+        },
+        "model-id": {
+          "type": "string",
+          "title": "Model",
+          "x-ui": {
+            "control": "text",
+            "order": 2
+          }
+        }
+      }
+    }
+  },
+  "errors": [
+    "/configSchema/properties/model-id"
+  ]
+}

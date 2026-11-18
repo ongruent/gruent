@@ -1,0 +1,29 @@
+{
+  "description": "configSchema must reject unknown properties.",
+  "definition": {
+    "contractVersion": 1,
+    "pluginType": "fixture",
+    "pluginVersion": 1,
+    "displayName": "Fixture",
+    "description": "Definition fixture.",
+    "category": "processing",
+    "configSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "x-ui": {
+            "control": "text",
+            "order": 1
+          }
+        }
+      }
+    }
+  },
+  "errors": [
+    "/configSchema/additionalProperties"
+  ]
+}

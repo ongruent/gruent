@@ -1,0 +1,43 @@
+{
+  "description": "Enumerated array items need the multiselect control.",
+  "definition": {
+    "contractVersion": 1,
+    "pluginType": "fixture",
+    "pluginVersion": 1,
+    "displayName": "Fixture",
+    "description": "Definition fixture.",
+    "category": "processing",
+    "configSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "x-ui": {
+            "control": "text",
+            "order": 1
+          }
+        },
+        "ids": {
+          "type": "array",
+          "title": "IDs",
+          "items": {
+            "type": "string",
+            "enum": [
+              "a"
+            ]
+          },
+          "x-ui": {
+            "control": "list",
+            "order": 2
+          }
+        }
+      }
+    }
+  },
+  "errors": [
+    "/configSchema/properties/ids/items/enum"
+  ]
+}

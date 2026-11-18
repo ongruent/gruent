@@ -1,0 +1,5 @@
+{
+  "description": "Empty strings violate minLength (empty is a value, not absence); integer above its maximum.",
+  "config": { "greeting": "", "language": "en", "repeatCount": 11, "secretId": "" },
+  "errors": ["/greeting", "/repeatCount", "/secretId"]
+}

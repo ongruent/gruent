@@ -1,0 +1,39 @@
+{
+  "description": "Integer bounds must be within ±(2^53−1).",
+  "definition": {
+    "contractVersion": 1,
+    "pluginType": "fixture",
+    "pluginVersion": 1,
+    "displayName": "Fixture",
+    "description": "Definition fixture.",
+    "category": "processing",
+    "configSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "x-ui": {
+            "control": "text",
+            "order": 1
+          }
+        },
+        "count": {
+          "type": "integer",
+          "title": "Count",
+          "minimum": 0,
+          "maximum": 100000000000000000,
+          "x-ui": {
+            "control": "number",
+            "order": 2
+          }
+        }
+      }
+    }
+  },
+  "errors": [
+    "/configSchema/properties/count/maximum"
+  ]
+}

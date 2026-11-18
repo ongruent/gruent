@@ -18,6 +18,7 @@
     "@upstash/redis": "^1.36.3",
     "@wooorm/starry-night": "^3.9.0",
     "@xyflow/react": "^12.12.1",
+    "ajv": "^8.20.0",
     "autoprefixer": "^10.4.27",
     "class-variance-authority": "^0.7.1",
     "cmdk": "^1.1.1",

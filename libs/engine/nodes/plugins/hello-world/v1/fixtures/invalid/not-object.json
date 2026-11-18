@@ -1,0 +1,5 @@
+{
+  "description": "Configuration must be an object.",
+  "config": ["greeting"],
+  "errors": [""]
+}

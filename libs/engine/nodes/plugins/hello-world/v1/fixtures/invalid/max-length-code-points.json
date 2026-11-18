@@ -1,0 +1,9 @@
+{
+  "description": "81 code points exceed maxLength 80.",
+  "config": {
+    "greeting": "👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋",
+    "language": "en",
+    "repeatCount": 1
+  },
+  "errors": ["/greeting"]
+}

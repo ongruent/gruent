@@ -1,0 +1,30 @@
+{
+  "description": "$ref is not supported, so no reference can be unresolved or remote.",
+  "definition": {
+    "contractVersion": 1,
+    "pluginType": "fixture",
+    "pluginVersion": 1,
+    "displayName": "Fixture",
+    "description": "Definition fixture.",
+    "category": "processing",
+    "configSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "x-ui": {
+            "control": "text",
+            "order": 1
+          },
+          "$ref": "https://example.com/schema.json"
+        }
+      }
+    }
+  },
+  "errors": [
+    "/configSchema/properties/name/$ref"
+  ]
+}

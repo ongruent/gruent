@@ -1,0 +1,5 @@
+{
+  "description": "Static-only select is constrained by enum; labels are not values.",
+  "config": { "greeting": "Hi", "language": "English", "repeatCount": 1 },
+  "errors": ["/language"]
+}

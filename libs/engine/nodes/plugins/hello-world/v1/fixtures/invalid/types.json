@@ -1,0 +1,5 @@
+{
+  "description": "Wrong JSON types are rejected without coercion.",
+  "config": { "greeting": 5, "language": "en", "repeatCount": "3", "uppercase": "true", "confidenceThreshold": "0.5" },
+  "errors": ["/greeting", "/repeatCount", "/uppercase", "/confidenceThreshold"]
+}

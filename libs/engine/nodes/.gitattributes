@@ -10,3 +10,7 @@
 # Binary files should be left untouched
 *.jar           binary
 
+
+# Definition digests are computed over the exact bytes of node.json; keep line endings stable.
+*.json text eol=lf
+generated/** linguist-generated=true

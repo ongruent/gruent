@@ -1,0 +1,5 @@
+{
+  "description": "Required fields reported at the missing property pointer.",
+  "config": { "language": "en" },
+  "errors": ["/greeting", "/repeatCount"]
+}

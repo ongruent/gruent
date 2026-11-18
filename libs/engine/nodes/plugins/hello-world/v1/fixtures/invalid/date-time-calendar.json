@@ -1,0 +1,5 @@
+{
+  "description": "February 30th does not exist.",
+  "config": { "greeting": "Hi", "language": "en", "repeatCount": 1, "startAt": "2026-02-30T09:30:00Z" },
+  "errors": ["/startAt"]
+}
