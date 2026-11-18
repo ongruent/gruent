@@ -10,8 +10,7 @@ import {
 } from '@tanstack/react-table'
 import ListTable from '@gruent/hub/components/atoms/ListTable'
 import SecretContextMenu from './SecretContextMenu'
-import { riInformationLine } from '@mwarnerdotme/react-remixicon'
-import { RemixIcon } from '@mwarnerdotme/react-remixicon'
+import { InfoIcon } from 'lucide-react'
 // import IndeterminateCheckbox from "../../atoms/IndeterminateCheckbox"
 
 type Props = {
@@ -47,7 +46,7 @@ const SecretsTable: FC<Props> = ({ secrets, spaceId, totalPages, totalResults })
     columnHelper.accessor('name', {
       header: () => (
         <div className="flex items-center">
-          <RemixIcon className="mr-1" icon={riInformationLine} />
+          <InfoIcon size="1em" className="mr-1" />
           <span>Name</span>
         </div>
       ),

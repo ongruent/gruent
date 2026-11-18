@@ -9,7 +9,7 @@ import AwsSNSActionOptions from './AwsSNSActionOptions'
 import SendgridActionOptions from './SendgridActionOptions'
 import Button from '@gruent/libs/frontend/components/atoms/Button'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
-import { RemixIcon, riAddLine } from '@mwarnerdotme/react-remixicon'
+import { PlusIcon } from 'lucide-react'
 
 type Props = {
   things: Thing[]
@@ -182,7 +182,7 @@ const NotificationActionOptions: FC<Props> = ({ things, orgId, spaceId, models }
           }
         />
         <Button className="my-3" onClick={() => openModal('createThing')}>
-          <RemixIcon icon={riAddLine} />
+          <PlusIcon size="1em" />
         </Button>
       </div>
       {selectedSubnodeOptions}

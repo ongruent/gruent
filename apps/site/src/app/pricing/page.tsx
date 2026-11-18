@@ -1,27 +1,26 @@
 import Container from '@gruent/libs/frontend/components/templates/Container'
 import ChannelsCostCalculator from '@gruent/libs/frontend/components/organisms/GridExamplePriceCalculator'
 import {
-  RemixIcon,
-  ri24HoursFill,
-  riApps2AiFill,
-  riArrowLeftRightFill,
-  riArrowRightLine,
-  riArticleFill,
-  riCloudFill,
-  riDragDropFill,
-  riGitForkFill,
-  riInstanceFill,
-  riKey2Fill,
-  riLineChartFill,
-  riLock2Fill,
-  riRouterLine,
-  riServerFill,
-  riShieldUserFill,
-  riSpeedMiniFill,
-  riStackFill,
-  riSwap3Fill,
-  riTeamFill,
-} from '@mwarnerdotme/react-remixicon'
+  ArrowDownUpIcon,
+  ArrowLeftRightIcon,
+  ArrowRightIcon,
+  ChartLineIcon,
+  ClockIcon,
+  CloudIcon,
+  FastForwardIcon,
+  GitForkIcon,
+  KeyRoundIcon,
+  LayersIcon,
+  LockIcon,
+  NewspaperIcon,
+  RouterIcon,
+  ServerIcon,
+  ShapesIcon,
+  ShieldUserIcon,
+  SparklesIcon,
+  SquareDashedMousePointerIcon,
+  UsersIcon,
+} from 'lucide-react'
 
 import styles from './page.module.scss'
 import Button from '@gruent/libs/frontend/components/atoms/Button'
@@ -145,9 +144,8 @@ const Pricing = async ({ searchParams }) => {
                     <RuntimeSelector runtime={runtime} />
                     <ul className="text-gray-500 text-lg flex flex-col gap-2 mx-auto w-fit">
                       <li className="flex items-center">
-                        <RemixIcon
-                          icon={riDragDropFill}
-                          size="xl"
+                        <SquareDashedMousePointerIcon
+                          size="1.5em"
                           className="text-green-700 mr-2"
                         />{' '}
                         Everything you need to connect{' '}
@@ -165,16 +163,11 @@ const Pricing = async ({ searchParams }) => {
                         </div>
                       </li>
                       <li className="flex items-center">
-                        <RemixIcon
-                          icon={riSpeedMiniFill}
-                          size="xl"
-                          className="text-green-700 mr-2"
-                        />{' '}
-                        Up to {prices[runtime].executionsPerSecond} executions per second
+                        <FastForwardIcon size="1.5em" className="text-green-700 mr-2" /> Up to{' '}
+                        {prices[runtime].executionsPerSecond} executions per second
                       </li>
                       <li className="flex items-center">
-                        <RemixIcon icon={ri24HoursFill} size="xl" className="text-green-700 mr-2" />{' '}
-                        99.99% uptime SLA
+                        <ClockIcon size="1.5em" className="text-green-700 mr-2" /> 99.99% uptime SLA
                       </li>
                     </ul>
                   </div>
@@ -186,7 +179,7 @@ const Pricing = async ({ searchParams }) => {
                     modalId="betaSignup"
                     className="py-4 px-14 mx-auto w-full bg-gray-100 border-0"
                   >
-                    Get started in minutes <RemixIcon icon={riArrowRightLine} />
+                    Get started in minutes <ArrowRightIcon size="1em" />
                   </Button>
                 </div>
               </div>
@@ -202,16 +195,16 @@ const Pricing = async ({ searchParams }) => {
                     </h4>
                     <ul className="text-gray-500 text-lg flex flex-col gap-2 mx-auto w-fit">
                       <li className="flex items-center">
-                        <RemixIcon icon={riServerFill} size="xl" className="text-green-700 mr-2" />{' '}
-                        Container-based deployments
+                        <ServerIcon size="1.5em" className="text-green-700 mr-2" /> Container-based
+                        deployments
                       </li>
                       <li className="flex items-center">
-                        <RemixIcon icon={riStackFill} size="xl" className="text-green-700 mr-2" />{' '}
-                        Maximize customizability
+                        <LayersIcon size="1.5em" className="text-green-700 mr-2" /> Maximize
+                        customizability
                       </li>
                       <li className="flex items-center">
-                        <RemixIcon icon={riCloudFill} size="xl" className="text-green-700 mr-2" />{' '}
-                        Optional data forwarding
+                        <CloudIcon size="1.5em" className="text-green-700 mr-2" /> Optional data
+                        forwarding
                       </li>
                     </ul>
                   </div>
@@ -233,7 +226,7 @@ const Pricing = async ({ searchParams }) => {
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mt-10">
               <div>
-                <RemixIcon icon={riDragDropFill} size="2x" className="text-green-700" />
+                <SquareDashedMousePointerIcon size="2em" className="text-green-700" />
                 <h3 className="text-lg my-4">Drag and drop configurations</h3>
                 <ul className="text-gray-500 ml-4" style={{ listStyleType: 'disclosure-closed' }}>
                   <li>Supports any major protocol</li>
@@ -242,7 +235,7 @@ const Pricing = async ({ searchParams }) => {
                 </ul>
               </div>
               <div>
-                <RemixIcon icon={riRouterLine} size="2x" className="text-green-700" />
+                <RouterIcon size="2em" className="text-green-700" />
                 <h3 className="text-lg my-4">Simple service and device management</h3>
                 <ul className="text-gray-500 ml-4" style={{ listStyleType: 'disclosure-closed' }}>
                   <li>Create and manage up to 10,000 things</li>
@@ -251,7 +244,7 @@ const Pricing = async ({ searchParams }) => {
                 </ul>
               </div>
               <div>
-                <RemixIcon icon={riArrowLeftRightFill} size="2x" className="text-green-700" />
+                <ArrowLeftRightIcon size="2em" className="text-green-700" />
                 <h3 className="text-lg my-4">Managed MQTT broker</h3>
                 <ul className="text-gray-500 ml-4" style={{ listStyleType: 'disclosure-closed' }}>
                   <li>Send messages to any connected device</li>
@@ -260,7 +253,7 @@ const Pricing = async ({ searchParams }) => {
                 </ul>
               </div>
               <div>
-                <RemixIcon icon={riInstanceFill} size="2x" className="text-green-700" />
+                <ShapesIcon size="2em" className="text-green-700" />
                 <h3 className="text-lg my-4">Define your own data models</h3>
                 <ul className="text-gray-500 ml-4" style={{ listStyleType: 'disclosure-closed' }}>
                   <li>Ensure data integrity</li>
@@ -269,7 +262,7 @@ const Pricing = async ({ searchParams }) => {
                 </ul>
               </div>
               <div>
-                <RemixIcon icon={riApps2AiFill} size="2x" className="text-green-700" />
+                <SparklesIcon size="2em" className="text-green-700" />
                 <h3 className="text-lg my-4">AI assistant</h3>
                 <ul className="text-gray-500 ml-4" style={{ listStyleType: 'disclosure-closed' }}>
                   <li>Build solutions faster</li>
@@ -278,7 +271,7 @@ const Pricing = async ({ searchParams }) => {
                 </ul>
               </div>
               <div>
-                <RemixIcon icon={riLock2Fill} size="2x" className="text-green-700" />
+                <LockIcon size="2em" className="text-green-700" />
                 <h3 className="text-lg my-4">Security by default</h3>
                 <ul className="text-gray-500 ml-4" style={{ listStyleType: 'disclosure-closed' }}>
                   <li>Authentication enforcement and policies</li>
@@ -287,7 +280,7 @@ const Pricing = async ({ searchParams }) => {
                 </ul>
               </div>
               <div>
-                <RemixIcon icon={riArticleFill} size="2x" className="text-green-700" />
+                <NewspaperIcon size="2em" className="text-green-700" />
                 <h3 className="text-lg my-4">Comprehensive developer resources</h3>
                 <ul className="text-gray-500 ml-4" style={{ listStyleType: 'disclosure-closed' }}>
                   <li>Documentation and guides</li>
@@ -296,7 +289,7 @@ const Pricing = async ({ searchParams }) => {
                 </ul>
               </div>
               <div>
-                <RemixIcon icon={riTeamFill} size="2x" className="text-green-700" />
+                <UsersIcon size="2em" className="text-green-700" />
                 <h3 className="text-lg my-4">Bring your whole team</h3>
                 <ul className="text-gray-500 ml-4" style={{ listStyleType: 'disclosure-closed' }}>
                   <li>Up to 10,000 team members</li>
@@ -305,7 +298,7 @@ const Pricing = async ({ searchParams }) => {
                 </ul>
               </div>
               <div>
-                <RemixIcon icon={riLineChartFill} size="2x" className="text-green-700" />
+                <ChartLineIcon size="2em" className="text-green-700" />
                 <h3 className="text-lg my-4">Observability and analytics</h3>
                 <ul className="text-gray-500 ml-4" style={{ listStyleType: 'disclosure-closed' }}>
                   <li>View uptime and requests per second</li>
@@ -314,7 +307,7 @@ const Pricing = async ({ searchParams }) => {
                 </ul>
               </div>
               {/* <div>
-                <RemixIcon icon={riShieldCheckFill} size="2x" className="text-green-700" />
+                <ShieldCheckIcon size="2em" className="text-green-700" />
                 <h3 className="text-lg my-4">Advanced security & compliance</h3>
                 <ul className="text-gray-500 ml-4" style={{ listStyleType: 'disclosure-closed' }}>
                   <li>SOC 2 compliant</li>
@@ -323,7 +316,7 @@ const Pricing = async ({ searchParams }) => {
                 </ul>
               </div> */}
               {/* <div>
-                <RemixIcon icon={riRouterFill} size="2x" className="text-green-700" />
+                <RouterIcon size="2em" className="text-green-700" />
                 <h3 className="text-lg my-4">24x7 service availability</h3>
                 <ul className="text-gray-500 ml-4" style={{ listStyleType: 'disclosure-closed' }}>
                   <li>99.999% uptime</li>
@@ -349,8 +342,7 @@ const Pricing = async ({ searchParams }) => {
                 <div className="flex flex-col md:flex-row gap-4 mt-4">
                   <div className="grow">
                     <h4 className="flex items-center gap-1 text-lg mt-4 font-normal">
-                      <RemixIcon icon={riGitForkFill} size="lg" className="text-green-700" />{' '}
-                      Channels
+                      <GitForkIcon size="1.3333em" className="text-green-700" /> Channels
                     </h4>
                     <p className="text-gray-500 max-w-lg">
                       Connect anything with channels. Define inputs from a variety of sources,
@@ -372,7 +364,7 @@ const Pricing = async ({ searchParams }) => {
                 <div className="flex flex-col md:flex-row gap-4 mt-4">
                   <div className="grow">
                     <h4 className="flex items-center gap-1 text-lg mt-4 font-normal">
-                      <RemixIcon icon={riRouterLine} size="lg" className="text-green-700" /> Things
+                      <RouterIcon size="1.3333em" className="text-green-700" /> Things
                     </h4>
                     <p className="text-gray-500 max-w-lg">
                       Integrate devices, APIs, third-party services, databases, messages queues, and
@@ -390,8 +382,7 @@ const Pricing = async ({ searchParams }) => {
                 <div className="flex flex-col md:flex-row gap-4 mt-4">
                   <div className="grow">
                     <h4 className="flex items-center gap-1 text-lg mt-4 font-normal">
-                      <RemixIcon icon={riInstanceFill} size="lg" className="text-green-700" />{' '}
-                      Models
+                      <ShapesIcon size="1.3333em" className="text-green-700" /> Models
                     </h4>
                     <p className="text-gray-500 max-w-lg">
                       Define your own data models to ensure data integrity and consistency.
@@ -408,8 +399,7 @@ const Pricing = async ({ searchParams }) => {
                 <div className="flex flex-col md:flex-row gap-4 mt-4">
                   <div className="grow">
                     <h4 className="flex items-center gap-1 text-lg mt-4 font-normal">
-                      <RemixIcon icon={riShieldUserFill} size="lg" className="text-green-700" />{' '}
-                      Team
+                      <ShieldUserIcon size="1.3333em" className="text-green-700" /> Team
                     </h4>
                     <p className="text-gray-500 max-w-lg">
                       Team members to collaborate in your organization or space.
@@ -426,7 +416,7 @@ const Pricing = async ({ searchParams }) => {
                 <div className="flex flex-col md:flex-row gap-4 mt-4">
                   <div className="grow">
                     <h4 className="flex items-center gap-1 text-lg mt-4 font-normal">
-                      <RemixIcon icon={riKey2Fill} size="lg" className="text-green-700" /> Secrets
+                      <KeyRoundIcon size="1.3333em" className="text-green-700" /> Secrets
                     </h4>
                     <p className="text-gray-500 max-w-lg">
                       Securely store and manage secrets for your channels and things.
@@ -443,7 +433,7 @@ const Pricing = async ({ searchParams }) => {
                 <div className="flex flex-col md:flex-row gap-4 mt-4">
                   <div className="grow">
                     <h4 className="flex items-center gap-1 text-lg mt-4 font-normal">
-                      <RemixIcon icon={riSwap3Fill} size="lg" className="text-green-700" /> API
+                      <ArrowDownUpIcon size="1.3333em" className="text-green-700" /> API
                     </h4>
                     <p className="text-gray-500 max-w-lg">
                       Programmatic access to all GRUENT API routes.

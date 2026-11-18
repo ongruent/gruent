@@ -4,7 +4,7 @@ import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSel
 import { ChannelNode, MetricActionNodeConfig } from '@gruent/libs/legacy/engine/nodes/v1'
 import { Model, Thing } from '@prisma/client'
 import { FC, useEffect, useMemo, useState } from 'react'
-import { RemixIcon, riAddLine } from '@mwarnerdotme/react-remixicon'
+import { PlusIcon } from 'lucide-react'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import { ModelAttributes } from '@gruent/libs/engine/dependencies/models'
 
@@ -181,7 +181,7 @@ const MetricAction: FC<Props> = ({ models, things }) => {
           onChange={(e) => setSelectedModel(models.find((m) => m.id === e.target.value))}
         />
         <Button text="Create model" className="my-3" onClick={() => openModal('createModel')}>
-          <RemixIcon icon={riAddLine} />
+          <PlusIcon size="1em" />
         </Button>
       </div>
       {selectedModel && numericAttributeOptions.length > 0 && (

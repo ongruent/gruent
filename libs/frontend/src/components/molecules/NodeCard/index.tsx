@@ -1,20 +1,19 @@
 'use client'
 
 import {
-  IconDefinition,
-  RemixIcon,
-  riBracesLine,
-  riCharacterRecognitionLine,
-  riCodeSSlashLine,
-  riDatabase2Line,
-  riLoginCircleLine,
-  riMailSendLine,
-  riNotification3Line,
-  riQuestionMark,
-  riSettings3Line,
-  riSettings5Line,
-  riShareCircleLine,
-} from '@mwarnerdotme/react-remixicon'
+  type LucideIcon,
+  BellIcon,
+  BracesIcon,
+  CircleArrowOutUpRightIcon,
+  CircleQuestionMarkIcon,
+  CodeXmlIcon,
+  CogIcon,
+  DatabaseIcon,
+  LogInIcon,
+  SendIcon,
+  SettingsIcon,
+  SparklesIcon,
+} from 'lucide-react'
 import { FC, useEffect, useMemo, useState } from 'react'
 
 type icon =
@@ -36,38 +35,34 @@ type Props = {
   muted?: boolean
 }
 
-const NodeCard: FC<Props> = ({
-  icons = [riQuestionMark],
-  captions = ['Unknown'],
-  muted = false,
-}) => {
+const NodeCard: FC<Props> = ({ icons = [], captions = ['Unknown'], muted = false }) => {
   const [currentIconIndex, setCurrentIconIndex] = useState<number>(0)
 
-  const icon: IconDefinition = useMemo(() => {
+  const Icon: LucideIcon = useMemo(() => {
     switch (icons[currentIconIndex]) {
       case 'input':
-        return riLoginCircleLine
+        return LogInIcon
       case 'processing1':
-        return riSettings5Line
+        return SettingsIcon
       case 'processing2':
-        return riSettings3Line
+        return CogIcon
       case 'processing3':
       case 'code':
-        return riCodeSSlashLine
+        return CodeXmlIcon
       case 'machineLearning':
-        return riCharacterRecognitionLine
+        return SparklesIcon
       case 'outputDatabase':
-        return riDatabase2Line
+        return DatabaseIcon
       case 'outputApi':
-        return riBracesLine
+        return BracesIcon
       case 'outputWebhook':
-        return riShareCircleLine
+        return CircleArrowOutUpRightIcon
       case 'actionEmail':
-        return riMailSendLine
+        return SendIcon
       case 'actionNotification':
-        return riNotification3Line
+        return BellIcon
       default:
-        return riQuestionMark
+        return CircleQuestionMarkIcon
     }
   }, [icons, currentIconIndex])
 
@@ -93,7 +88,7 @@ const NodeCard: FC<Props> = ({
         style={{ height: 75, width: 75 }}
         className="flex flex-col items-center justify-center bg-gray-100 border border-green-500 rounded-lg transition select-none shadow cursor-pointer"
       >
-        <RemixIcon icon={icon} size="2x" className="text-gray-800" />
+        <Icon size="2em" className="text-gray-800" />
         <p className="text-gray-400 text-xs">{caption}</p>
       </div>
     )
@@ -104,7 +99,7 @@ const NodeCard: FC<Props> = ({
       style={{ height: 75, width: 75 }}
       className="flex flex-col items-center justify-center bg-gray-100 border border-gray-200 shadow-none transition select-none shadow cursor-pointer"
     >
-      <RemixIcon icon={icon} size="2x" className="text-gray-500" />
+      <Icon size="2em" className="text-gray-500" />
       <p className="text-gray-500 text-xs">{caption}</p>
     </div>
   )

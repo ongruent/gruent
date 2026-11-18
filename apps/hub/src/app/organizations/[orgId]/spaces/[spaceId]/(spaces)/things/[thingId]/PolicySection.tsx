@@ -5,7 +5,7 @@ import Button from '@gruent/libs/frontend/components/atoms/Button'
 import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { Policy } from '@gruent/libs/gruent-js/src/policies'
-import { RemixIcon, riCloseLine } from '@mwarnerdotme/react-remixicon'
+import { XIcon } from 'lucide-react'
 import { FC, useCallback, useMemo, useState } from 'react'
 import gruentClient from '@gruent/hub/lib/gruent'
 import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
@@ -201,8 +201,8 @@ const PolicySection: FC<Props> = ({ policy, revoke, spaceId, certificateId, clas
               value={topic}
               onChange={(e) => handleEditTopic('subscribe', i, e.target.value)}
             />
-            <RemixIcon
-              icon={riCloseLine}
+            <XIcon
+              size="1em"
               className="absolute -right-5 top-1/2 -translate-y-1/2 cursor-pointer"
               onClick={() => handleRemoveTopic('subscribe', i)}
             />
@@ -223,8 +223,8 @@ const PolicySection: FC<Props> = ({ policy, revoke, spaceId, certificateId, clas
               value={topic}
               onChange={(e) => handleEditTopic('publish', i, e.target.value)}
             />
-            <RemixIcon
-              icon={riCloseLine}
+            <XIcon
+              size="1em"
               className="absolute -right-5 top-1/2 -translate-y-1/2 cursor-pointer"
               onClick={() => handleRemoveTopic('publish', i)}
             />

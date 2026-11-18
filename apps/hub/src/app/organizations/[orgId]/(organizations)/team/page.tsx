@@ -7,8 +7,7 @@ import PermissionSetTable from '@gruent/hub/components/organisms/PermissionSetTa
 import ApiKeysTable from '@gruent/hub/components/organisms/ApiKeyTable'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
 import SearchBar from '@gruent/hub/components/molecules/SearchBar'
-import { riAddCircleLine, riTerminalBoxLine } from '@mwarnerdotme/react-remixicon'
-import { RemixIcon } from '@mwarnerdotme/react-remixicon'
+import { CirclePlusIcon, SquareTerminalIcon } from 'lucide-react'
 import Button from '@gruent/libs/frontend/components/atoms/Button'
 import Container from '@gruent/libs/frontend/components/templates/Container'
 import ListTablePlaceholder from '@gruent/hub/components/molecules/ListTablePlaceholder'
@@ -120,7 +119,7 @@ const OrganizationTeamPage = async ({ params, searchParams }) => {
               placeholder="Search members"
             />
             <Button variant="transparent" className="text-sm" modalId="addMember">
-              <RemixIcon className="mr-1" icon={riAddCircleLine} />
+              <CirclePlusIcon size="1em" className="mr-1" />
               <span>Add</span>
             </Button>
           </div>
@@ -144,7 +143,7 @@ const OrganizationTeamPage = async ({ params, searchParams }) => {
               <div className="absolute top-8 right-10 mb-1 flex items-end gap-2">
                 <div className="grow" />
                 <Button variant="transparent" className="text-sm" modalId="addApiKey">
-                  <RemixIcon className="mr-1" icon={riAddCircleLine} />
+                  <CirclePlusIcon size="1em" className="mr-1" />
                   <span>Create</span>
                 </Button>
               </div>
@@ -163,16 +162,12 @@ const OrganizationTeamPage = async ({ params, searchParams }) => {
               title="API Keys"
               description="Programmatically access the GRUENT platform."
             >
-              <RemixIcon
-                icon={riTerminalBoxLine}
-                className="text-gray-600 dark:text-gray-200 mb-2"
-                size="3x"
-              />
+              <SquareTerminalIcon size="3em" className="text-gray-600 dark:text-gray-200 mb-2" />
               <p className="text-gray-600 dark:text-gray-400 text-center mb-2">
                 No API keys... yet!
               </p>
               <Button variant="primary" className="text-sm" modalId="addApiKey">
-                <RemixIcon className="mr-1" icon={riAddCircleLine} />
+                <CirclePlusIcon size="1em" className="mr-1" />
                 <span>Create your first API key</span>
               </Button>
             </ListTablePlaceholder>
@@ -187,7 +182,7 @@ const OrganizationTeamPage = async ({ params, searchParams }) => {
           <div className="absolute top-8 right-10 mb-1 flex items-end gap-2">
             <div className="grow" />
             <Button variant="transparent" className="text-sm" modalId="addPermissionSet">
-              <RemixIcon className="mr-1" icon={riAddCircleLine} />
+              <CirclePlusIcon size="1em" className="mr-1" />
               <span>Create</span>
             </Button>
           </div>

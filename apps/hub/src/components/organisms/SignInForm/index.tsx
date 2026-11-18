@@ -7,7 +7,7 @@ import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
 import Link from 'next/link'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { useRouter } from 'next/navigation'
-import { RemixIcon, riEyeLine, riEyeOffLine } from '@mwarnerdotme/react-remixicon'
+import { EyeIcon, EyeOffIcon } from 'lucide-react'
 // import { signIn } from 'next-auth/react'
 import { signInWithCredentials, signInWithMagicLink } from '@gruent/hub/actions/auth'
 import Modal from '@gruent/libs/frontend/components/organisms/Modal'
@@ -154,15 +154,15 @@ const SignInForm = ({ allowPassword = true, initialEmail }: Props) => {
                 className="w-full"
               />
               {showPassword ? (
-                <RemixIcon
+                <EyeOffIcon
+                  size="1em"
                   className="absolute right-3 transition text-gray-500 hover:text-gray-600 cursor-pointer"
-                  icon={riEyeOffLine}
                   onClick={() => setShowPassword((current) => !current)}
                 />
               ) : (
-                <RemixIcon
+                <EyeIcon
+                  size="1em"
                   className="absolute right-3 transition text-gray-500 hover:text-gray-600 cursor-pointer"
-                  icon={riEyeLine}
                   onClick={() => setShowPassword((current) => !current)}
                 />
               )}

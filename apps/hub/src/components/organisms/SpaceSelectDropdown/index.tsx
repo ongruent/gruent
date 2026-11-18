@@ -1,11 +1,6 @@
 'use client'
 
-import {
-  RemixIcon,
-  riAddFill,
-  riArrowDropDownLine,
-  riArrowDropUpLine,
-} from '@mwarnerdotme/react-remixicon'
+import { ChevronDownIcon, ChevronUpIcon, PlusIcon } from 'lucide-react'
 import { Organization, Space } from '@prisma/client'
 import { useClickOutside } from '@react-hooks-library/core'
 import { FC, useMemo, useRef, useState } from 'react'
@@ -52,22 +47,14 @@ const SpaceSelectDropDown: FC<Props> = ({ organization, currentSpaceId }) => {
     <>
       <CreateSpaceModal orgId={organization.id} />
       <div className="relative select-none w-fit min-w-[15rem]" ref={dropdownRef}>
-        <div
-          className="group pr-8 cursor-pointer flex items-center"
-          onClick={handleToggleDropDown}
-        >
+        <div className="group pr-8 cursor-pointer flex items-center" onClick={handleToggleDropDown}>
           <p className="text-gray-700 dark:text-gray-300 font-semibold">{currentSpace.name}</p>
           {isDropDownOpen ? (
-            <RemixIcon
-              className="transition opacity-100"
-              icon={riArrowDropUpLine}
-              size="xl"
-            />
+            <ChevronUpIcon size="1.5em" className="transition opacity-100" />
           ) : (
-            <RemixIcon
+            <ChevronDownIcon
+              size="1.5em"
               className="transition opacity-0 group-hover:opacity-100"
-              icon={riArrowDropDownLine}
-              size="xl"
             />
           )}
         </div>
@@ -104,7 +91,7 @@ const SpaceSelectDropDown: FC<Props> = ({ organization, currentSpaceId }) => {
                   modalId="createSpace"
                   className="text-gray-700 dark:text-gray-300"
                 >
-                  Create a new space <RemixIcon className="ml-1" icon={riAddFill} />
+                  Create a new space <PlusIcon size="1em" className="ml-1" />
                 </Button>
               </div>
             </div>

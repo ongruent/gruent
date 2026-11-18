@@ -9,7 +9,7 @@ import { PermissionSet } from '@prisma/client'
 import ContextMenu from '@gruent/hub/components/atoms/ContextMenu'
 import { handleRemovePermissionSet } from '@gruent/hub/actions/permissionSets'
 import UpdateSpacePermissionSetModal from '@gruent/hub/components/modals/UpdateSpacePermissionSetModal'
-import { riDeleteBin7Line, riEdit2Line } from '@mwarnerdotme/react-remixicon'
+import { PencilLineIcon, Trash2Icon } from 'lucide-react'
 import useAuth from '@gruent/hub/hooks/useAuth'
 
 type Props = {
@@ -58,7 +58,7 @@ const SpacePermissionSetContextMenu: FC<Props> = ({ permissionSetId, spaceId, or
 
   const contextMenuButtons = [
     {
-      icon: riEdit2Line,
+      icon: PencilLineIcon,
       title: 'Edit',
       onClick: () => {
         handleEditPermissionSet.mutate()
@@ -66,7 +66,7 @@ const SpacePermissionSetContextMenu: FC<Props> = ({ permissionSetId, spaceId, or
       },
     },
     {
-      icon: riDeleteBin7Line,
+      icon: Trash2Icon,
       title: 'Delete',
       onClick: async () => {
         const { error } = await handleRemovePermissionSet(spaceId ?? orgId, permissionSetId)

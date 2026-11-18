@@ -3,7 +3,7 @@
 import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
 import { Dispatch, FC, useEffect, useMemo, useState } from 'react'
 import Button from '@gruent/libs/frontend/components/atoms/Button'
-import { RemixIcon, riCloseLine } from '@mwarnerdotme/react-remixicon'
+import { XIcon } from 'lucide-react'
 import { Thing } from '@prisma/client'
 
 type Props = {
@@ -52,8 +52,8 @@ const KafkaCluster: FC<Props> = ({ setFormData, initial }) => {
                 })
               }
             />
-            <RemixIcon
-              icon={riCloseLine}
+            <XIcon
+              size="1em"
               className="-mr-4 text-gray-500 hover:text-red-500 transition cursor-pointer"
               onClick={() => {
                 setBootstrapServers((current) => current.filter((_p, j) => i !== j))
@@ -85,8 +85,8 @@ const KafkaCluster: FC<Props> = ({ setFormData, initial }) => {
                 })
               }
             />
-            <RemixIcon
-              icon={riCloseLine}
+            <XIcon
+              size="1em"
               className="-mr-4 text-gray-500 hover:text-red-500 transition cursor-pointer"
               onClick={() => {
                 setTopics((current) => current.filter((_p, j) => i !== j))

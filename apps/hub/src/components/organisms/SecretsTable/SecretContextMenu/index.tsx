@@ -6,7 +6,7 @@ import ContextMenu from '@gruent/hub/components/atoms/ContextMenu'
 import { handleDeleteSecret } from '@gruent/hub/actions/secrets'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import EditSecretModal from '@gruent/hub/components/modals/EditSecretModal'
-import { riDeleteBin7Line, riPencilLine } from '@mwarnerdotme/react-remixicon'
+import { PencilIcon, Trash2Icon } from 'lucide-react'
 
 type Props = {
   secretName: string
@@ -24,12 +24,12 @@ const SecretContextMenu: FC<Props> = ({ secretName, spaceId }) => {
 
   const contextMenuButtons = [
     {
-      icon: riPencilLine,
+      icon: PencilIcon,
       title: 'Edit',
       onClick: handleEditPermissions,
     },
     {
-      icon: riDeleteBin7Line,
+      icon: Trash2Icon,
       title: 'Delete',
       onClick: async () => {
         const { error } = await handleDeleteSecret(spaceId, secretName)

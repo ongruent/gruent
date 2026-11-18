@@ -5,13 +5,7 @@ import Button from '@gruent/libs/frontend/components/atoms/Button'
 import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
 import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
-import {
-  RemixIcon,
-  riCloseLine,
-  riArrowDownSLine,
-  riArrowRightSLine,
-  riDraggable,
-} from '@mwarnerdotme/react-remixicon'
+import { ChevronDownIcon, ChevronRightIcon, GripVerticalIcon, XIcon } from 'lucide-react'
 import { Model } from '@prisma/client'
 import { useMutation } from '@tanstack/react-query'
 import { FC, FormEventHandler, useCallback, useEffect, useMemo, useState, useRef } from 'react'
@@ -221,12 +215,12 @@ const AttributeRow: FC<{
       >
         <div className="mb-4">
           <div className="flex items-center relative">
-            <RemixIcon
-              icon={riDraggable}
+            <GripVerticalIcon
+              size="1em"
               className="-ml-5 mr-1 mt-2 transition cursor-grab text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
             />
-            <RemixIcon
-              icon={riCloseLine}
+            <XIcon
+              size="1em"
               className="absolute top-1/2 -translate-y-1/4 -right-5 transition cursor-pointer text-red-500 hover:text-red-600 dark:hover:text-red-400"
               onClick={onDelete}
             />
@@ -287,7 +281,11 @@ const AttributeRow: FC<{
             onClick={() => setShowAttributeOptions(!showAttributeOptions)}
           >
             Options
-            <RemixIcon icon={showAttributeOptions ? riArrowDownSLine : riArrowRightSLine} />
+            {showAttributeOptions ? (
+              <ChevronDownIcon size="1em" />
+            ) : (
+              <ChevronRightIcon size="1em" />
+            )}
           </span>
           {showAttributeOptions && (
             <div className="flex gap-2 text-gray-700 dark:text-gray-300">

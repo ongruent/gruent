@@ -2,16 +2,15 @@ import gruentClient from '@gruent/hub/lib/gruent'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
-  RemixIcon,
-  riCircleLine,
-  riHome4Line,
-  riInstanceLine,
-  riKey2Line,
-  riRouterLine,
-  riSettings3Line,
-  riUserCommunityFill,
-  riShieldUserLine,
-} from '@mwarnerdotme/react-remixicon'
+  CircleIcon,
+  CogIcon,
+  HouseIcon,
+  KeyRoundIcon,
+  RouterIcon,
+  ShapesIcon,
+  ShieldUserIcon,
+  UsersIcon,
+} from 'lucide-react'
 import SpaceSelectDropdown from '@gruent/hub/components/organisms/SpaceSelectDropdown'
 import styles from './layout.module.css'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
@@ -56,33 +55,33 @@ const Layout = async ({ children, params }) => {
             <ul className="flex flex-col gap-4 mt-4">
               <li id="spaceHome">
                 <Link href={`/organizations/${orgId}/spaces/${spaceId}`}>
-                  <RemixIcon icon={riHome4Line} size={'xl'} className={styles.sidebarLink} />
+                  <HouseIcon size="1.5em" className={styles.sidebarLink} />
                 </Link>
               </li>
               <li id="spaceThings">
                 <Link href={`/organizations/${orgId}/spaces/${spaceId}/things`}>
-                  <RemixIcon icon={riRouterLine} size={'xl'} className={styles.sidebarLink} />
+                  <RouterIcon size="1.5em" className={styles.sidebarLink} />
                 </Link>
               </li>
               <li id="spaceModels">
                 <Link href={`/organizations/${orgId}/spaces/${spaceId}/models`}>
-                  <RemixIcon icon={riInstanceLine} size={'xl'} className={styles.sidebarLink} />
+                  <ShapesIcon size="1.5em" className={styles.sidebarLink} />
                 </Link>
               </li>
               <li id="spaceSecrets">
                 <Link href={`/organizations/${orgId}/spaces/${spaceId}/secrets`}>
-                  <RemixIcon icon={riKey2Line} size={'xl'} className={styles.sidebarLink} />
+                  <KeyRoundIcon size="1.5em" className={styles.sidebarLink} />
                 </Link>
               </li>
               <hr />
               <li id="spaceTeam">
                 <Link href={`/organizations/${orgId}/spaces/${spaceId}/team`}>
-                  <RemixIcon icon={riShieldUserLine} size={'xl'} className={styles.sidebarLink} />
+                  <ShieldUserIcon size="1.5em" className={styles.sidebarLink} />
                 </Link>
               </li>
               <li id="spaceSettings">
                 <Link href={`/organizations/${orgId}/spaces/${spaceId}/settings`}>
-                  <RemixIcon icon={riSettings3Line} size={'xl'} className={styles.sidebarLink} />
+                  <CogIcon size="1.5em" className={styles.sidebarLink} />
                 </Link>
               </li>
             </ul>
@@ -96,7 +95,7 @@ const Layout = async ({ children, params }) => {
                 className="flex items-center gap-1 transition text-gray-700 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-200"
               >
                 <div className="w-5 h-5 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xs">
-                  <RemixIcon icon={riUserCommunityFill} size={'sm'} />
+                  <UsersIcon size=".875em" />
                 </div>
                 {organization?.name ?? 'Error'}
               </Link>
@@ -106,7 +105,7 @@ const Layout = async ({ children, params }) => {
                 className="flex items-center gap-1 transition text-gray-700 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-200"
               >
                 <div className="w-5 h-5 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xs">
-                  <RemixIcon icon={riCircleLine} size={'sm'} />
+                  <CircleIcon size=".875em" />
                 </div>
                 <SpaceSelectDropdown
                   organization={organization ?? undefined}

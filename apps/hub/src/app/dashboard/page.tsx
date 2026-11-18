@@ -1,5 +1,5 @@
 import CreateOrganizationModal from '@gruent/hub/components/modals/CreateOrganizationModal'
-import { RemixIcon, riAddCircleLine, riArrowRightLine } from '@mwarnerdotme/react-remixicon'
+import { ArrowRightIcon, CirclePlusIcon } from 'lucide-react'
 import Link from 'next/link'
 import gruentClient from '@gruent/hub/lib/gruent'
 import getAccessToken, { getSession } from '@gruent/hub/util/getAccessToken'
@@ -57,7 +57,7 @@ const DashboardPage = async () => {
           </div>
           <div className="grow" />
           <Button variant="transparent" className="text-sm" modalId="createOrganization">
-            <RemixIcon className="mr-1" icon={riAddCircleLine} />
+            <CirclePlusIcon size="1em" className="mr-1" />
             <span>Create</span>
           </Button>
         </div>
@@ -73,7 +73,7 @@ const DashboardPage = async () => {
                   <div className="flex px-4 py-6 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition rounded-md">
                     <h2>{organizationMembership.organization.name}</h2>
                     <div className="grow" />
-                    <RemixIcon icon={riArrowRightLine} className="text-gray-600" />
+                    <ArrowRightIcon size="1em" className="text-gray-600" />
                   </div>
                 </Link>
               )

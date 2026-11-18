@@ -3,7 +3,7 @@ import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
 import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import { TimerSourceConfig } from '@gruent/libs/engine/nodes/v1/src/source/timer'
 import { FC, useEffect, useState, useMemo } from 'react'
-import { RemixIcon, riArrowDownSFill } from '@mwarnerdotme/react-remixicon'
+import { ChevronDownIcon } from 'lucide-react'
 
 import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
 
@@ -456,8 +456,8 @@ const TimerSourceOptions: FC = () => {
         }}
       >
         Advanced
-        <RemixIcon
-          icon={riArrowDownSFill}
+        <ChevronDownIcon
+          size="1em"
           className={`transition ml-px ${showAdvanced ? 'rotate-180' : ''}`}
         />
       </span>

@@ -13,8 +13,7 @@ import ListTable from '@gruent/hub/components/atoms/ListTable'
 import OrgPermissionSetContextMenu from './OrgPermissionSetContextMenu'
 import { useRouter } from 'next/navigation'
 import SpacePermissionSetContextMenu from './SpacePermissionSetContextMenu'
-import { riInformationLine } from '@mwarnerdotme/react-remixicon'
-import { RemixIcon } from '@mwarnerdotme/react-remixicon'
+import { InfoIcon } from 'lucide-react'
 // import IndeterminateCheckbox from "../../atoms/IndeterminateCheckbox"
 
 type Props = {
@@ -58,7 +57,7 @@ const PermissionSetsTable: FC<Props> = ({
     columnHelper.accessor('name', {
       header: () => (
         <div className="flex items-center">
-          <RemixIcon className="mr-1" icon={riInformationLine} />
+          <InfoIcon size="1em" className="mr-1" />
           <span>Name</span>
         </div>
       ),

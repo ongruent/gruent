@@ -1,12 +1,11 @@
 import {
-  IconDefinition,
-  RemixIcon,
-  riHome4Line,
-  riSettings3Line,
-  riShieldUserLine,
-  riUser3Line,
-  riUserCommunityFill,
-} from '@mwarnerdotme/react-remixicon'
+  CogIcon,
+  HouseIcon,
+  type LucideIcon,
+  ShieldUserIcon,
+  UserIcon,
+  UsersIcon,
+} from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import getAccessToken, { getSession } from '@gruent/hub/util/getAccessToken'
@@ -31,12 +30,11 @@ const Layout = async ({ children, params }) => {
   const organizations = user?.organizations.map((orgMembership) => orgMembership.organization)
   const organization = organizations?.find((org) => org.id === orgId)
 
-  const SidebarLink: FC<{ href: string; icon: IconDefinition }> = ({ href, icon }) => {
+  const SidebarLink: FC<{ href: string; icon: LucideIcon }> = ({ href, icon: Icon }) => {
     return (
       <Link href={href}>
-        <RemixIcon
-          icon={icon}
-          size={'xl'}
+        <Icon
+          size="1.5em"
           className="text-gray-500 hover:text-gray-900 dark:text-gray-500 dark:hover:text-gray-100 transition"
         />
       </Link>
@@ -59,13 +57,13 @@ const Layout = async ({ children, params }) => {
             </Link>
             <ul className="flex flex-col gap-4 mt-4">
               <li>
-                <SidebarLink href={`/organizations/${orgId}`} icon={riHome4Line} />
+                <SidebarLink href={`/organizations/${orgId}`} icon={HouseIcon} />
               </li>
               <li>
-                <SidebarLink href={`/organizations/${orgId}/team`} icon={riShieldUserLine} />
+                <SidebarLink href={`/organizations/${orgId}/team`} icon={ShieldUserIcon} />
               </li>
               <li>
-                <SidebarLink href={`/organizations/${orgId}/settings`} icon={riSettings3Line} />
+                <SidebarLink href={`/organizations/${orgId}/settings`} icon={CogIcon} />
               </li>
             </ul>
           </nav>
@@ -74,12 +72,12 @@ const Layout = async ({ children, params }) => {
           <header className="flex border-b border-gray-200 dark:border-gray-800 px-8 py-4 h-14">
             <div className="flex gap-2 items-center w-full text-gray-700 dark:text-gray-300 text-sm">
               <div className="w-5 h-5 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xs">
-                <RemixIcon icon={riUserCommunityFill} size={'sm'} />
+                <UsersIcon size=".875em" />
               </div>
               <OrgSelectDropdown organizations={organizations ?? []} currentOrg={organization} />
               <div className="grow" />
               <div className="flex gap-4">
-                <SidebarLink href={`/profiles/${userId}`} icon={riUser3Line} />
+                <SidebarLink href={`/profiles/${userId}`} icon={UserIcon} />
               </div>
             </div>
           </header>

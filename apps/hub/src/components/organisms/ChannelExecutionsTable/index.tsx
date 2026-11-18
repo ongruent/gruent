@@ -13,7 +13,7 @@ import Link from 'next/link'
 import dayjs from 'dayjs'
 import { useRouter } from 'next/navigation'
 import ListTablePlaceholder from '../../molecules/ListTablePlaceholder'
-import { RemixIcon, riEqualizerLine, riSettings6Line } from '@mwarnerdotme/react-remixicon'
+import { SettingsIcon, SlidersHorizontalIcon } from 'lucide-react'
 import Button from '@gruent/libs/frontend/components/atoms/Button'
 import { useClickOutside } from '@react-hooks-library/core'
 // import IndeterminateCheckbox from "../../atoms/IndeterminateCheckbox"
@@ -187,7 +187,7 @@ const ChannelExecutionsTable: FC<Props> = ({
                   className="px-2"
                   onClick={() => setShowFilterOptions((current) => !current)}
                 >
-                  <RemixIcon icon={riEqualizerLine} size="lg" />
+                  <SlidersHorizontalIcon size="1.3333em" />
                 </Button>
                 {showFilterOptions && (
                   <div
@@ -247,7 +247,7 @@ const ChannelExecutionsTable: FC<Props> = ({
           title="Channel Executions"
           description="No executions found for this channel"
         >
-          <RemixIcon icon={riSettings6Line} size="3x" />
+          <SettingsIcon size="3em" />
           <p className="text-gray-500 px-4">No executions found for this channel... yet!</p>
         </ListTablePlaceholder>
       )}

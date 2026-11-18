@@ -1,4 +1,4 @@
-import { RemixIcon, riLightbulbFill } from '@mwarnerdotme/react-remixicon'
+import { LightbulbIcon } from 'lucide-react'
 import { calculateHeadingSlug } from '@gruent/libs/frontend/util/calculateBlogPostSlug'
 import { BlockObjectResponse } from '@notionhq/client/build/src/api-endpoints'
 import ImageBlock from './ImageBlock'
@@ -83,7 +83,7 @@ const NotionBlockRenderer = async ({
                 className="bg-yellow-100 border border-yellow-200 px-6 py-4 text-gray-800 flex gap-4 items-start"
                 key={block.id}
               >
-                <RemixIcon icon={riLightbulbFill} className="text-yellow-500 shrink-0" size="xl" />
+                <LightbulbIcon size="1.5em" className="text-yellow-500 shrink-0" />
                 <div>
                   <RichTextBlock richText={block.callout.rich_text} />
                 </div>

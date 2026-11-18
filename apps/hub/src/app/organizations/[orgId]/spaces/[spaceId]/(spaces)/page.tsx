@@ -3,9 +3,8 @@ import gruentClient from '@gruent/hub/lib/gruent'
 import ChannelsTable from '@gruent/hub/components/organisms/ChannelsTable'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
 import Container from '@gruent/libs/frontend/components/templates/Container'
-import { riAddCircleLine, riGitForkLine } from '@mwarnerdotme/react-remixicon'
+import { CirclePlusIcon, GitForkIcon } from 'lucide-react'
 import Button from '@gruent/libs/frontend/components/atoms/Button'
-import { RemixIcon } from '@mwarnerdotme/react-remixicon'
 import ListTablePlaceholder from '@gruent/hub/components/molecules/ListTablePlaceholder'
 import Callout from '@gruent/libs/frontend/components/molecules/Callout'
 import { Tag } from '@prisma/client'
@@ -119,10 +118,10 @@ const SpaceDashboardPage = async ({ params, searchParams }) => {
               title="Channels"
               description="Build connections to power your ideas."
             >
-              <RemixIcon icon={riGitForkLine} className="text-gray-600 mb-2 rotate-180" size="3x" />
+              <GitForkIcon size="3em" className="text-gray-600 mb-2 rotate-180" />
               <p className="text-gray-600 text-center mb-2">No channels... yet!</p>
               <Button variant="primary" className="text-sm" modalId="createChannel">
-                <RemixIcon className="mr-1" icon={riAddCircleLine} />
+                <CirclePlusIcon size="1em" className="mr-1" />
                 <span>Create your first channel</span>
               </Button>
             </ListTablePlaceholder>

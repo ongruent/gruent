@@ -1,15 +1,14 @@
 'use client'
 
 import { FC, useMemo, useRef, useState } from 'react'
-import { RemixIcon, IconDefinition, riMore2Fill } from '@mwarnerdotme/react-remixicon'
+import { EllipsisVerticalIcon, type LucideIcon } from 'lucide-react'
 import { useClickOutside } from '@react-hooks-library/core'
-import { IconSize } from '@mwarnerdotme/react-remixicon/dist/components/RemixIcon'
 
 type ModifierKey = 'ctrl' | 'shift' | 'alt' | 'meta' | 'ctrlOrMeta'
 // type ModifierSymbol = '^' | '⌘' | '⇧' | '⌥'
 
 type ContextMenuButton = {
-  icon?: IconDefinition
+  icon?: LucideIcon
   title: string
   description?: string
   hotkey?: {
@@ -28,10 +27,10 @@ type ProcessedContextMenuButton = Omit<ContextMenuButton, 'hotkey'> & {
 
 type Props = {
   contextMenuButtons: ContextMenuButton[]
-  iconSize?: IconSize
+  iconSize?: string | number
 }
 
-const ContextMenu: FC<Props> = ({ contextMenuButtons, iconSize }) => {
+const ContextMenu: FC<Props> = ({ contextMenuButtons, iconSize = '1em' }) => {
   const [open, setOpen] = useState<boolean>(false)
 
   const dropdownRef = useRef(null)
@@ -78,12 +77,7 @@ const ContextMenu: FC<Props> = ({ contextMenuButtons, iconSize }) => {
 
   return (
     <div className="relative flex justify-end">
-      <RemixIcon
-        className="cursor-pointer"
-        icon={riMore2Fill}
-        size={iconSize}
-        onClick={toggleOpen}
-      />
+      <EllipsisVerticalIcon size={iconSize} className="cursor-pointer" onClick={toggleOpen} />
       {open && (
         <div
           ref={dropdownRef}
@@ -106,9 +100,7 @@ const ContextMenu: FC<Props> = ({ contextMenuButtons, iconSize }) => {
                 </div>
               )}
               <p className="flex items-center text-sm font-semibold text-gray-600 dark:text-gray-200 group-hover/button:text-green-800 dark:group-hover/button:text-green-300">
-                {contextMenuButton.icon && (
-                  <RemixIcon className="mr-1" icon={contextMenuButton.icon} />
-                )}
+                {contextMenuButton.icon && <contextMenuButton.icon size="1em" className="mr-1" />}
                 {contextMenuButton.title}
               </p>
               {contextMenuButton.description && (

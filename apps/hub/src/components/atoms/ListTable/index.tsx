@@ -4,14 +4,13 @@ import { FC, PropsWithChildren, useMemo } from 'react'
 import { Table, flexRender } from '@tanstack/react-table'
 import Button from '@gruent/libs/frontend/components/atoms/Button'
 import {
-  RemixIcon,
-  riArrowLeftDoubleLine,
-  riArrowLeftSLine,
-  riArrowRightDoubleLine,
-  riArrowRightSLine,
-  riLoader3Line,
-  riRefreshLine,
-} from '@mwarnerdotme/react-remixicon'
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronsLeftIcon,
+  ChevronsRightIcon,
+  LoaderCircleIcon,
+  RefreshCwIcon,
+} from 'lucide-react'
 import { useInterval } from '@react-hooks-library/core'
 
 type TableColumnMeta = {
@@ -181,14 +180,14 @@ const ListTable: FC<PropsWithChildren<Props>> = ({
           {Number(totalPages) > 1 && (
             <div className="flex gap-2">
               <Button onClick={() => handlePageChange(1)} disabled={page <= 1} variant="underline">
-                <RemixIcon icon={riArrowLeftDoubleLine} />
+                <ChevronsLeftIcon size="1em" />
               </Button>
               <Button
                 onClick={() => handlePageChange(page - 1)}
                 disabled={page <= 1}
                 variant="underline"
               >
-                <RemixIcon icon={riArrowLeftSLine} />
+                <ChevronLeftIcon size="1em" />
               </Button>
               {pageNumbers.map((p) => (
                 <Button
@@ -206,23 +205,23 @@ const ListTable: FC<PropsWithChildren<Props>> = ({
                 disabled={page >= Number(totalPages)}
                 variant="underline"
               >
-                <RemixIcon icon={riArrowRightSLine} />
+                <ChevronRightIcon size="1em" />
               </Button>
               <Button
                 onClick={() => handlePageChange(Number(totalPages))}
                 disabled={page >= Number(totalPages)}
                 variant="underline"
               >
-                <RemixIcon icon={riArrowRightDoubleLine} />
+                <ChevronsRightIcon size="1em" />
               </Button>
             </div>
           )}
           <div className="grow" />
           <Button onClick={() => handlePageChange(page)} variant="underline" disabled={isLoading}>
             {isLoading ? (
-              <RemixIcon className="animate-spin dark:text-gray-200" icon={riLoader3Line} />
+              <LoaderCircleIcon size="1em" className="animate-spin dark:text-gray-200" />
             ) : (
-              <RemixIcon className="dark:text-gray-200" icon={riRefreshLine} />
+              <RefreshCwIcon size="1em" className="dark:text-gray-200" />
             )}
           </Button>
         </div>

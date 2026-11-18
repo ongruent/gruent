@@ -5,7 +5,7 @@ import { CSSProperties, FC, PropsWithChildren, useRef } from 'react'
 
 import noop from '@gruent/libs/frontend/util/noop'
 import Button from '../../atoms/Button'
-import { RemixIcon, riCloseLine } from '@mwarnerdotme/react-remixicon'
+import { XIcon } from 'lucide-react'
 import { useClickOutside } from '@react-hooks-library/core'
 import { AnimatePresence, motion } from 'framer-motion'
 
@@ -66,9 +66,9 @@ const Modal: FC<PropsWithChildren<Props>> = ({
             className={`relative flex flex-col border-green-500 bg-gray-50 dark:bg-gray-900 overflow-y-scroll h-full pl-7 pr-4 py-8 min-w-400 ${className}`}
           >
             {!hideForceClose && (
-              <RemixIcon
+              <XIcon
+                size="1em"
                 className="absolute -top-4 -left-4 text-gray-500 hover:text-green-300 transition cursor-pointer"
-                icon={riCloseLine}
                 onClick={onClose}
               />
             )}

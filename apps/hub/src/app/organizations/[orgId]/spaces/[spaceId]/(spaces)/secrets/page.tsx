@@ -2,9 +2,8 @@ import gruentClient from '@gruent/hub/lib/gruent'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
 import CreateSecretModal from '@gruent/hub/components/modals/CreateSecretModal'
 import SecretsTable from '@gruent/hub/components/organisms/SecretsTable'
-import { riAddCircleLine, riLockLine } from '@mwarnerdotme/react-remixicon'
+import { CirclePlusIcon, LockIcon } from 'lucide-react'
 import Button from '@gruent/libs/frontend/components/atoms/Button'
-import { RemixIcon } from '@mwarnerdotme/react-remixicon'
 import Container from '@gruent/libs/frontend/components/templates/Container'
 import ListTablePlaceholder from '@gruent/hub/components/molecules/ListTablePlaceholder'
 import Callout from '@gruent/libs/frontend/components/molecules/Callout'
@@ -60,7 +59,7 @@ const SecretsPage = async ({ params }) => {
               <div className="absolute top-8 right-10 mb-1 flex items-end gap-2">
                 <div className="grow" />
                 <Button variant="transparent" className="text-sm" modalId="addSecret">
-                  <RemixIcon className="mr-1" icon={riAddCircleLine} />
+                  <CirclePlusIcon size="1em" className="mr-1" />
                   <span>Create</span>
                 </Button>
               </div>
@@ -77,10 +76,10 @@ const SecretsPage = async ({ params }) => {
               title="Secrets"
               description="Keys, passwords, tokens - anything that you need to stay private."
             >
-              <RemixIcon icon={riLockLine} className="text-gray-600 mb-2" size="3x" />
+              <LockIcon size="3em" className="text-gray-600 mb-2" />
               <p className="text-gray-600 text-center mb-2">No secrets... yet!</p>
               <Button variant="primary" className="text-sm" modalId="addSecret">
-                <RemixIcon className="mr-1" icon={riAddCircleLine} />
+                <CirclePlusIcon size="1em" className="mr-1" />
                 <span>Create your first secret</span>
               </Button>
             </ListTablePlaceholder>

@@ -1,7 +1,7 @@
 'use client'
 
 import { ChannelNodeType } from '@gruent/libs/legacy/engine/nodes/v1'
-import { RemixIcon, riArrowRightSLine } from '@mwarnerdotme/react-remixicon'
+import { ChevronRightIcon } from 'lucide-react'
 import { FC, useMemo } from 'react'
 import NodeLibrarySectionNode from './NodeLibrarySectionNode'
 
@@ -29,8 +29,8 @@ const NodeLibrarySection: FC<Props> = ({ nodeType, open, availableNodes, onTitle
   return (
     <section>
       <div className="flex items-center cursor-pointer select-none" onClick={onTitleClick}>
-        <RemixIcon
-          icon={riArrowRightSLine}
+        <ChevronRightIcon
+          size="1em"
           className={`mr-1 transition transform duration-200 ${open ? 'rotate-90 text-gray-700 dark:text-gray-500' : 'text-gray-600 dark:text-gray-400'}`}
         />
         <h3 className={`transition text-sm font-semibold ${open ? 'text-gray-700' : ''}`}>

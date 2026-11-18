@@ -19,10 +19,9 @@ import {
 } from 'react'
 import { ModelAttributes } from '@gruent/libs/engine/dependencies/models'
 import Modal from '@gruent/libs/frontend/components/organisms/Modal'
-import { riAddLine, riCloseLine } from '@mwarnerdotme/react-remixicon'
+import { PlusIcon, XIcon } from 'lucide-react'
 import Button from '@gruent/libs/frontend/components/atoms/Button'
 import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
-import { RemixIcon } from '@mwarnerdotme/react-remixicon'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 
 type Props = {
@@ -117,7 +116,7 @@ const StringCompareConditionalOptions: FC<Props> = ({ models, orgId, spaceId }) 
           onChange={(e) => setModel(models.find((m) => m.id === e.target.value))}
         />
         <Button className="my-3" onClick={() => openModal('createModel')}>
-          <RemixIcon icon={riAddLine} />
+          <PlusIcon size="1em" />
         </Button>
       </div>
       <Button text="Edit conditions" onClick={() => openModal('stringCompare')} />
@@ -294,8 +293,8 @@ const StringCompareNodeModal: FC<StringCompareModalProps> = ({
                   id={`${attributeLabel}-${index}`}
                   className="relative"
                 >
-                  <RemixIcon
-                    icon={riCloseLine}
+                  <XIcon
+                    size="1em"
                     className="absolute top-1 right-0 cursor-pointer"
                     onClick={() => handleRemoveComparison(index)}
                   />

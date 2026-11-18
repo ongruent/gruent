@@ -1,9 +1,4 @@
-import {
-  RemixIcon,
-  riAlertFill,
-  riCloseCircleFill,
-  riInformationFill,
-} from '@mwarnerdotme/react-remixicon'
+import { CircleXIcon, InfoIcon, TriangleAlertIcon } from 'lucide-react'
 
 type Props = {
   title: string
@@ -13,14 +8,14 @@ type Props = {
 }
 
 const Callout = ({ title, description, variant, className }: Props) => {
-  const icon = (() => {
+  const Icon = (() => {
     switch (variant) {
       case 'info':
-        return riInformationFill
+        return InfoIcon
       case 'warning':
-        return riAlertFill
+        return TriangleAlertIcon
       case 'error':
-        return riCloseCircleFill
+        return CircleXIcon
     }
   })()
 
@@ -62,7 +57,7 @@ const Callout = ({ title, description, variant, className }: Props) => {
       className={`flex w-fit py-4 pl-4 pr-6 rounded-sm overflow-hidden border border-${borderColor} ${backgroundColor} ${className ? className : ''}`}
     >
       <div>
-        <RemixIcon icon={icon} className={`mr-3 text-${borderColor}`} />
+        <Icon size="1em" className={`mr-3 text-${borderColor}`} />
       </div>
       <div>
         <h3 className={`font-bold ${titleColor} text-sm`}>{title}</h3>

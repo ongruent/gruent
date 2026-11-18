@@ -4,7 +4,7 @@ import { FC } from 'react'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import ContextMenu from '@gruent/hub/components/atoms/ContextMenu'
 import { handleDeleteApiKey } from '@gruent/hub/actions/apiKeys'
-import { riClipboardLine, riDeleteBin7Line } from '@mwarnerdotme/react-remixicon'
+import { ClipboardIcon, Trash2Icon } from 'lucide-react'
 import copyToClipboard from '@gruent/libs/frontend/util/copyToClipboard'
 
 type Props = {
@@ -17,7 +17,7 @@ type Props = {
 const ApiKeyContextMenu: FC<Props> = ({ apiKeyId, orgId, spaceId }) => {
   const contextMenuButtons = [
     {
-      icon: riClipboardLine,
+      icon: ClipboardIcon,
       title: 'Copy',
       onClick: async () => {
         const { error } = await copyToClipboard(apiKeyId)
@@ -34,7 +34,7 @@ const ApiKeyContextMenu: FC<Props> = ({ apiKeyId, orgId, spaceId }) => {
       },
     },
     {
-      icon: riDeleteBin7Line,
+      icon: Trash2Icon,
       title: 'Delete',
       onClick: async () => {
         const { error } = await handleDeleteApiKey(orgId, apiKeyId, spaceId)

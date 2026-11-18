@@ -10,13 +10,7 @@ import type { ChannelNode } from '@gruent/libs/engine/nodes/v1'
 import Button from '@gruent/libs/frontend/components/atoms/Button'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
-import {
-  RemixIcon,
-  riCrosshair2Line,
-  riErrorWarningFill,
-  riZoomInLine,
-  riZoomOutLine,
-} from '@mwarnerdotme/react-remixicon'
+import { CircleAlertIcon, LocateFixedIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react'
 import {
   Background,
   BackgroundVariant,
@@ -228,9 +222,8 @@ const ChannelEditorCanvas: FC<Props> = ({ hooks }) => {
       {validationErrors &&
         validationErrors.channelErrors &&
         validationErrors.channelErrors.length > 0 && (
-          <RemixIcon
-            icon={riErrorWarningFill}
-            size="xl"
+          <CircleAlertIcon
+            size="1.5em"
             className="text-error absolute right-7 top-7 cursor-pointer select-none z-10"
             onClick={() => openModal('channelValidationErrors')}
           />
@@ -276,21 +269,21 @@ const ChannelEditorCanvas: FC<Props> = ({ hooks }) => {
             className={controlButtonClassName}
             onClick={() => zoomIn({ duration: 150 })}
           >
-            <RemixIcon icon={riZoomInLine} />
+            <ZoomInIcon size="1em" />
           </Button>
           <Button
             variant="transparent"
             className={controlButtonClassName}
             onClick={() => zoomOut({ duration: 150 })}
           >
-            <RemixIcon icon={riZoomOutLine} />
+            <ZoomOutIcon size="1em" />
           </Button>
           <Button
             variant="transparent"
             className={controlButtonClassName}
             onClick={() => setViewport(DEFAULT_VIEWPORT, { duration: 150 })}
           >
-            <RemixIcon icon={riCrosshair2Line} />
+            <LocateFixedIcon size="1em" />
           </Button>
         </div>
       </div>

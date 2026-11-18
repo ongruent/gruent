@@ -4,7 +4,7 @@ import { FC } from 'react'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import ContextMenu from '@gruent/hub/components/atoms/ContextMenu'
 import { handleDeleteThing } from '@gruent/hub/actions/things'
-import { riDeleteBin7Line } from '@mwarnerdotme/react-remixicon'
+import { Trash2Icon } from 'lucide-react'
 type Props = {
   thingId: string
   spaceId: string
@@ -14,7 +14,7 @@ type Props = {
 const ThingContextMenu: FC<Props> = ({ thingId, spaceId }) => {
   const contextMenuButtons = [
     {
-      icon: riDeleteBin7Line,
+      icon: Trash2Icon,
       title: 'Delete',
       onClick: async () => {
         const { error } = await handleDeleteThing(spaceId, thingId)

@@ -16,7 +16,7 @@ import {
   useState,
 } from 'react'
 import { ModelAttributes } from '@gruent/libs/engine/dependencies/models'
-import { RemixIcon, riAddLine, riArrowLeftLine } from '@mwarnerdotme/react-remixicon'
+import { ArrowLeftIcon, PlusIcon } from 'lucide-react'
 
 type Props = {
   models: Model[]
@@ -137,7 +137,7 @@ const TransformProcessingOptions: FC<Props> = ({ models, orgId, spaceId }) => {
           onChange={(e) => setInputModel(models.find((m) => m.id === e.target.value))}
         />
         <Button text="Create input model" className="my-3" onClick={() => openModal('createModel')}>
-          <RemixIcon icon={riAddLine} />
+          <PlusIcon size="1em" />
         </Button>
       </div>
       <div className="flex flex-row gap-2">
@@ -154,7 +154,7 @@ const TransformProcessingOptions: FC<Props> = ({ models, orgId, spaceId }) => {
           className="my-3"
           onClick={() => openModal('createModel')}
         >
-          <RemixIcon icon={riAddLine} />
+          <PlusIcon size="1em" />
         </Button>
       </div>
       <Button className="mt-2" text="Transform your data" onClick={() => openModal('transform')} />
@@ -286,7 +286,7 @@ const TransformNodeModal: FC<TransformModalProps> = ({
             return (
               <div key={value} className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
                 <div className="text-right font-medium">{key}</div>
-                <RemixIcon icon={riArrowLeftLine} className="text-gray-500" />
+                <ArrowLeftIcon size="1em" className="text-gray-500" />
                 <FormFieldSelect
                   name={key}
                   label={''}

@@ -16,7 +16,7 @@ import styles from './page.module.scss'
 import { notFound } from 'next/navigation'
 import TableOfContents from './TableOfContents'
 import Button from '@gruent/libs/frontend/components/atoms/Button'
-import { RemixIcon, riGitForkLine, riPriceTagLine } from '@mwarnerdotme/react-remixicon'
+import { GitForkIcon, TagIcon } from 'lucide-react'
 
 import Image from 'next/image'
 import redis from '@gruent/site/lib/upstash'
@@ -303,14 +303,14 @@ const BlogPostPage = async ({ params }) => {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div>
-            <RemixIcon icon={riGitForkLine} size="2x" className="text-green-500 rotate-180" />
+            <GitForkIcon size="2em" className="text-green-500 rotate-180" />
             <h3 className="font-bold text-gray-700 mt-3 mb-1">Connect anything</h3>
             <p className="text-gray-500">
               Connect devices and services using any protocol with our platform.
             </p>
           </div>
           <div>
-            <RemixIcon icon={riPriceTagLine} size="2x" className="text-green-500" />
+            <TagIcon size="2em" className="text-green-500" />
             <h3 className="font-bold text-gray-700 mt-3 mb-1">Pay for usage</h3>
             <p className="text-gray-500">
               Stop spending more for team-based subscriptions. Pay only for what you use.

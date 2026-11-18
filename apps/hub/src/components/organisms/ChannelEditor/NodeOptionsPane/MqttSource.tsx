@@ -6,7 +6,7 @@ import { Thing } from '@prisma/client'
 import { FC, useEffect, useMemo, useState } from 'react'
 import Button from '@gruent/libs/frontend/components/atoms/Button'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
-import { RemixIcon, riAddLine } from '@mwarnerdotme/react-remixicon'
+import { PlusIcon } from 'lucide-react'
 
 type Props = {
   things: Thing[]
@@ -117,7 +117,7 @@ const MqttSourceOptions: FC<Props> = ({ things }) => {
           }
         />
         <Button text="Create MQTT client" className="my-3" onClick={() => openModal('createThing')}>
-          <RemixIcon icon={riAddLine} />
+          <PlusIcon size="1em" />
         </Button>
       </div>
       <FormFieldText

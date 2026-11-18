@@ -7,7 +7,7 @@ import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
 import Link from 'next/link'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { useRouter } from 'next/navigation'
-import { RemixIcon, riEyeLine } from '@mwarnerdotme/react-remixicon'
+import { EyeIcon } from 'lucide-react'
 // import { signIn } from 'next-auth/react'
 import { signup } from '@gruent/hub/actions/auth'
 
@@ -139,9 +139,9 @@ const SignUpForm: FC<Props> = ({ invitation, inviteToken, inviteTokenError }) =>
               backgroundColor="bg-gray-50"
               className="w-full"
             />
-            <RemixIcon
+            <EyeIcon
+              size="1em"
               className="absolute right-3 transition text-gray-500 hover:text-gray-600 cursor-pointer"
-              icon={riEyeLine}
               onClick={() => setShowPassword((current) => !current)}
             />
           </div>
