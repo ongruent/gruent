@@ -152,8 +152,7 @@ func create(root string, opts createOptions, in io.Reader, out io.Writer, intera
 
 var pluginVersionField = regexp.MustCompile(`("pluginVersion"\s*:\s*)([0-9]+)`)
 
-// newVersion copies the latest version's authored assets into v<N+1> and bumps pluginVersion. The WASM
-// artifact is not copied: it is built for, and digested per, each version.
+// newVersion copies the latest version's authored assets into v<N+1> and bumps pluginVersion.
 func newVersion(root, name string, out io.Writer) error {
 	if !slug.MatchString(name) {
 		return fmt.Errorf("invalid plugin name %q", name)
@@ -196,8 +195,6 @@ func newVersion(root, name string, out io.Writer) error {
 		switch {
 		case d.IsDir():
 			return os.MkdirAll(target, 0o755)
-		case rel == nodes.ArtifactFile:
-			return nil
 		case rel == nodes.DefinitionFile:
 			copied = append(copied, rel)
 			return os.WriteFile(target, bumped, 0o644)

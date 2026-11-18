@@ -33,9 +33,6 @@ func TestCreateAndNewVersion(t *testing.T) {
 		t.Fatal("expected abort")
 	}
 	// Redirect to new-version.
-	if err := os.WriteFile(filepath.Join(root, "plugins/my-node/v1/plugin.wasm"), []byte("\x00asm\x01\x00\x00\x00"), 0o644); err != nil {
-		t.Fatal(err)
-	}
 	if err := run([]string{"create", "--root", root, "--name", "my-node", "--yes"}, nil, &out, &out); err != nil {
 		t.Fatal(err)
 	}
@@ -45,9 +42,6 @@ func TestCreateAndNewVersion(t *testing.T) {
 	v3, err := os.ReadFile(filepath.Join(root, "plugins/my-node/v3/node.json"))
 	if err != nil || !strings.Contains(string(v3), `"pluginVersion": 3`) {
 		t.Fatalf("v3 = %s %v", v3, err)
-	}
-	if _, err := os.Stat(filepath.Join(root, "plugins/my-node/v2/plugin.wasm")); !os.IsNotExist(err) {
-		t.Fatal("WASM artifacts are per version and must not be copied")
 	}
 	if _, err := os.Stat(filepath.Join(root, "plugins/my-node/v3/fixtures/invalid/unknown-property.json")); err != nil {
 		t.Fatal(err)

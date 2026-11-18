@@ -379,8 +379,8 @@ function checkDefaults(def: NodeDefinition, validator: ValidateFunction): Issue[
 }
 
 /**
- * Resolves exact plugin identities to definitions loaded at runtime (from the API, a package or the
- * manifest). Unknown versions are errors; there is no "latest" and no fallback.
+ * Resolves exact plugin identities to definitions loaded at runtime (from the API or the manifest).
+ * Unknown versions are errors; there is no "latest" and no fallback.
  */
 export class DefinitionRegistry {
   private readonly entries = new Map<string, Definition>()

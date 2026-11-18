@@ -263,7 +263,6 @@ type PlanNode struct {
 	ContractVersion  int               `json:"contractVersion"`
 	Category         nodes.Category    `json:"category"`
 	DefinitionDigest string            `json:"definitionDigest"`
-	Artifact         nodes.Artifact    `json:"artifact"`
 	Config           json.RawMessage   `json:"config"`
 	References       []nodes.Reference `json:"references"`
 	ProcessingMode   string            `json:"processingMode"`
@@ -273,9 +272,6 @@ type PlanNode struct {
 
 // PlanVersion is the current deployment plan format.
 const PlanVersion = 1
-
-// ErrMissingArtifact is returned when a resolved plugin version has no WASM artifact to deploy.
-var ErrMissingArtifact = errors.New("plugin version has no WASM artifact")
 
 // Hydrate validates the channel (including resources) and builds its deployment plan.
 func Hydrate(ctx context.Context, ch *Channel, reg *nodes.Registry, resolver ResourceResolver, policy Policy) (*DeploymentPlan, error) {
@@ -305,9 +301,6 @@ func Hydrate(ctx context.Context, ch *Channel, reg *nodes.Registry, resolver Res
 	for _, id := range order {
 		r := byID[id]
 		def := r.entry.Definition
-		if r.entry.Artifact == nil {
-			return nil, fmt.Errorf("node %s: %s: %w", id, def.Identity(), ErrMissingArtifact)
-		}
 		mode, err := policy.ProcessingMode(ctx, r.node, def)
 		if err != nil {
 			return nil, fmt.Errorf("node %s: processing mode: %w", id, err)
@@ -322,7 +315,7 @@ func Hydrate(ctx context.Context, ch *Channel, reg *nodes.Registry, resolver Res
 		}
 		p.Nodes = append(p.Nodes, PlanNode{
 			ID: id, PluginType: def.PluginType, PluginVersion: def.PluginVersion, ContractVersion: def.ContractVersion,
-			Category: def.Category, DefinitionDigest: def.Digest(), Artifact: *r.entry.Artifact, Config: config,
+			Category: def.Category, DefinitionDigest: def.Digest(), Config: config,
 			References: refs, ProcessingMode: mode, Inputs: nonNil(inputs[id]), Outputs: nonNil(outputs[id]),
 		})
 	}

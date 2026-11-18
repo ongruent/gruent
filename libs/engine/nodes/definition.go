@@ -209,7 +209,7 @@ func (d *Definition) Field(name string) (Field, bool) {
 // Groups returns the layout groups in declaration order.
 func (d *Definition) Groups() []Group { return append([]Group(nil), d.groups...) }
 
-// Digest computes the digest used for definitions and artifacts.
+// Digest computes the digest used for definitions.
 func Digest(b []byte) string {
 	sum := sha256.Sum256(b)
 	return "sha256:" + hex.EncodeToString(sum[:])

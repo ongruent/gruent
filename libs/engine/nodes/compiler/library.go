@@ -46,7 +46,6 @@ func (d diagnostics) err() error {
 type compiledPlugin struct {
 	Source string // node.json path relative to the library root
 	Def    *nodes.Definition
-	Wasm   *nodes.ManifestFile
 	Kotlin kotlinTarget
 }
 
@@ -102,15 +101,6 @@ func loadLibrary(root string) ([]compiledPlugin, error) {
 				diags.add(source, "/pluginVersion: %d does not match its directory %q", def.PluginVersion, vd.Name())
 			}
 			p := compiledPlugin{Source: source, Def: def, Kotlin: kotlinTargetFor(def.Identity())}
-			wasmPath := vPath + "/" + nodes.ArtifactFile
-			if wasm, err := os.ReadFile(filepath.Join(root, wasmPath)); err == nil {
-				art, err := nodes.NewArtifact(wasmPath, wasm)
-				if err != nil {
-					diags.add(wasmPath, "%v", err)
-				} else {
-					p.Wasm = &nodes.ManifestFile{Path: wasmPath, Digest: art.Digest}
-				}
-			}
 			checkFixtures(root, vPath, def, &diags)
 			plugins = append(plugins, p)
 		}
@@ -227,7 +217,6 @@ func render(plugins []compiledPlugin) (map[string][]byte, error) {
 			ContractVersion: p.Def.ContractVersion,
 			Category:        p.Def.Category,
 			Definition:      nodes.ManifestFile{Path: p.Source, Digest: p.Def.Digest()},
-			Artifact:        p.Wasm,
 			Kotlin:          &nodes.ManifestKotlin{Package: p.Kotlin.Package, Class: p.Kotlin.Class, Path: p.Kotlin.Path},
 		})
 	}

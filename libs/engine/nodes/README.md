@@ -11,9 +11,8 @@ libs/engine/nodes/
   contracts/v1/fixtures/{valid,invalid}/     shared definition fixtures (Go + TS)
   plugins/<pluginType>/v<N>/node.json        definitions (immutable once published)
   plugins/<pluginType>/v<N>/fixtures/        shared config fixtures (Go + TS + Kotlin)
-  plugins/<pluginType>/v<N>/plugin.wasm      optional WASM artifact, recorded in the manifest
   compiler/                                  compile / create / new-version CLI (Go)
-  generated/manifest.json                    GENERATED: identity -> definition + artifact + digests
+  generated/manifest.json                    GENERATED: identity -> definition + digest + Kotlin type
   generated/kotlin/                          GENERATED: Kotlin configuration types
   *.go, plan/                                Go consumer: ingestion, validation, registry, plan hydration
   ts/                                        TypeScript consumer: ingestion, validation, form model
@@ -25,7 +24,7 @@ libs/engine/nodes/
 | Command | What it does |
 | --- | --- |
 | `nx run nodes:create --name=my-node [--category=action]` | Scaffolds `plugins/my-node/v1` with a valid empty definition and fixtures. If the node exists, it asks whether to create the next version instead (`--yes`/`--no` answer without prompting). |
-| `nx run nodes:new-version --name=my-node` | Copies the latest `v<N>` to `v<N+1>` and bumps `pluginVersion`. `plugin.wasm` is not copied because it is built per version. |
+| `nx run nodes:new-version --name=my-node` | Copies the latest `v<N>` to `v<N+1>` and bumps `pluginVersion`. |
 | `nx run nodes:compile` | Validates every definition and fixture, then rewrites `generated/`. The compiler also accepts individual `node.json` files (`go run ./compiler compile path/node.json --out DIR`). |
 | `nx run nodes:check` | Fails if `generated/` is stale. Run it in CI. |
 | `nx run nodes:test` | Go, TypeScript and Kotlin suites over the same fixtures. |
@@ -134,11 +133,10 @@ double precision are outside the tested range.
 
 - **Go** (`github.com/ongruent/gruent/libs/engine/nodes`): `ParseDefinition`, `Definition.ValidateConfig`,
   `Definition.References` (named-select values minus static values, with resolved params), `Registry`
-  (exact identity, immutable digests), `LoadPackage(dir)` (a `node.json` + `plugin.wasm` package with no
-  generated code), and `LoadLibrary` (from the manifest, with digest checks).
+  (exact identity, immutable digests), and `LoadLibrary` (from the manifest, with digest checks).
   `plan.Validate`/`plan.Hydrate` check the DAG shape, configuration and resource references through a
   `ResourceResolver`. They produce a `DeploymentPlan` with topologically ordered nodes, exact identities,
-  digests, WASM artifacts, configuration, references, inputs/outputs, processing mode and resources.
+  digests, configuration, references, inputs/outputs, processing mode and resources.
 - **TypeScript** (`@gruent/libs/engine/nodes/ts`): `Definition.parse`, `DefinitionRegistry`, `validateConfig`,
   `createConfig`, and a headless `<NodeConfig />` model in `form.ts`: `describeForm`, `isVisible`,
   `optionsEvent` (the `{path, name, query, params}` payload for `onOptionsSearch`/`onOptionsLoadMore`),
@@ -159,8 +157,6 @@ double precision are outside the tested range.
 - **Resolution.** Channels persist `pluginType` + `pluginVersion`. Editors, Go validation, deployment plans
   and the Kotlin runtime all resolve that exact pair. Nothing resolves "latest", and a missing version is an
   error rather than a silent fallback.
-- **Distributable packages.** A package needs only `node.json` + `plugin.wasm`. Generated Kotlin is a
-  development asset for plugin authors, not a consumption requirement.
 - **Generated files.** `generated/` belongs to the compiler. Never edit it by hand. Run `nx run nodes:compile`
   after changing a definition and commit the result. `nx run nodes:check` and the Go and Kotlin tests fail
   when it is stale.
@@ -177,5 +173,6 @@ double precision are outside the tested range.
 - **Connection rules and ports.** v1 definitions declare no I/O constraints, and edges connect nodes, not
   named ports. Conditional plugins with distinct pass/fail outputs need a port model before they can be
   expressed.
-- **Integration.** The API endpoints, definition storage, WASM builds for Kotlin plugins, and the React
-  `<NodeConfig />` component that uses `form.ts` are follow-up work.
+- **Integration.** The API endpoints, definition storage and the React `<NodeConfig />` component that uses
+  `form.ts` are follow-up work. Plugin runtime artifacts (WASM) and custom/third-party node packages are out
+  of scope: definitions and deployment plans carry no artifact fields yet.

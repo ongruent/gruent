@@ -62,13 +62,6 @@ describe('registry', () => {
     expect(() => registry.resolve('hello-world', 2)).toThrow('hello-world@2: plugin version not available')
   })
 
-  it('consumes a custom package definition without generated types', async () => {
-    const registry = new DefinitionRegistry()
-    const def = await registry.register(read('testdata/packages/echo/node.json'))
-    expect(def.key).toBe('custom-echo@3')
-    expect(def.validateConfig({ prefix: 5 })).toEqual([{ path: '/prefix', message: 'must be string' }])
-  })
-
   it('rejects a changed definition for a published identity', async () => {
     const registry = new DefinitionRegistry()
     const original = read('plugins/hello-world/v1/node.json').toString('utf8')

@@ -225,10 +225,10 @@ func TestIsDateTime(t *testing.T) {
 func TestRegistryExactResolution(t *testing.T) {
 	def := helloWorld(t)
 	reg := NewRegistry()
-	if err := reg.Add(def, nil); err != nil {
+	if err := reg.Add(def); err != nil {
 		t.Fatal(err)
 	}
-	if err := reg.Add(def, nil); err != nil {
+	if err := reg.Add(def); err != nil {
 		t.Fatalf("re-adding identical definition: %v", err)
 	}
 	if _, err := reg.Resolve(Identity{PluginType: "hello-world", PluginVersion: 2}); !errors.Is(err, ErrNotFound) {
@@ -240,7 +240,7 @@ func TestRegistryExactResolution(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := reg.Add(def2, nil); !errors.Is(err, ErrConflict) {
+	if err := reg.Add(def2); !errors.Is(err, ErrConflict) {
 		t.Fatalf("expected immutability conflict, got %v", err)
 	}
 }
@@ -259,28 +259,6 @@ func TestLoadLibraryMatchesManifest(t *testing.T) {
 	}
 	if e.Definition.Digest() != helloWorld(t).Digest() {
 		t.Fatal("manifest digest differs from definition")
-	}
-}
-
-// TestLoadPackage proves a plugin package needs only node.json and plugin.wasm: the custom plugin in
-// testdata has no generated Kotlin, Go or TypeScript anywhere.
-func TestLoadPackage(t *testing.T) {
-	def, art, err := LoadPackage("testdata/packages/echo")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if def.Identity().String() != "custom-echo@3" || art.Size == 0 || !strings.HasPrefix(art.Digest, "sha256:") {
-		t.Fatalf("unexpected package %v %+v", def.Identity(), art)
-	}
-	if issues := def.ValidateConfig([]byte(`{"prefix":"> "}`)); issues != nil {
-		t.Fatal(issues)
-	}
-	if issues := def.ValidateConfig([]byte(`{"prefix":5}`)); len(issues) != 1 {
-		t.Fatalf("issues = %v", issues)
-	}
-
-	if _, _, err := LoadPackage("testdata/packages/not-wasm"); err == nil || !strings.Contains(err.Error(), "WebAssembly") {
-		t.Fatalf("expected WASM header error, got %v", err)
 	}
 }
 
