@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
+  "scripts": {
+    "postinstall": "node -e \"const fs=require('fs');if(fs.existsSync('apps'))for(const app of fs.readdirSync('apps'))fs.rmSync('apps/'+app+'/.next/dev/cache/turbopack',{recursive:true,force:true})\""
+  },
   "dependencies": {
     "@mwarnerdotme/react-remixicon": "^2.0.1",
     "@notionhq/client": "^5.11.0",
