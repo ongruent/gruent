@@ -1,0 +1,238 @@
+'use client'
+
+import { type FieldModel, type ItemSchema, isDateTime } from '@gruent/libs/engine/nodes/ts'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Checkbox } from '@gruent/libs/frontend/components/core/checkbox'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import { Textarea } from '@gruent/libs/frontend/components/core/textarea'
+import { PlusIcon, Trash2Icon } from 'lucide-react'
+import { FC, useEffect, useState } from 'react'
+
+type ControlProps = {
+  id: string
+  field: FieldModel
+  value: unknown
+  invalid: boolean
+  /** `undefined` removes the key from the configuration. */
+  onChange: (value: unknown) => void
+}
+
+/** Saved values are displayed as-is, even when they have the wrong type, so nothing is hidden or rewritten. */
+const display = (value: unknown) =>
+  value === undefined ? '' : typeof value === 'string' ? value : JSON.stringify(value)
+
+export const TextControl: FC<ControlProps & { multiline?: boolean }> = ({
+  id,
+  field,
+  value,
+  invalid,
+  onChange,
+  multiline,
+}) => {
+  const props = {
+    id,
+    value: display(value),
+    placeholder: field.schema['x-ui'].placeholder,
+    'aria-invalid': invalid,
+    'aria-required': field.required,
+    // Clearing the input removes the key; required fields then report "is required".
+    onChange: (e: { target: { value: string } }) =>
+      onChange(e.target.value === '' ? undefined : e.target.value),
+  }
+  return multiline ? <Textarea {...props} /> : <Input type="text" {...props} />
+}
+
+type NumberInputProps = {
+  id: string
+  value: unknown
+  invalid: boolean
+  required: boolean
+  schema: Pick<ItemSchema, 'minimum' | 'maximum'>
+  step?: number
+  placeholder?: string
+  label?: string
+  onChange: (value: number | undefined) => void
+}
+
+/**
+ * Keeps the typed text locally so intermediate input such as "0." is not lost, and only reports parseable
+ * numbers. Numbers are never coerced from other types.
+ */
+export const NumberInput: FC<NumberInputProps> = ({
+  id,
+  value,
+  invalid,
+  required,
+  schema,
+  step,
+  placeholder,
+  label,
+  onChange,
+}) => {
+  const [draft, setDraft] = useState(display(value))
+  useEffect(() => {
+    setDraft((current) => (current !== '' && Number(current) === value ? current : display(value)))
+  }, [value])
+
+  return (
+    <Input
+      id={id}
+      type="number"
+      inputMode="decimal"
+      value={draft}
+      step={step ?? 'any'}
+      min={schema.minimum}
+      max={schema.maximum}
+      placeholder={placeholder}
+      aria-label={label}
+      aria-invalid={invalid}
+      aria-required={required}
+      onChange={(e) => {
+        const text = e.target.value
+        setDraft(text)
+        if (text.trim() === '') onChange(undefined)
+        else if (Number.isFinite(Number(text))) onChange(Number(text))
+      }}
+    />
+  )
+}
+
+export const NumberControl: FC<ControlProps> = ({ id, field, value, invalid, onChange }) => (
+  <>
+    <NumberInput
+      id={id}
+      value={value}
+      invalid={invalid}
+      required={field.required}
+      schema={field.schema}
+      step={field.schema['x-ui'].step}
+      placeholder={field.schema['x-ui'].placeholder}
+      onChange={onChange}
+    />
+    {/* A number input cannot display other types, so show the saved value instead of hiding it. */}
+    {value !== undefined && typeof value !== 'number' && (
+      <p className="text-sm text-muted-foreground">Saved value: {JSON.stringify(value)}</p>
+    )}
+  </>
+)
+
+export const ToggleControl: FC<ControlProps> = ({ id, field, value, invalid, onChange }) => (
+  <Checkbox
+    id={id}
+    checked={value === true}
+    aria-invalid={invalid}
+    aria-required={field.required}
+    onCheckedChange={(checked) => onChange(checked === true)}
+  />
+)
+
+const pad = (n: number) => String(n).padStart(2, '0')
+
+/** RFC 3339 value -> local "YYYY-MM-DDTHH:mm:ss" for <input type="datetime-local">. */
+const toLocalInput = (value: string) => {
+  const d = new Date(value)
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+}
+
+/** Local datetime-local value -> RFC 3339 UTC timestamp matching the contract's date-time profile. */
+const fromLocalInput = (local: string) => new Date(local).toISOString().replace(/\.000Z$/, 'Z')
+
+export const DateTimeControl: FC<ControlProps> = ({ id, field, value, invalid, onChange }) => {
+  // A saved value outside the contract's date-time profile is shown verbatim so it can be corrected, rather
+  // than being dropped by the browser's date picker.
+  if (value !== undefined && (typeof value !== 'string' || !isDateTime(value)))
+    return <TextControl id={id} field={field} value={value} invalid={invalid} onChange={onChange} />
+
+  return (
+    <Input
+      id={id}
+      type="datetime-local"
+      step={1}
+      value={typeof value === 'string' ? toLocalInput(value) : ''}
+      aria-invalid={invalid}
+      aria-required={field.required}
+      onChange={(e) => {
+        const local = e.target.value
+        if (!local) return onChange(undefined)
+        if (!Number.isNaN(new Date(local).getTime())) onChange(fromLocalInput(local))
+      }}
+    />
+  )
+}
+
+/** Repeated primitive values. Item errors are reported at `<field>/<index>`. */
+export const ListControl: FC<ControlProps & { itemInvalid: (index: number) => boolean }> = ({
+  id,
+  field,
+  value,
+  invalid,
+  itemInvalid,
+  onChange,
+}) => {
+  const items = Array.isArray(value) ? (value as unknown[]) : []
+  const itemSchema = field.schema.items
+  const numeric = itemSchema?.type === 'number' || itemSchema?.type === 'integer'
+  const max = field.schema.maxItems
+
+  const setItem = (index: number, item: unknown) =>
+    onChange(items.map((v, i) => (i === index ? item : v)))
+  const removeItem = (index: number) => {
+    const next = items.filter((_, i) => i !== index)
+    onChange(next.length > 0 ? next : undefined)
+  }
+
+  return (
+    <div className="flex flex-col gap-2" id={id} aria-invalid={invalid}>
+      {value !== undefined && !Array.isArray(value) && (
+        <p className="text-sm text-destructive">Saved value is not a list: {display(value)}</p>
+      )}
+      {items.map((item, index) => {
+        const itemId = `${id}-${index}`
+        const label = `${field.schema.title} item ${index + 1}`
+        return (
+          <div key={index} className="flex items-center gap-2">
+            {numeric ? (
+              <NumberInput
+                id={itemId}
+                label={label}
+                value={item}
+                invalid={itemInvalid(index)}
+                required
+                schema={itemSchema ?? {}}
+                step={field.schema['x-ui'].step}
+                onChange={(n) => n !== undefined && setItem(index, n)}
+              />
+            ) : (
+              <Input
+                id={itemId}
+                aria-label={label}
+                value={display(item)}
+                aria-invalid={itemInvalid(index)}
+                onChange={(e) => setItem(index, e.target.value)}
+              />
+            )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={`Remove ${label}`}
+              onClick={() => removeItem(index)}
+            >
+              <Trash2Icon />
+            </Button>
+          </div>
+        )
+      })}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="self-start"
+        disabled={max !== undefined && items.length >= max}
+        onClick={() => onChange([...items, numeric ? 0 : ''])}
+      >
+        <PlusIcon /> Add item
+      </Button>
+    </div>
+  )
+}

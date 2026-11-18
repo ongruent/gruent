@@ -1,10 +1,10 @@
 'use client'
 
-import { CircleAlertIcon } from 'lucide-react'
 import { Handle, type NodeProps, Position } from '@xyflow/react'
+import { CircleAlertIcon } from 'lucide-react'
 import { memo } from 'react'
 import { HIDDEN_INPUT_IDS, HIDDEN_OUTPUT_IDS, ioKey } from './convert'
-import { NodeLabelIcon, NodeTypeIcon } from './nodeIcons'
+import { NodeCategoryIcon, NodeTypeIcon } from './nodeIcons'
 import type { ChannelFlowNode, ChannelNodeType } from './types'
 
 // Horizontal spacing between output handles, in px
@@ -72,7 +72,7 @@ const nodeStyles: Record<ChannelNodeType | 'default', NodeStyle> = {
 
 const ChannelNodeView = ({ data, selected }: NodeProps<ChannelFlowNode>) => {
   const { node, errors, activeIo } = data
-  const { type, label, name, io } = node.metadata
+  const { type, name, io } = node.metadata
   const style = nodeStyles[type] ?? nodeStyles.default
   const idleIoColor = 'var(--channel-editor-idle-color)'
 
@@ -104,8 +104,8 @@ const ChannelNodeView = ({ data, selected }: NodeProps<ChannelFlowNode>) => {
       >
         {name}
       </p>
-      <NodeLabelIcon
-        label={label}
+      <NodeCategoryIcon
+        type={type}
         className={`absolute left-[21px] top-[24px] w-12 h-12 text-base ${style.labelText}`}
       />
 

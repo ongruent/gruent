@@ -3,7 +3,7 @@
  * named option data (fetching, auth, search, pagination, caching, stale-response handling) and passes it in as
  * NamedOptions keyed by field path; the renderer only emits search/load-more events.
  */
-import type { Condition, Definition, FieldSchema, Group, NamedOptionsSource, Option, Scalar } from './contract'
+import type { Condition, Definition, FieldSchema, Group, Issue, NamedOptionsSource, Option, Scalar } from './contract'
 
 export type NamedOptionState = {
   /** Accumulated results for the current query; the parent resets them when query or params change. */
@@ -97,4 +97,25 @@ export function selectedOptions(field: FieldModel, value: unknown, state?: Named
       state?.items.find((o) => o.value === v)
     return known ?? { value: v, label: `${v} (unavailable)`, unavailable: true }
   })
+}
+
+/** Whether a field is shown: both its section's group and the field itself must be visible. */
+export function isFieldVisible(section: Section, field: FieldModel, config: Record<string, unknown>): boolean {
+  return isVisible(section.group?.visibleWhen, config) && isVisible(field.schema['x-ui'].visibleWhen, config)
+}
+
+/** Validation issues that belong to a field: its own pointer and, for arrays, its item pointers. */
+export function fieldIssues(field: FieldModel, issues: Issue[]): Issue[] {
+  return issues.filter((i) => i.path === field.path || i.path.startsWith(`${field.path}/`))
+}
+
+/**
+ * Returns a copy of the configuration with one field changed. `undefined` removes the key, which is how an
+ * optional field is cleared (null is never valid). Every other key, including unknown or hidden ones, is kept.
+ */
+export function withField(config: Record<string, unknown>, name: string, value: unknown): Record<string, unknown> {
+  const next = { ...config }
+  if (value === undefined) delete next[name]
+  else next[name] = value
+  return next
 }
