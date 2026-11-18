@@ -1,0 +1,4 @@
+{
+  "description": "Mixed-source select accepts identifiers that are not static entries (no enum on mixed fields).",
+  "config": { "greeting": "Hi", "language": "es", "repeatCount": 3, "modelId": "mdl_from_parent" }
+}

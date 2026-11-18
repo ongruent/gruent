@@ -1,0 +1,151 @@
+{
+  "contractVersion": 1,
+  "pluginType": "hello-world",
+  "pluginVersion": 1,
+  "displayName": "Hello world",
+  "description": "Proof-of-concept plugin that greets incoming messages. Exercises every control supported by node contract v1.",
+  "category": "processing",
+  "io": {
+    "inputs": ["source", "processing", "conditional", "custom"],
+    "outputs": ["processing", "action", "conditional", "custom"]
+  },
+  "configSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["greeting", "language", "repeatCount"],
+    "x-ui": {
+      "groups": [
+        { "id": "message", "title": "Message" },
+        {
+          "id": "dependencies",
+          "title": "Dependencies",
+          "description": "Resources are referenced by identifier and resolved by the parent."
+        },
+        { "id": "schedule", "title": "Schedule" }
+      ]
+    },
+    "properties": {
+      "greeting": {
+        "type": "string",
+        "title": "Greeting",
+        "description": "Short greeting prepended to every message.",
+        "minLength": 1,
+        "maxLength": 80,
+        "default": "Hello, world!",
+        "x-ui": { "control": "text", "order": 1, "group": "message", "placeholder": "Hello, world!" }
+      },
+      "signature": {
+        "type": "string",
+        "title": "Signature",
+        "description": "Optional multi-line text appended to every message.",
+        "maxLength": 2000,
+        "x-ui": { "control": "textarea", "order": 2, "group": "message" }
+      },
+      "language": {
+        "type": "string",
+        "title": "Language",
+        "enum": ["en", "es", "fr"],
+        "default": "en",
+        "x-ui": {
+          "control": "select",
+          "order": 3,
+          "group": "message",
+          "options": {
+            "static": [
+              { "value": "en", "label": "English" },
+              { "value": "es", "label": "Spanish" },
+              { "value": "fr", "label": "French" }
+            ]
+          }
+        }
+      },
+      "uppercase": {
+        "type": "boolean",
+        "title": "Uppercase",
+        "description": "Convert the greeting to upper case.",
+        "default": false,
+        "x-ui": { "control": "toggle", "order": 4, "group": "message" }
+      },
+      "repeatCount": {
+        "type": "integer",
+        "title": "Repeat count",
+        "description": "How many times the greeting is repeated.",
+        "minimum": 1,
+        "maximum": 10,
+        "default": 1,
+        "x-ui": { "control": "number", "order": 5, "group": "message", "step": 1 }
+      },
+      "confidenceThreshold": {
+        "type": "number",
+        "title": "Confidence threshold",
+        "description": "Minimum model confidence required before the greeting is emitted.",
+        "minimum": 0,
+        "maximum": 1,
+        "x-ui": { "control": "number", "order": 6, "group": "dependencies", "step": 0.05 }
+      },
+      "secretId": {
+        "type": "string",
+        "title": "Secret",
+        "description": "Credentials used to call the model.",
+        "minLength": 1,
+        "x-ui": {
+          "control": "select",
+          "order": 7,
+          "group": "dependencies",
+          "options": { "named": { "name": "secrets" } }
+        }
+      },
+      "modelId": {
+        "type": "string",
+        "title": "Model",
+        "minLength": 1,
+        "x-ui": {
+          "control": "select",
+          "order": 8,
+          "group": "dependencies",
+          "options": {
+            "static": [{ "value": "builtin:default", "label": "Default model" }],
+            "named": {
+              "name": "models",
+              "params": { "capability": "text" },
+              "paramsFromFields": { "secretId": "/secretId" }
+            }
+          }
+        }
+      },
+      "thingIds": {
+        "type": "array",
+        "title": "Things",
+        "description": "Things that receive the greeting.",
+        "items": { "type": "string", "minLength": 1 },
+        "uniqueItems": true,
+        "maxItems": 10,
+        "x-ui": {
+          "control": "multiselect",
+          "order": 9,
+          "group": "dependencies",
+          "options": { "named": { "name": "things" } }
+        }
+      },
+      "scheduled": {
+        "type": "boolean",
+        "title": "Start at a fixed time",
+        "default": false,
+        "x-ui": { "control": "toggle", "order": 10, "group": "schedule" }
+      },
+      "startAt": {
+        "type": "string",
+        "title": "Start at",
+        "description": "RFC 3339 timestamp, for example 2026-01-01T09:00:00Z.",
+        "format": "date-time",
+        "x-ui": {
+          "control": "datetime",
+          "order": 11,
+          "group": "schedule",
+          "visibleWhen": { "field": "/scheduled", "equals": true }
+        }
+      }
+    }
+  }
+}

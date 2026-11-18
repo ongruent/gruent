@@ -1,0 +1,37 @@
+{
+  "description": "Source plugins cannot accept inputs.",
+  "definition": {
+    "contractVersion": 1,
+    "pluginType": "fixture",
+    "pluginVersion": 1,
+    "displayName": "Fixture",
+    "description": "Definition fixture.",
+    "category": "source",
+    "io": {
+      "inputs": [
+        "source"
+      ],
+      "outputs": [
+        "action"
+      ]
+    },
+    "configSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "x-ui": {
+            "control": "text",
+            "order": 1
+          }
+        }
+      }
+    }
+  },
+  "errors": [
+    "/io/inputs"
+  ]
+}

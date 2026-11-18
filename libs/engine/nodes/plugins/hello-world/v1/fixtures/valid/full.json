@@ -1,0 +1,16 @@
+{
+  "description": "Every field set, including mixed-source, named-only and multi-select references.",
+  "config": {
+    "greeting": "Hello, world!",
+    "signature": "Line one\nLine two \"quoted\" \\ backslash $dollar",
+    "language": "fr",
+    "uppercase": true,
+    "repeatCount": 10,
+    "confidenceThreshold": 0.75,
+    "secretId": "sec_123",
+    "modelId": "builtin:default",
+    "thingIds": ["thing_1", "thing_2"],
+    "scheduled": true,
+    "startAt": "2026-11-18T09:30:00.125+02:00"
+  }
+}

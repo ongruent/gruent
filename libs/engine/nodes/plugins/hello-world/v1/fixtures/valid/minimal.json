@@ -1,0 +1,4 @@
+{
+  "description": "Only required fields. Optional fields are absent, not null; defaults are not applied by validation.",
+  "config": { "greeting": "Hi", "language": "en", "repeatCount": 1 }
+}

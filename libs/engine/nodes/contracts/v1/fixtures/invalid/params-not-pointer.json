@@ -1,0 +1,45 @@
+{
+  "description": "Dependency references are JSON Pointers.",
+  "definition": {
+    "contractVersion": 1,
+    "pluginType": "fixture",
+    "pluginVersion": 1,
+    "displayName": "Fixture",
+    "description": "Definition fixture.",
+    "category": "processing",
+    "io": {
+      "inputs": [
+        "source"
+      ],
+      "outputs": [
+        "action"
+      ]
+    },
+    "configSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "x-ui": {
+            "control": "select",
+            "order": 1,
+            "options": {
+              "named": {
+                "name": "models",
+                "paramsFromFields": {
+                  "secret": "secretId"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "errors": [
+    "/configSchema/properties/name/x-ui/options/named/paramsFromFields/secret"
+  ]
+}

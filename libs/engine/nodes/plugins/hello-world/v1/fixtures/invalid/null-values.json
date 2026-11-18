@@ -1,0 +1,5 @@
+{
+  "description": "null never means unset; clear optional fields by removing the key.",
+  "config": { "greeting": "Hi", "language": "en", "repeatCount": 1, "signature": null, "uppercase": null },
+  "errors": ["/signature", "/uppercase"]
+}

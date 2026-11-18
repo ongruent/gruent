@@ -1,0 +1,5 @@
+{
+  "description": "Integer bounds, non-integral integers and number bounds.",
+  "config": { "greeting": "Hi", "language": "en", "repeatCount": 1.5, "confidenceThreshold": 1.01 },
+  "errors": ["/repeatCount", "/confidenceThreshold"]
+}

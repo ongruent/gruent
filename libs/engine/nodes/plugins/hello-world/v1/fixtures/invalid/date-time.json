@@ -1,0 +1,5 @@
+{
+  "description": "Strict RFC 3339: a space separator, missing offset, and impossible dates are rejected identically everywhere.",
+  "config": { "greeting": "Hi", "language": "en", "repeatCount": 1, "startAt": "2026-11-18 09:30:00Z" },
+  "errors": ["/startAt"]
+}

@@ -1,0 +1,4 @@
+{
+  "description": "1.0 is an integer in JSON Schema; numbers accept integral values.",
+  "config": { "greeting": "Hi", "language": "en", "repeatCount": 2.0, "confidenceThreshold": 1 }
+}

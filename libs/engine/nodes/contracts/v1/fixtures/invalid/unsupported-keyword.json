@@ -1,0 +1,42 @@
+{
+  "description": "Keywords outside the supported subset are rejected.",
+  "definition": {
+    "contractVersion": 1,
+    "pluginType": "fixture",
+    "pluginVersion": 1,
+    "displayName": "Fixture",
+    "description": "Definition fixture.",
+    "category": "processing",
+    "io": {
+      "inputs": [
+        "source"
+      ],
+      "outputs": [
+        "action"
+      ]
+    },
+    "configSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "x-ui": {
+            "control": "text",
+            "order": 1
+          },
+          "oneOf": [
+            {
+              "minLength": 1
+            }
+          ]
+        }
+      }
+    }
+  },
+  "errors": [
+    "/configSchema/properties/name/oneOf"
+  ]
+}

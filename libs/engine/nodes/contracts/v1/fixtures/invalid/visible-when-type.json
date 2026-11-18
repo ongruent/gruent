@@ -1,0 +1,49 @@
+{
+  "description": "Condition values must match the referenced field type.",
+  "definition": {
+    "contractVersion": 1,
+    "pluginType": "fixture",
+    "pluginVersion": 1,
+    "displayName": "Fixture",
+    "description": "Definition fixture.",
+    "category": "processing",
+    "io": {
+      "inputs": [
+        "source"
+      ],
+      "outputs": [
+        "action"
+      ]
+    },
+    "configSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "x-ui": {
+            "control": "text",
+            "order": 1
+          }
+        },
+        "flag": {
+          "type": "boolean",
+          "title": "Flag",
+          "x-ui": {
+            "control": "toggle",
+            "order": 2,
+            "visibleWhen": {
+              "field": "/name",
+              "equals": true
+            }
+          }
+        }
+      }
+    }
+  },
+  "errors": [
+    "/configSchema/properties/flag/x-ui/visibleWhen/equals"
+  ]
+}

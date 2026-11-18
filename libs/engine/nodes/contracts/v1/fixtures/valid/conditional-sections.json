@@ -1,0 +1,141 @@
+{
+  "description": "Static-only select without enum, conditional group and field, list of integers, static multiselect with item enum.",
+  "definition": {
+    "contractVersion": 1,
+    "pluginType": "fixture",
+    "pluginVersion": 1,
+    "displayName": "Fixture",
+    "description": "Definition fixture.",
+    "category": "processing",
+    "io": {
+      "inputs": [
+        "source"
+      ],
+      "outputs": [
+        "action"
+      ]
+    },
+    "configSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "title": "Mode",
+          "x-ui": {
+            "control": "select",
+            "order": 1,
+            "group": "general",
+            "options": {
+              "static": [
+                {
+                  "value": "simple",
+                  "label": "Simple"
+                },
+                {
+                  "value": "custom",
+                  "label": "Custom"
+                },
+                {
+                  "value": "expert",
+                  "label": "Expert",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        "ports": {
+          "type": "array",
+          "title": "Ports",
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "maxItems": 5,
+          "x-ui": {
+            "control": "list",
+            "order": 2,
+            "group": "advanced"
+          }
+        },
+        "levels": {
+          "type": "array",
+          "title": "Levels",
+          "items": {
+            "type": "string",
+            "enum": [
+              "debug",
+              "info"
+            ]
+          },
+          "uniqueItems": true,
+          "x-ui": {
+            "control": "multiselect",
+            "order": 3,
+            "group": "advanced",
+            "options": {
+              "static": [
+                {
+                  "value": "debug",
+                  "label": "Debug"
+                },
+                {
+                  "value": "info",
+                  "label": "Info"
+                }
+              ]
+            }
+          }
+        },
+        "ratio": {
+          "type": "number",
+          "title": "Ratio",
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "x-ui": {
+            "control": "number",
+            "order": 4,
+            "visibleWhen": {
+              "field": "/mode",
+              "equals": "custom"
+            }
+          }
+        },
+        "code": {
+          "type": "string",
+          "title": "Code",
+          "pattern": "^[A-Z]{3}(?:-[0-9]+)?$",
+          "x-ui": {
+            "control": "text",
+            "order": 5
+          }
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "x-ui": {
+        "groups": [
+          {
+            "id": "general",
+            "title": "General"
+          },
+          {
+            "id": "advanced",
+            "title": "Advanced",
+            "visibleWhen": {
+              "field": "/mode",
+              "in": [
+                "custom",
+                "expert"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "description": "Unknown properties are rejected (additionalProperties: false); x-ui never appears in configuration.",
+  "config": { "greeting": "Hi", "language": "en", "repeatCount": 1, "x-ui": {}, "extra": 1 },
+  "errors": ["/x-ui", "/extra"]
+}

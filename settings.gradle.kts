@@ -15,17 +15,19 @@ rootProject.name = "gruent"
 include(":services:runtime")
 include(":libs:engine:nodes:api")
 
-// ---- Dynamic discovery of plugin modules
-// Expect structure: libs/engine/nodes/plugins/<category>/<label>/<version>
+include(":libs:engine:nodes:kotlin")
+
+// ---- Dynamic discovery of plugin implementation modules
+// Expect structure: libs/engine/nodes/plugins/<pluginType>/v<N>, included only when it contains a
+// build.gradle.kts. Definitions without an implementation (or consumed only as node.json + plugin.wasm
+// packages) need no Gradle module.
 val pluginsRoot = file("libs/engine/nodes/plugins")
 if (pluginsRoot.exists()) {
-  pluginsRoot.listFiles { f -> f.isDirectory }?.forEach { category ->
-    category.listFiles { f -> f.isDirectory }?.forEach { label ->
-      label.listFiles { f -> f.isDirectory }?.forEach { version ->
-        val path = ":libs:engine:nodes:plugins:${category.name}:${label.name}:${version.name}"
-        include(path)
-        project(path).projectDir = version
-      }
+  pluginsRoot.listFiles { f -> f.isDirectory }?.forEach { pluginType ->
+    pluginType.listFiles { f -> f.isDirectory && f.resolve("build.gradle.kts").exists() }?.forEach { version ->
+      val path = ":libs:engine:nodes:plugins:${pluginType.name}:${version.name}"
+      include(path)
+      project(path).projectDir = version
     }
   }
 }

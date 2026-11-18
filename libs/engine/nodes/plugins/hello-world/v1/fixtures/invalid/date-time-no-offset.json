@@ -1,0 +1,5 @@
+{
+  "description": "Local times without an offset are rejected.",
+  "config": { "greeting": "Hi", "language": "en", "repeatCount": 1, "startAt": "2026-11-18T09:30:00" },
+  "errors": ["/startAt"]
+}
