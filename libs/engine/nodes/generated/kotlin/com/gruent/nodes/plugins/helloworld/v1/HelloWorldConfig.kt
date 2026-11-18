@@ -105,7 +105,7 @@ data class HelloWorldConfig(
     override val pluginType: String = "hello-world"
     override val pluginVersion: Int = 1
     override val contractVersion: Int = 1
-    override val definitionDigest: String = "sha256:e08ef6527b52448661acf37744dfb9a49af851dda938b6e01a0edd5fc9d68e29"
+    override val definitionDigest: String = "sha256:fe8ea006121e3c2030579c1dc8bd987779adcb12e703d1e29a0b033f41d71b50"
 
     private val properties: Set<String> = setOf("greeting", "signature", "language", "uppercase", "repeatCount", "confidenceThreshold", "secretId", "modelId", "thingIds", "scheduled", "startAt")
     private val required: List<String> = listOf("greeting", "language", "repeatCount")

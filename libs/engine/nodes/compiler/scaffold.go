@@ -19,22 +19,7 @@ import (
 
 var slug = regexp.MustCompile(`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`)
 
-var categoryIO = map[nodes.Category]nodes.IO{
-	nodes.CategorySource:      {Inputs: []nodes.Category{}, Outputs: []nodes.Category{"processing", "action", "conditional", "custom"}},
-	nodes.CategoryProcessing:  {Inputs: []nodes.Category{"source", "processing", "conditional", "custom"}, Outputs: []nodes.Category{"processing", "action", "conditional", "custom"}},
-	nodes.CategoryConditional: {Inputs: []nodes.Category{"source", "processing", "conditional", "custom"}, Outputs: []nodes.Category{"processing", "action", "conditional", "custom"}},
-	nodes.CategoryCustom:      {Inputs: []nodes.Category{"source", "processing", "conditional", "custom"}, Outputs: []nodes.Category{"processing", "action", "conditional", "custom"}},
-	nodes.CategoryAction:      {Inputs: []nodes.Category{"source", "processing", "conditional", "custom"}, Outputs: []nodes.Category{}},
-}
-
 var nodeTemplate = template.Must(template.New("node").Funcs(template.FuncMap{
-	"list": func(cs []nodes.Category) string {
-		q := make([]string, len(cs))
-		for i, c := range cs {
-			q[i] = strconv.Quote(string(c))
-		}
-		return "[" + strings.Join(q, ", ") + "]"
-	},
 	"quote": strconv.Quote,
 }).Parse(`{
   "contractVersion": 1,
@@ -43,10 +28,6 @@ var nodeTemplate = template.Must(template.New("node").Funcs(template.FuncMap{
   "displayName": {{quote .DisplayName}},
   "description": {{quote .Description}},
   "category": {{quote (printf "%s" .Category)}},
-  "io": {
-    "inputs": {{list .IO.Inputs}},
-    "outputs": {{list .IO.Outputs}}
-  },
   "configSchema": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
@@ -103,7 +84,9 @@ func create(root string, opts createOptions, in io.Reader, out io.Writer, intera
 	if !slug.MatchString(opts.Name) || len(opts.Name) > 64 {
 		return fmt.Errorf("invalid plugin name %q: use lowercase kebab-case such as my-plugin", opts.Name)
 	}
-	if _, ok := categoryIO[opts.Category]; !ok {
+	switch opts.Category {
+	case nodes.CategorySource, nodes.CategoryProcessing, nodes.CategoryAction, nodes.CategoryConditional, nodes.CategoryCustom:
+	default:
 		return fmt.Errorf("invalid category %q: use source, processing, action, conditional or custom", opts.Category)
 	}
 
@@ -143,10 +126,7 @@ func create(root string, opts createOptions, in io.Reader, out io.Writer, intera
 	}
 	dir := filepath.Join(root, "plugins", opts.Name, "v1")
 	var node strings.Builder
-	if err := nodeTemplate.Execute(&node, struct {
-		createOptions
-		IO nodes.IO
-	}{opts, categoryIO[opts.Category]}); err != nil {
+	if err := nodeTemplate.Execute(&node, opts); err != nil {
 		return err
 	}
 	if _, err := nodes.ParseDefinition([]byte(node.String())); err != nil {

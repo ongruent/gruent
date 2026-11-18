@@ -47,7 +47,6 @@ func registry(t *testing.T) *nodes.Registry {
 	// Source plugin defined inline to exercise a full DAG.
 	src, err := nodes.ParseDefinition([]byte(`{"contractVersion":1,"pluginType":"test-source","pluginVersion":1,
 		"displayName":"Source","description":"Test source.","category":"source",
-		"io":{"inputs":[],"outputs":["processing","custom"]},
 		"configSchema":{"$schema":"https://json-schema.org/draft/2020-12/schema","type":"object",
 		"additionalProperties":false,"properties":{}}}`))
 	if err != nil {
@@ -133,15 +132,16 @@ func TestValidateConfigAndReferences(t *testing.T) {
 	}
 }
 
-func TestValidateIOBothEnds(t *testing.T) {
+// Definitions carry no connection rules; only the generic DAG shape constrains edges.
+func TestValidateEdgeIntoSource(t *testing.T) {
 	ch := channel()
-	// hello-world (processing) cannot feed the source, and a source accepts no input.
 	ch.Edges = append(ch.Edges, Edge{ID: "e3", From: "echo", To: "src"})
 	ve := validationError(t, ch, nil)
 	joined := strings.Join(ve.ChannelErrors, "\n")
+	if strings.Contains(joined, "cannot output") || strings.Contains(joined, "cannot accept") {
+		t.Errorf("unexpected I/O rule in\n%s", joined)
+	}
 	for _, want := range []string{
-		"edge e3: echo (custom-echo@3) cannot output to source nodes",
-		"edge e3: src (test-source@1) cannot accept input from custom nodes",
 		"source node src cannot have inputs",
 		"edges contain a cycle",
 	} {

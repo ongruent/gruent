@@ -5,7 +5,6 @@
   "displayName": "Echo",
   "description": "Third-party plugin distributed as node.json plus plugin.wasm, with no generated source.",
   "category": "custom",
-  "io": { "inputs": ["source", "processing"], "outputs": ["action"] },
   "configSchema": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",

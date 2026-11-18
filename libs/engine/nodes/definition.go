@@ -30,7 +30,7 @@ var envelopeSchemaJSON []byte
 // EnvelopeSchema returns a copy of the machine-readable contract v1 envelope schema.
 func EnvelopeSchema() []byte { return bytes.Clone(envelopeSchemaJSON) }
 
-// Category classifies a plugin and is used by I/O allowlists.
+// Category classifies a plugin. Only sources have special meaning in channel validation (the DAG root).
 type Category string
 
 const (
@@ -59,29 +59,6 @@ type Identity struct {
 }
 
 func (i Identity) String() string { return fmt.Sprintf("%s@%d", i.PluginType, i.PluginVersion) }
-
-// IO holds the connection allowlists of a definition.
-type IO struct {
-	// Inputs lists the categories of upstream nodes this plugin accepts.
-	Inputs []Category `json:"inputs"`
-	// Outputs lists the categories of downstream nodes this plugin may feed.
-	Outputs []Category `json:"outputs"`
-}
-
-// AcceptsInput reports whether an upstream node of category c may connect to this plugin.
-func (io IO) AcceptsInput(c Category) bool { return contains(io.Inputs, c) }
-
-// AllowsOutput reports whether this plugin may feed a downstream node of category c.
-func (io IO) AllowsOutput(c Category) bool { return contains(io.Outputs, c) }
-
-func contains(list []Category, c Category) bool {
-	for _, v := range list {
-		if v == c {
-			return true
-		}
-	}
-	return false
-}
 
 // Option is a static select option.
 type Option struct {
@@ -196,7 +173,6 @@ type Definition struct {
 	DisplayName     string          `json:"displayName"`
 	Description     string          `json:"description"`
 	Category        Category        `json:"category"`
-	IO              IO              `json:"io"`
 	ConfigSchema    json.RawMessage `json:"configSchema"`
 
 	fields []Field

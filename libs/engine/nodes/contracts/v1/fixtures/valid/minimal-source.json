@@ -7,13 +7,6 @@
     "displayName": "Fixture",
     "description": "Definition fixture.",
     "category": "source",
-    "io": {
-      "inputs": [],
-      "outputs": [
-        "processing",
-        "action"
-      ]
-    },
     "configSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",

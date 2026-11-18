@@ -8,7 +8,7 @@
       "category": "processing",
       "definition": {
         "path": "plugins/hello-world/v1/node.json",
-        "digest": "sha256:e08ef6527b52448661acf37744dfb9a49af851dda938b6e01a0edd5fc9d68e29"
+        "digest": "sha256:fe8ea006121e3c2030579c1dc8bd987779adcb12e703d1e29a0b033f41d71b50"
       },
       "artifact": null,
       "kotlin": {

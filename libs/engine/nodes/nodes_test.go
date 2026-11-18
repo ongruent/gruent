@@ -162,8 +162,8 @@ func TestHelloWorldDefinition(t *testing.T) {
 			t.Errorf("hello-world does not exercise control %q", c)
 		}
 	}
-	if !def.IO.AcceptsInput(CategorySource) || def.IO.AcceptsInput(CategoryAction) {
-		t.Errorf("unexpected inputs %v", def.IO.Inputs)
+	if def.Category != CategoryProcessing {
+		t.Errorf("category = %s", def.Category)
 	}
 }
 

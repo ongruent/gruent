@@ -40,7 +40,6 @@ libs/engine/nodes/
   "displayName": "Hello world",
   "description": "…",
   "category": "processing",
-  "io": { "inputs": ["source", "processing"], "outputs": ["action"] },
   "configSchema": { "$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object", "additionalProperties": false, "properties": { } }
 }
 ```
@@ -56,10 +55,11 @@ Decisions where the issue's proposal conflicted with itself:
 - **Versions are linear integers** (`pluginVersion: 1, 2, 3 …`, directories `v1`, `v2`, …), as required by
   `new-version`. Every version counts as a "major" version, so a breaking configuration change always gets a
   new version. Semantic version strings are rejected.
-- **I/O allowlists use the category enum.** `io.inputs` lists the upstream categories a plugin accepts, and
-  `io.outputs` lists the downstream categories it may feed. A channel edge is valid only if **both** ends
-  allow it. Source plugins must have no inputs. Other plugins must accept at least one category. Typed
-  ports and data types from the legacy contract are not part of v1.
+- **No connection rules in definitions.** The issue's `io.inputs`/`io.outputs` allowlists were dropped: no
+  current node needs custom rules for which nodes it may connect to. Definitions therefore say nothing about
+  edges. Channel validation keeps only the generic DAG shape (one source, one input per other node, no
+  hanging nodes, no cycles). Any node-specific connection rules belong to the interpretation layer for now;
+  declarative constraints may be added to a later contract version if they become necessary.
 - **Objects.** The only object is the configuration root. Object-valued fields are rejected, and
   dependencies such as models, secrets and things are referenced by ID through named selects. Grouping is
   layout only (`configSchema.x-ui.groups`), so it adds no configuration nesting.
@@ -136,10 +136,9 @@ double precision are outside the tested range.
   `Definition.References` (named-select values minus static values, with resolved params), `Registry`
   (exact identity, immutable digests), `LoadPackage(dir)` (a `node.json` + `plugin.wasm` package with no
   generated code), and `LoadLibrary` (from the manifest, with digest checks).
-  `plan.Validate`/`plan.Hydrate` check the DAG, configuration, I/O at both ends of each edge, and resource
-  references through a `ResourceResolver`. They produce a `DeploymentPlan` with topologically ordered
-  nodes, exact identities, digests, WASM artifacts, configuration, references, inputs/outputs, processing
-  mode and resources.
+  `plan.Validate`/`plan.Hydrate` check the DAG shape, configuration and resource references through a
+  `ResourceResolver`. They produce a `DeploymentPlan` with topologically ordered nodes, exact identities,
+  digests, WASM artifacts, configuration, references, inputs/outputs, processing mode and resources.
 - **TypeScript** (`@gruent/libs/engine/nodes/ts`): `Definition.parse`, `DefinitionRegistry`, `validateConfig`,
   `createConfig`, and a headless `<NodeConfig />` model in `form.ts`: `describeForm`, `isVisible`,
   `optionsEvent` (the `{path, name, query, params}` payload for `onOptionsSearch`/`onOptionsLoadMore`),
@@ -175,7 +174,8 @@ double precision are outside the tested range.
 - **Sizing and processing modes.** `plan.Policy` must be supplied by the caller. The plan carries the
   channel's existing `small | medium | large` tier plus whatever resources and processing mode the policy
   returns. The concrete CPU/memory policy and the processing-mode vocabulary still need to be specified.
-- **Ports.** v1 edges connect nodes, not named ports. Conditional plugins with distinct pass/fail outputs
-  need a port model before they can be expressed.
+- **Connection rules and ports.** v1 definitions declare no I/O constraints, and edges connect nodes, not
+  named ports. Conditional plugins with distinct pass/fail outputs need a port model before they can be
+  expressed.
 - **Integration.** The API endpoints, definition storage, WASM builds for Kotlin plugins, and the React
   `<NodeConfig />` component that uses `form.ts` are follow-up work.

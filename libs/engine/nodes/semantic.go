@@ -39,14 +39,6 @@ func checkSemantics(d *Definition, required []string) []Issue {
 		issues = append(issues, Issue{Path: path, Message: fmt.Sprintf(format, args...)})
 	}
 
-	// I/O allowlists.
-	if d.Category == CategorySource && len(d.IO.Inputs) > 0 {
-		add("/io/inputs", "source plugins cannot accept inputs")
-	}
-	if d.Category != CategorySource && len(d.IO.Inputs) == 0 {
-		add("/io/inputs", "%s plugins must accept at least one input category", d.Category)
-	}
-
 	byName := map[string]*Field{}
 	for i := range d.fields {
 		byName[d.fields[i].Name] = &d.fields[i]

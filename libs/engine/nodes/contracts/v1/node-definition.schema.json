@@ -12,7 +12,6 @@
     "displayName",
     "description",
     "category",
-    "io",
     "configSchema"
   ],
   "properties": {
@@ -43,23 +42,6 @@
     "category": {
       "$ref": "#/$defs/category"
     },
-    "io": {
-      "description": "Connection allowlists. inputs lists the categories of upstream nodes this plugin accepts; outputs lists the categories of downstream nodes it may feed.",
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "inputs",
-        "outputs"
-      ],
-      "properties": {
-        "inputs": {
-          "$ref": "#/$defs/categoryList"
-        },
-        "outputs": {
-          "$ref": "#/$defs/categoryList"
-        }
-      }
-    },
     "configSchema": {
       "$ref": "#/$defs/configSchema"
     }
@@ -80,13 +62,6 @@
         "conditional",
         "custom"
       ]
-    },
-    "categoryList": {
-      "type": "array",
-      "uniqueItems": true,
-      "items": {
-        "$ref": "#/$defs/category"
-      }
     },
     "fieldName": {
       "description": "Configuration property name. camelCase ASCII so it maps to identifiers in every consumer without escaping. Keep in sync with the patternProperties keys that use the same expression.",

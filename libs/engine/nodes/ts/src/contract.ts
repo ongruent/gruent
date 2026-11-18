@@ -86,7 +86,6 @@ export type NodeDefinition = {
   displayName: string
   description: string
   category: Category
-  io: { inputs: Category[]; outputs: Category[] }
   configSchema: ConfigSchema
 }
 
@@ -255,10 +254,6 @@ function checkSemantics(def: NodeDefinition): Issue[] {
   const props = schema.properties
   const prop = (name: string, ...rest: string[]) =>
     ['/configSchema/properties', escapePointer(name), ...rest].join('/')
-
-  if (def.category === 'source' && def.io.inputs.length > 0) add('/io/inputs', 'source plugins cannot accept inputs')
-  if (def.category !== 'source' && def.io.inputs.length === 0)
-    add('/io/inputs', `${def.category} plugins must accept at least one input category`)
 
   ;(schema.required ?? []).forEach((r, i) => {
     if (!props[r]) add(`/configSchema/required/${i}`, `required field "${r}" is not declared in properties`)

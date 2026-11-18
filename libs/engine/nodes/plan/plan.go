@@ -149,7 +149,7 @@ func validate(ctx context.Context, ch *Channel, reg *nodes.Registry, resolver Re
 		}
 	}
 
-	// Edges: existence, duplicates, self loops, and I/O allowlists checked at both ends.
+	// Edges: existence, duplicates and self loops.
 	inDegree, outDegree := map[string]int{}, map[string]int{}
 	edgeIDs, pairs := map[string]bool{}, map[[2]string]bool{}
 	children := map[string][]string{}
@@ -158,8 +158,8 @@ func validate(ctx context.Context, ch *Channel, reg *nodes.Registry, resolver Re
 			ve.channel("duplicate edge id %s", e.ID)
 		}
 		edgeIDs[e.ID] = true
-		from, okFrom := byID[e.From]
-		to, okTo := byID[e.To]
+		_, okFrom := byID[e.From]
+		_, okTo := byID[e.To]
 		if !okFrom || !okTo {
 			ve.channel("edge %s references a missing node", e.ID)
 			continue
@@ -176,16 +176,6 @@ func validate(ctx context.Context, ch *Channel, reg *nodes.Registry, resolver Re
 		inDegree[e.To]++
 		outDegree[e.From]++
 		children[e.From] = append(children[e.From], e.To)
-		if from.entry.Definition == nil || to.entry.Definition == nil {
-			continue
-		}
-		fd, td := from.entry.Definition, to.entry.Definition
-		if !fd.IO.AllowsOutput(td.Category) {
-			ve.channel("edge %s: %s (%s) cannot output to %s nodes", e.ID, e.From, fd.Identity(), td.Category)
-		}
-		if !td.IO.AcceptsInput(fd.Category) {
-			ve.channel("edge %s: %s (%s) cannot accept input from %s nodes", e.ID, e.To, td.Identity(), fd.Category)
-		}
 	}
 
 	// DAG shape: exactly one source; every other node has exactly one input; no hanging nodes; acyclic.
