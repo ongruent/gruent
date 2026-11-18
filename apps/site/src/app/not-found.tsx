@@ -1,9 +1,9 @@
 'use client'
 
 import '../app/styles.css'
-import Container from '@gruent/libs/frontend/components/templates/Container'
+import Container from '@gruent/libs/frontend/components/Container'
 import Image from 'next/image'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
+import { Button } from '@gruent/libs/frontend/components/core/button'
 import { useRouter } from 'next/navigation'
 
 const NotFound = () => {
@@ -21,13 +21,12 @@ const NotFound = () => {
         />
         <h1 className="text-4xl my-10">404</h1>
         <div className="grid grid-cols-2 gap-4 mt-4">
-          <Button
-            text="Return to home"
-            variant="secondary"
-            className="grow"
-            onClick={() => router.push('/')}
-          />
-          <Button text="Go back" className="grow" onClick={router.back} />
+          <Button variant="secondary" className="grow" onClick={() => router.push('/')}>
+            Return to home
+          </Button>
+          <Button className="grow" onClick={() => router.back()}>
+            Go back
+          </Button>
         </div>
       </Container>
     </main>

@@ -1,13 +1,20 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
 import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import { MqttActionNodeConfig } from '@gruent/libs/engine/nodes/v1/src/action/mqtt'
 import { Thing } from '@prisma/client'
 import { FC, useEffect, useMemo, useState } from 'react'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
 import { PlusIcon } from 'lucide-react'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 
 type Props = {
   things: Thing[]
@@ -91,7 +98,7 @@ const MqttActionOptions: FC<Props> = ({ things }) => {
   if (!mqttClients || mqttClients.length <= 0)
     return (
       <p className="mb-2">
-        <Button variant="underline" onClick={() => openModal('createThing')}>
+        <Button variant="link" onClick={() => openModal('createThing')}>
           Add an MQTT client
         </Button>{' '}
         to your space before using this node.
@@ -100,52 +107,66 @@ const MqttActionOptions: FC<Props> = ({ things }) => {
 
   return (
     <>
-      <div className="flex flex-row gap-2">
-        <FormFieldSelect
-          name="mqttClient::thing"
-          label="MQTT Client"
-          className="grow"
-          options={mqttClientOptions}
-          value={selectedMqttClient?.id ?? '__GRUENT_IGNORE__'}
-          onChange={(e) =>
-            setSelectedMqttClient(
-              mqttClients.find((c) => {
-                if (c.id === e.target.value) return true
-                return false
-              }),
-            )
-          }
-        />
-        <Button className="my-3" onClick={() => openModal('createThing')}>
-          <PlusIcon size="1em" />
+      <div className="flex flex-row items-end gap-2">
+        <Field className="my-3 grow">
+          <FieldLabel htmlFor="mqttClient::thing">MQTT Client</FieldLabel>
+          <Select
+            name="mqttClient::thing"
+            value={selectedMqttClient?.id ?? ''}
+            onValueChange={(value) =>
+              setSelectedMqttClient(
+                mqttClients.find((c) => {
+                  if (c.id === value) return true
+                  return false
+                }),
+              )
+            }
+          >
+            <SelectTrigger id="mqttClient::thing" className="w-full">
+              <SelectValue placeholder="Select an option" />
+            </SelectTrigger>
+            <SelectContent>
+              {mqttClientOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Button
+          size="icon"
+          aria-label="Create thing"
+          className="my-3"
+          onClick={() => openModal('createThing')}
+        >
+          <PlusIcon />
         </Button>
       </div>
-      <FormFieldText
-        name="topic"
-        label="Topic"
-        value={topic ?? ''}
-        onChange={(e) => setTopic(e.target.value)}
-      />
-      <FormFieldSelect
-        name="qos"
-        label="QoS"
-        options={[
-          {
-            label: '0 - At most once',
-            value: '0',
-          },
-          {
-            label: '1 - At least once',
-            value: '1',
-          },
-          {
-            label: '2 - Exactly once',
-            value: '2',
-          },
-        ]}
-        value={qos?.toString() ?? '0'}
-        onChange={(e) => setQos(e.target.value)}
-      />
+      <Field className="my-3">
+        <FieldLabel htmlFor="topic">Topic</FieldLabel>
+        <Input
+          id="topic"
+          name="topic"
+          value={topic ?? ''}
+          onChange={(e) => setTopic(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+      <Field className="my-3">
+        <FieldLabel htmlFor="qos">QoS</FieldLabel>
+        <Select name="qos" value={qos?.toString() ?? '0'} onValueChange={(value) => setQos(value)}>
+          <SelectTrigger id="qos" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="0">0 - At most once</SelectItem>
+            <SelectItem value="1">1 - At least once</SelectItem>
+            <SelectItem value="2">2 - Exactly once</SelectItem>
+          </SelectContent>
+        </Select>
+      </Field>
     </>
   )
 }

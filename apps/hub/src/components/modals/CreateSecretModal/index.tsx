@@ -1,10 +1,11 @@
 'use client'
 
 import { FC, useCallback, useState } from 'react'
-import Modal from '@gruent/libs/frontend/components/organisms/Modal'
+import Modal from '@gruent/libs/frontend/components/Modal'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { closeModal } from '@gruent/libs/frontend/hooks/useModal'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 import { handleAddSecret } from '@gruent/hub/actions/secrets'
 
 type Props = {
@@ -40,6 +41,7 @@ const CreateSecretModal: FC<Props> = ({ spaceId }) => {
   return (
     <Modal
       id="addSecret"
+      title="Add a secret"
       onAccept={handleSubmit}
       onClose={handleClose}
       acceptText="Create"
@@ -50,18 +52,28 @@ const CreateSecretModal: FC<Props> = ({ spaceId }) => {
         <small>Add a secret to your space to use within thing configurations.</small>
       </p>
       <form onSubmit={handleSubmit}>
-        <FormFieldText
-          name="name"
-          label="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <FormFieldText
-          name="value"
-          label="Value"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-        />
+        <Field className="my-3">
+          <FieldLabel htmlFor="name">Name</FieldLabel>
+          <Input
+            id="name"
+            name="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoComplete="off"
+            spellCheck={false}
+          />
+        </Field>
+        <Field className="my-3">
+          <FieldLabel htmlFor="value">Value</FieldLabel>
+          <Input
+            id="value"
+            name="value"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            autoComplete="off"
+            spellCheck={false}
+          />
+        </Field>
       </form>
     </Modal>
   )

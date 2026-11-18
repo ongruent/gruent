@@ -1,4 +1,4 @@
-import ToastNotificationContainer from '@gruent/libs/frontend/components/templates/ToastNotificationContainer'
+import { Toaster } from '@gruent/libs/frontend/components/core/sonner'
 import './styles.css'
 import SettingsLoader from '@gruent/hub/components/templates/SettingsLoader'
 import Providers from '@gruent/hub/contexts/Providers'
@@ -19,7 +19,11 @@ const RootLayout = async ({ children }: { children: React.ReactNode }) => {
       <body>
         <div className="flex flex-col min-h-screen">
           <Providers accessToken={accessToken ?? null}>
-            <ToastNotificationContainer />
+            <Toaster
+              position="bottom-right"
+              closeButton
+              toastOptions={{ classNames: { toast: 'toastNotification' } }}
+            />
             <SettingsLoader />
             {children}
           </Providers>

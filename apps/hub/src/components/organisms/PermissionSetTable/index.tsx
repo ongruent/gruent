@@ -14,7 +14,6 @@ import OrgPermissionSetContextMenu from './OrgPermissionSetContextMenu'
 import { useRouter } from 'next/navigation'
 import SpacePermissionSetContextMenu from './SpacePermissionSetContextMenu'
 import { InfoIcon } from 'lucide-react'
-// import IndeterminateCheckbox from "../../atoms/IndeterminateCheckbox"
 
 type Props = {
   permissionSets: PermissionSet[]
@@ -44,13 +43,11 @@ const PermissionSetsTable: FC<Props> = ({
     // {
     //   id: 'select',
     //   cell: ({ row }) => (
-    //     <IndeterminateCheckbox
-    //       {...{
-    //         checked: row.getIsSelected(),
-    //         disabled: !row.getCanSelect(),
-    //         indeterminate: row.getIsSomeSelected(),
-    //         onChange: row.getToggleSelectedHandler(),
-    //       }}
+    //     <Checkbox
+    //       aria-label="Select row"
+    //       checked={row.getIsSelected()}
+    //       disabled={!row.getCanSelect()}
+    //       onCheckedChange={(checked) => row.toggleSelected(checked === true)}
     //     />
     //   ),
     // },

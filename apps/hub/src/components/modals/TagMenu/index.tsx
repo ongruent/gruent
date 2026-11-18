@@ -6,6 +6,9 @@ import { Thing, Model, Channel, Tag, AppliedTag } from '@prisma/client'
 import { handleApplyTag, handleCreateTag, handleRemoveTag } from '@gruent/hub/actions/tags'
 import { LoaderCircleIcon, PlusIcon, XIcon } from 'lucide-react'
 import { useClickOutside } from '@react-hooks-library/core'
+import { Badge } from '@gruent/libs/frontend/components/core/badge'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 
 type Props = {
   spaceId: string
@@ -157,57 +160,67 @@ const TagMenu: FC<Props> = ({ spaceId, onClose, onSubmit, subject, setSubject, t
       {subject && (
         <div
           ref={menuRef}
-          className="absolute w-[300px] top-0 left-0 w-fit p-3 border border-gray-300 dark:border-gray-700 bg-gray-200 dark:bg-gray-900 shadow-md rounded-md z-10"
+          className="absolute w-[300px] top-0 left-0 w-fit p-3 border bg-popover text-popover-foreground shadow-md rounded-md z-10"
         >
-          <div className="absolute top-0 right-1">
-            <XIcon size=".875em" className="cursor-pointer" onClick={() => setSubject(undefined)} />
-          </div>
-          <div className="flex flex-wrap gap-2 items-center">
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            aria-label="Close tag menu"
+            className="absolute top-0 right-0"
+            onClick={() => setSubject(undefined)}
+          >
+            <XIcon />
+          </Button>
+          <div className="flex flex-wrap gap-2 items-center pr-5">
             {usedTags.map((tag) => (
-              <div
-                key={tag.id}
-                className="flex items-center gap-[2px] pl-2 pr-1 py-1 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm rounded-full"
-              >
+              <Badge key={tag.id} variant="secondary" className="gap-0.5 pr-0.5">
                 {tag.name}
-                <button
-                  type="button"
-                  className="w-4 h-4 flex items-center justify-center transition hover:bg-gray-400 dark:hover:bg-gray-600 rounded-full text-xs hover:bg-gray-500 dark:hover:bg-gray-500"
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label={`Remove tag ${tag.name}`}
+                  className="size-4 rounded-full"
                   onClick={() => handleClickRemoveTag(tag.id)}
                 >
-                  <XIcon size=".875em" />
-                </button>
-              </div>
+                  <XIcon className="size-3" />
+                </Button>
+              </Badge>
             ))}
-            <input
+            <Input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 text-sm min-w-[100px] bg-transparent border-none focus:outline-hidden"
+              className="h-8 flex-1 min-w-[100px] text-sm"
               placeholder="Add tags..."
+              aria-label="Search tags"
             />
           </div>
-          <div className="flex flex-col gap-2 mt-2">
+          <div className="flex flex-col gap-1 mt-2">
             {availableTags.map((tag) => (
-              <div
+              <Button
                 key={tag.id}
-                className="px-2 py-1 cursor-pointer text-sm text-gray-800 dark:text-gray-200 transition rounded-sm block border border-transparent hover:bg-green-100 dark:hover:bg-green-800 hover:border-green-200 dark:hover:border-green-700 hover:text-green-700 dark:hover:text-green-300"
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start font-normal"
                 onClick={() => handleClickAvailableTag(spaceId, tag.id)}
               >
                 {tag.name}
-              </div>
+              </Button>
             ))}
             {shouldShowCreateTag && isCreateTagLoading && (
-              <div className="px-2 py-1 cursor-pointer text-sm text-gray-800 dark:text-gray-200 transition rounded-sm block">
-                <LoaderCircleIcon size=".875em" className="animate-spin" />
-              </div>
+              <Button variant="ghost" size="sm" className="w-full justify-start" disabled>
+                <LoaderCircleIcon className="animate-spin" />
+              </Button>
             )}
             {shouldShowCreateTag && !isCreateTagLoading && (
-              <div
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start font-normal"
                 onClick={() => handleNewTag()}
-                className="px-2 py-1 cursor-pointer text-sm text-gray-800 dark:text-gray-200 transition rounded-sm block border border-transparent hover:bg-green-100 dark:hover:bg-green-800 hover:border-green-200 dark:hover:border-green-700 hover:text-green-700 dark:hover:text-green-300"
               >
-                Create {search} <PlusIcon size=".875em" />
-              </div>
+                Create {search} <PlusIcon />
+              </Button>
             )}
           </div>
         </div>

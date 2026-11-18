@@ -1,5 +1,4 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
 import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import {
   StringCompareConditionalNodeConfig,
@@ -18,11 +17,19 @@ import {
   useState,
 } from 'react'
 import { ModelAttributes } from '@gruent/libs/engine/dependencies/models'
-import Modal from '@gruent/libs/frontend/components/organisms/Modal'
+import Modal from '@gruent/libs/frontend/components/Modal'
 import { PlusIcon, XIcon } from 'lucide-react'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 
 type Props = {
   models: Model[]
@@ -90,7 +97,7 @@ const StringCompareConditionalOptions: FC<Props> = ({ models, orgId, spaceId }) 
   if (!models || models.length < 1)
     return (
       <p className="mb-2">
-        <Button variant="underline" onClick={() => openModal('createModel')}>
+        <Button variant="link" onClick={() => openModal('createModel')}>
           Add at least one model
         </Button>{' '}
         to your space before using this node.
@@ -106,20 +113,36 @@ const StringCompareConditionalOptions: FC<Props> = ({ models, orgId, spaceId }) 
         spaceId={spaceId}
         setComparisons={setComparisons}
       />
-      <div className="flex flex-row gap-2">
-        <FormFieldSelect
-          name="model"
-          label="Model"
-          className="grow"
-          options={modelOptions}
-          value={model ? model.id : '__GRUENT_IGNORE__'}
-          onChange={(e) => setModel(models.find((m) => m.id === e.target.value))}
-        />
-        <Button className="my-3" onClick={() => openModal('createModel')}>
-          <PlusIcon size="1em" />
+      <div className="flex flex-row items-end gap-2">
+        <Field className="my-3 grow">
+          <FieldLabel htmlFor="model">Model</FieldLabel>
+          <Select
+            name="model"
+            value={model ? model.id : ''}
+            onValueChange={(value) => setModel(models.find((m) => m.id === value))}
+          >
+            <SelectTrigger id="model" className="w-full">
+              <SelectValue placeholder="Select an option" />
+            </SelectTrigger>
+            <SelectContent>
+              {modelOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Button
+          size="icon"
+          aria-label="Create model"
+          className="my-3"
+          onClick={() => openModal('createModel')}
+        >
+          <PlusIcon />
         </Button>
       </div>
-      <Button text="Edit conditions" onClick={() => openModal('stringCompare')} />
+      <Button onClick={() => openModal('stringCompare')}>Edit conditions</Button>
     </>
   )
 }
@@ -210,11 +233,8 @@ const StringCompareNodeModal: FC<StringCompareModalProps> = ({
     setComparisons(updatedComparisons)
   }
 
-  const handleComparisonAttributeChange = (
-    e: ChangeEvent<HTMLSelectElement>,
-    comparisonIndex: number,
-  ) => {
-    const attributeId = e.target.value
+  const handleComparisonAttributeChange = (selectedValue: string, comparisonIndex: number) => {
+    const attributeId = selectedValue
 
     const updatedComparisons = [...comparisons]
     updatedComparisons[comparisonIndex] = {
@@ -225,11 +245,8 @@ const StringCompareNodeModal: FC<StringCompareModalProps> = ({
     setComparisons(updatedComparisons)
   }
 
-  const handleComparisonOperatorChange = (
-    e: ChangeEvent<HTMLSelectElement>,
-    comparisonIndex: number,
-  ) => {
-    const operator = e.target.value
+  const handleComparisonOperatorChange = (selectedValue: string, comparisonIndex: number) => {
+    const operator = selectedValue
 
     const updatedComparisons = [...comparisons]
 
@@ -257,14 +274,14 @@ const StringCompareNodeModal: FC<StringCompareModalProps> = ({
 
   if (!model) {
     return (
-      <Modal id="stringCompare" showAccept={false}>
+      <Modal id="stringCompare" title="String comparisons" showAccept={false}>
         Missing model. Make sure you set a model before trying to apply a threshold.
       </Modal>
     )
   }
 
   return (
-    <Modal id="stringCompare" showAccept={false}>
+    <Modal id="stringCompare" title="String comparisons" showAccept={false}>
       <div className="overflow-scroll">
         {availableAttributes.length <= 0 && (
           <p>
@@ -300,31 +317,60 @@ const StringCompareNodeModal: FC<StringCompareModalProps> = ({
                   />
                   <h2 className="text-xs mb-1 mt-2">Condition {index + 1}</h2>
                   <div className="border border-green-500 rounded-sm px-6 py-3">
-                    <FormFieldSelect
-                      name={`comparison${index}.attribute`}
-                      label="Attribute"
-                      options={availableAttributes}
-                      value={comparison.attributeId}
-                      onChange={(e) => handleComparisonAttributeChange(e, index)}
-                    />
-                    <FormFieldSelect
-                      name={`condition${index}.operator`}
-                      label="Operator"
-                      options={[
-                        { label: 'Equals', value: StringComparisonOperator.EqualTo },
-                        { label: 'Contains', value: StringComparisonOperator.Contains },
-                        { label: 'Starts with', value: StringComparisonOperator.StartsWith },
-                        { label: 'Ends with', value: StringComparisonOperator.EndsWith },
-                      ]}
-                      value={comparison.operator}
-                      onChange={(e) => handleComparisonOperatorChange(e, index)}
-                    />
-                    <FormFieldText
-                      name={`comparison${index}.value`}
-                      label="Value"
-                      value={comparison.value.toString()}
-                      onChange={(e) => handleComparisonValueChange(e, index)}
-                    />
+                    <Field className="my-3">
+                      <FieldLabel htmlFor={`comparison${index}.attribute`}>Attribute</FieldLabel>
+                      <Select
+                        name={`comparison${index}.attribute`}
+                        value={comparison.attributeId}
+                        onValueChange={(value) => handleComparisonAttributeChange(value, index)}
+                      >
+                        <SelectTrigger id={`comparison${index}.attribute`} className="w-full">
+                          <SelectValue placeholder="Select an option" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableAttributes.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                    <Field className="my-3">
+                      <FieldLabel htmlFor={`condition${index}.operator`}>Operator</FieldLabel>
+                      <Select
+                        name={`condition${index}.operator`}
+                        value={comparison.operator}
+                        onValueChange={(value) => handleComparisonOperatorChange(value, index)}
+                      >
+                        <SelectTrigger id={`condition${index}.operator`} className="w-full">
+                          <SelectValue placeholder="Select an option" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={StringComparisonOperator.EqualTo}>Equals</SelectItem>
+                          <SelectItem value={StringComparisonOperator.Contains}>
+                            Contains
+                          </SelectItem>
+                          <SelectItem value={StringComparisonOperator.StartsWith}>
+                            Starts with
+                          </SelectItem>
+                          <SelectItem value={StringComparisonOperator.EndsWith}>
+                            Ends with
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                    <Field className="my-3">
+                      <FieldLabel htmlFor={`comparison${index}.value`}>Value</FieldLabel>
+                      <Input
+                        id={`comparison${index}.value`}
+                        name={`comparison${index}.value`}
+                        value={comparison.value.toString()}
+                        onChange={(e) => handleComparisonValueChange(e, index)}
+                        autoComplete="off"
+                        spellCheck={false}
+                      />
+                    </Field>
                   </div>
                 </div>
               )
@@ -333,11 +379,12 @@ const StringCompareNodeModal: FC<StringCompareModalProps> = ({
         )}
       </div>
       <Button
-        text="Add condition"
         onClick={handleAddComparison}
         className="mb-2 w-full"
         disabled={availableAttributes.length === 0}
-      />
+      >
+        Add condition
+      </Button>
     </Modal>
   )
 }

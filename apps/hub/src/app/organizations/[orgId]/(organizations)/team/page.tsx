@@ -7,11 +7,11 @@ import PermissionSetTable from '@gruent/hub/components/organisms/PermissionSetTa
 import ApiKeysTable from '@gruent/hub/components/organisms/ApiKeyTable'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
 import SearchBar from '@gruent/hub/components/molecules/SearchBar'
-import { CirclePlusIcon, SquareTerminalIcon } from 'lucide-react'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
-import Container from '@gruent/libs/frontend/components/templates/Container'
+import { CirclePlusIcon, CircleXIcon, SquareTerminalIcon } from 'lucide-react'
+import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
+import Container from '@gruent/libs/frontend/components/Container'
 import ListTablePlaceholder from '@gruent/hub/components/molecules/ListTablePlaceholder'
-import Callout from '@gruent/libs/frontend/components/molecules/Callout'
+import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 export const metadata = {
   title: 'Team | GRUENT',
 }
@@ -43,12 +43,11 @@ const OrganizationTeamPage = async ({ params, searchParams }) => {
   if (listMembersErrors && listMembersErrors.length > 0) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not list the members for this organization"
-          description={`${listMembersErrors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not list the members for this organization</AlertTitle>
+          <AlertDescription>{`${listMembersErrors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -67,12 +66,11 @@ const OrganizationTeamPage = async ({ params, searchParams }) => {
   if (listPermissionSetsErrors && listPermissionSetsErrors.length > 0) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not list the permission sets for this space"
-          description={`${listPermissionSetsErrors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not list the permission sets for this space</AlertTitle>
+          <AlertDescription>{`${listPermissionSetsErrors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -91,12 +89,11 @@ const OrganizationTeamPage = async ({ params, searchParams }) => {
   if (listApiKeysErrors && listApiKeysErrors.length > 0) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not list the API keys for this space"
-          description={`${listApiKeysErrors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not list the API keys for this space</AlertTitle>
+          <AlertDescription>{`${listApiKeysErrors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -118,10 +115,10 @@ const OrganizationTeamPage = async ({ params, searchParams }) => {
               initialFilter={membersTableFilter}
               placeholder="Search members"
             />
-            <Button variant="transparent" className="text-sm" modalId="addMember">
-              <CirclePlusIcon size="1em" className="mr-1" />
+            <OpenModalButton variant="outline" modalId="addMember">
+              <CirclePlusIcon />
               <span>Add</span>
-            </Button>
+            </OpenModalButton>
           </div>
           <MembersTable
             orgId={orgId}
@@ -142,10 +139,10 @@ const OrganizationTeamPage = async ({ params, searchParams }) => {
             <>
               <div className="absolute top-8 right-10 mb-1 flex items-end gap-2">
                 <div className="grow" />
-                <Button variant="transparent" className="text-sm" modalId="addApiKey">
-                  <CirclePlusIcon size="1em" className="mr-1" />
+                <OpenModalButton variant="outline" modalId="addApiKey">
+                  <CirclePlusIcon />
                   <span>Create</span>
-                </Button>
+                </OpenModalButton>
               </div>
               <ApiKeysTable
                 orgId={orgId}
@@ -166,10 +163,10 @@ const OrganizationTeamPage = async ({ params, searchParams }) => {
               <p className="text-gray-600 dark:text-gray-400 text-center mb-2">
                 No API keys... yet!
               </p>
-              <Button variant="primary" className="text-sm" modalId="addApiKey">
-                <CirclePlusIcon size="1em" className="mr-1" />
+              <OpenModalButton modalId="addApiKey">
+                <CirclePlusIcon />
                 <span>Create your first API key</span>
-              </Button>
+              </OpenModalButton>
             </ListTablePlaceholder>
           )}
         </section>
@@ -181,10 +178,10 @@ const OrganizationTeamPage = async ({ params, searchParams }) => {
         >
           <div className="absolute top-8 right-10 mb-1 flex items-end gap-2">
             <div className="grow" />
-            <Button variant="transparent" className="text-sm" modalId="addPermissionSet">
-              <CirclePlusIcon size="1em" className="mr-1" />
+            <OpenModalButton variant="outline" modalId="addPermissionSet">
+              <CirclePlusIcon />
               <span>Create</span>
-            </Button>
+            </OpenModalButton>
           </div>
           <PermissionSetTable
             orgId={orgId}

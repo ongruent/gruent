@@ -1,11 +1,13 @@
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import { CircleXIcon } from 'lucide-react'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 import DeleteSpaceModal from '@gruent/hub/components/modals/DeleteSpaceModal'
 import SpaceSettingsForm from '@gruent/hub/components/organisms/SpaceSettingsForm'
 import gruentClient from '@gruent/hub/lib/gruent'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
-import Container from '@gruent/libs/frontend/components/templates/Container'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
-import Callout from '@gruent/libs/frontend/components/molecules/Callout'
+import Container from '@gruent/libs/frontend/components/Container'
+import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
+import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 export const metadata = {
   title: 'Space settings | GRUENT',
 }
@@ -21,12 +23,11 @@ const SpaceSettingsPage = async ({ params }) => {
   if (errors && errors.length > 0) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not get the space details"
-          description={`${errors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not get the space details</AlertTitle>
+          <AlertDescription>{`${errors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -34,12 +35,11 @@ const SpaceSettingsPage = async ({ params }) => {
   if (!space) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not get the space details"
-          description={`The space details could not be retrieved. Try logging out and logging back in.`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not get the space details</AlertTitle>
+          <AlertDescription>{`The space details could not be retrieved. Try logging out and logging back in.`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -60,7 +60,17 @@ const SpaceSettingsPage = async ({ params }) => {
         >
           <SpaceSettingsForm orgId={orgId} space={space} />
           <hr className="my-6" />
-          <FormFieldText label="Space Id" name="spaceId" value={space.id} disabled />
+          <Field className="my-3">
+            <FieldLabel htmlFor="spaceId">Space Id</FieldLabel>
+            <Input
+              id="spaceId"
+              name="spaceId"
+              value={space.id}
+              autoComplete="off"
+              spellCheck={false}
+              readOnly
+            />
+          </Field>
         </section>
       </Container>
       <Container className="mb-4">
@@ -72,12 +82,9 @@ const SpaceSettingsPage = async ({ params }) => {
           <p className="text-xs mb-2">
             These settings may have significant and irreversible changes to your space.
           </p>
-          <Button
-            id="deleteSpaceButton"
-            text="Delete space"
-            modalId="deleteSpace"
-            className="bg-red-500 border-red-500"
-          />
+          <OpenModalButton id="deleteSpaceButton" variant="destructive" modalId="deleteSpace">
+            Delete space
+          </OpenModalButton>
         </section>
       </Container>
     </>

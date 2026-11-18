@@ -2,13 +2,27 @@
 
 import updatePassword from '@gruent/hub/actions/updatePassword'
 import useSettingsStore, { Theme } from '@gruent/hub/stores/settingsStore'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Checkbox } from '@gruent/libs/frontend/components/core/checkbox'
+import {
+  Field,
+  FieldContent,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+  FieldTitle,
+} from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import { RadioGroup, RadioGroupItem } from '@gruent/libs/frontend/components/core/radio-group'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { FC, useState } from 'react'
-import Container from '@gruent/libs/frontend/components/templates/Container'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
+import Container from '@gruent/libs/frontend/components/Container'
 import { signout } from '@gruent/hub/actions/auth'
+
+const themeOptions = [
+  { value: Theme.light, label: 'Light' },
+  { value: Theme.dark, label: 'Dark (beta)' },
+]
 
 const UserPage: FC = () => {
   const theme = useSettingsStore((state) => state.theme)
@@ -65,30 +79,48 @@ const UserPage: FC = () => {
           >
             <h2>Theme</h2>
             <div className="flex">
-              <FormFieldSelect
-                name="theme"
-                variant="cards"
-                options={[
-                  { value: Theme.light, label: 'Light' },
-                  { value: Theme.dark, label: 'Dark (beta)' },
-                ]}
-                label="Choose a theme"
-                value={theme}
-                onChange={(e) => setTheme(e.target.value as Theme)}
-              />
+              <FieldSet className="my-3">
+                <FieldLegend variant="label">Choose a theme</FieldLegend>
+                <RadioGroup
+                  name="theme"
+                  value={theme}
+                  onValueChange={(value) => setTheme(value as Theme)}
+                  className="flex flex-wrap gap-2"
+                >
+                  {themeOptions.map((option) => (
+                    <FieldLabel
+                      key={option.value}
+                      htmlFor={`theme-${option.value}`}
+                      className="max-w-56"
+                    >
+                      <Field orientation="horizontal">
+                        <FieldContent>
+                          <FieldTitle>{option.label}</FieldTitle>
+                        </FieldContent>
+                        <RadioGroupItem value={option.value} id={`theme-${option.value}`} />
+                      </Field>
+                    </FieldLabel>
+                  ))}
+                </RadioGroup>
+              </FieldSet>
             </div>
             <h2 className="mt-4">Feedback</h2>
             <div className="flex">
-              <FormFieldSelect
-                name="showFeedbackCheckbox"
-                variant="cards"
-                options={[{ value: 'true', label: 'Show' }]}
-                optional
-                hideOptionalLabel
-                label="Show feedback button"
-                value={showFeedbackButton.toString()}
-                onChange={(e) => setShowFeedbackButton(e.target.value === 'true')}
-              />
+              <FieldSet className="my-3">
+                <FieldLegend variant="label">Show feedback button</FieldLegend>
+                <Field orientation="horizontal" className="w-fit">
+                  <Checkbox
+                    id="showFeedbackCheckbox"
+                    name="showFeedbackCheckbox"
+                    value="true"
+                    checked={showFeedbackButton}
+                    onCheckedChange={(checked) => setShowFeedbackButton(checked === true)}
+                  />
+                  <FieldLabel htmlFor="showFeedbackCheckbox" className="font-normal">
+                    Show
+                  </FieldLabel>
+                </Field>
+              </FieldSet>
             </div>
           </section>
         </section>
@@ -100,16 +132,21 @@ const UserPage: FC = () => {
         >
           <h2>Channel Editor</h2>
           <div className="flex">
-            <FormFieldSelect
-              name="showGridCheckbox"
-              variant="cards"
-              options={[{ value: 'true', label: 'Show' }]}
-              optional
-              hideOptionalLabel
-              label="Show grid"
-              value={showChannelEditorGrid.toString()}
-              onChange={(e) => setShowChannelEditorGrid(e.target.value === 'true')}
-            />
+            <FieldSet className="my-3">
+              <FieldLegend variant="label">Show grid</FieldLegend>
+              <Field orientation="horizontal" className="w-fit">
+                <Checkbox
+                  id="showGridCheckbox"
+                  name="showGridCheckbox"
+                  value="true"
+                  checked={showChannelEditorGrid}
+                  onCheckedChange={(checked) => setShowChannelEditorGrid(checked === true)}
+                />
+                <FieldLabel htmlFor="showGridCheckbox" className="font-normal">
+                  Show
+                </FieldLabel>
+              </Field>
+            </FieldSet>
           </div>
         </section>
       </Container>
@@ -120,22 +157,24 @@ const UserPage: FC = () => {
         >
           <h2>Update Password</h2>
           <form onSubmit={handlePasswordFormSubmit} className="w-96">
-            <FormFieldText
-              name="newPassword"
-              label="New Password"
-              inputType="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-            <Button
-              className="transition"
-              type="submit"
-              text="Change password"
-              disabled={!newPassword}
-            />
+            <Field className="my-3">
+              <FieldLabel htmlFor="newPassword">New Password</FieldLabel>
+              <Input
+                id="newPassword"
+                name="newPassword"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </Field>
+            <Button type="submit" disabled={!newPassword}>
+              Change password
+            </Button>
           </form>
           <h2 className="mt-4">Sign out</h2>
-          <Button text="Sign out" onClick={() => handleSignout()} />
+          <Button onClick={() => handleSignout()}>Sign out</Button>
         </section>
       </Container>
     </>

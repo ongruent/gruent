@@ -3,7 +3,8 @@ import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import { HttpResponseActionNodeConfig } from '@gruent/libs/engine/nodes/v1/src/action/httpResponse'
 import { Thing } from '@prisma/client'
 import { FC, useEffect, useState } from 'react'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 
 type Props = {
   things: Thing[]
@@ -51,14 +52,18 @@ const HttpResponseActionOptions: FC<Props> = ({ things }) => {
 
   return (
     <>
-      <FormFieldText
-        name="responseCode"
-        className="w-full"
-        label="Response Code"
-        inputType="number"
-        value={selectedResponseCode?.toString()}
-        onChange={(e) => setSelectedResponseCode(Number(e.target.value))}
-      />
+      <Field className="my-3 w-full">
+        <FieldLabel htmlFor="responseCode">Response Code</FieldLabel>
+        <Input
+          id="responseCode"
+          name="responseCode"
+          type="number"
+          value={selectedResponseCode?.toString()}
+          onChange={(e) => setSelectedResponseCode(Number(e.target.value))}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
     </>
   )
 }

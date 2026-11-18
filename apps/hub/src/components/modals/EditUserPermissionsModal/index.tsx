@@ -1,11 +1,18 @@
 'use client'
 
 import { FC, useCallback, useRef } from 'react'
-import Modal from '@gruent/libs/frontend/components/organisms/Modal'
+import Modal from '@gruent/libs/frontend/components/Modal'
 import { useMutation } from '@tanstack/react-query'
 import { closeModal } from '@gruent/libs/frontend/hooks/useModal'
 import { useRouter } from 'next/navigation'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 import { PermissionSet } from '@prisma/client'
 
 type Props = {
@@ -77,6 +84,7 @@ const EditMemberPermissionsModal: FC<Props> = ({
   return (
     <Modal
       id="editUserPermissionSet"
+      title="Edit member's permission set"
       onAccept={handleSubmit}
       onClose={handleClose}
       acceptText="Update"
@@ -87,14 +95,21 @@ const EditMemberPermissionsModal: FC<Props> = ({
       </p>
       <div className="relative">
         <form ref={formRef} onSubmit={(e) => e.preventDefault()} className="mb-4">
-          <FormFieldSelect
-            name="permissionSetId"
-            label="Permission Set"
-            defaultValue={initialPermissionSetId}
-            options={permissionSets.map((ps) => {
-              return { value: ps.id, label: ps.name }
-            })}
-          />
+          <Field className="my-3">
+            <FieldLabel htmlFor="permissionSetId">Permission Set</FieldLabel>
+            <Select name="permissionSetId" defaultValue={initialPermissionSetId}>
+              <SelectTrigger id="permissionSetId" className="w-full">
+                <SelectValue placeholder="Select an option" />
+              </SelectTrigger>
+              <SelectContent>
+                {permissionSets.map((ps) => (
+                  <SelectItem key={ps.id} value={ps.id}>
+                    {ps.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
         </form>
       </div>
     </Modal>

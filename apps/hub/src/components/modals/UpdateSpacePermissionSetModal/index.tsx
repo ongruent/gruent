@@ -1,8 +1,16 @@
 'use client'
 
 import { FC, useCallback, useRef } from 'react'
-import Modal from '@gruent/libs/frontend/components/organisms/Modal'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import Modal from '@gruent/libs/frontend/components/Modal'
+import { Checkbox } from '@gruent/libs/frontend/components/core/checkbox'
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 import { useMutation } from '@tanstack/react-query'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { closeModal } from '@gruent/libs/frontend/hooks/useModal'
@@ -10,7 +18,6 @@ import gruentClient from '@gruent/hub/lib/gruent'
 import { useRouter } from 'next/navigation'
 import { PermissionSet } from '@prisma/client'
 import { defaultSpacePermissions } from '@gruent/libs/http/permissions'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
 import useAuth from '@gruent/hub/hooks/useAuth'
 
 type Props = {
@@ -138,19 +145,24 @@ const UpdateSpacePermissionSetModal: FC<Props> = ({
         <div key={namespace}>
           <h3 className="mb-1 font-semibold">{namespace}</h3>
           <div className="px-6 py-4 mb-4 border border-gray-200 rounded-xs">
-            <FormFieldSelect
-              name={namespace}
-              label="Select permissions"
-              variant="cards"
-              multiple
-              value={initialPermissionsList
-                .filter((permission) => permission.startsWith(namespace))
-                .map((permission) => permission.split(':')[1])}
-              options={Object.keys(initialPermissions[namespace]).map((action) => ({
-                value: action,
-                label: action,
-              }))}
-            />
+            <FieldSet className="my-3">
+              <FieldLegend variant="label">Select permissions</FieldLegend>
+              <FieldGroup data-slot="checkbox-group" className="flex-row flex-wrap gap-3">
+                {Object.keys(initialPermissions[namespace]).map((action) => (
+                  <Field key={action} orientation="horizontal" className="w-fit">
+                    <Checkbox
+                      id={`${namespace}-${action}`}
+                      name={namespace}
+                      value={action}
+                      defaultChecked={initialPermissions[namespace][action] === true}
+                    />
+                    <FieldLabel htmlFor={`${namespace}-${action}`} className="font-normal">
+                      {action}
+                    </FieldLabel>
+                  </Field>
+                ))}
+              </FieldGroup>
+            </FieldSet>
           </div>
         </div>
       )
@@ -162,6 +174,7 @@ const UpdateSpacePermissionSetModal: FC<Props> = ({
   return (
     <Modal
       id="updateSpacePermissionSet"
+      title="Update space permission set"
       onAccept={handleSubmit}
       onClose={handleClose}
       acceptText="Update"
@@ -172,15 +185,17 @@ const UpdateSpacePermissionSetModal: FC<Props> = ({
       </p>
       <div className="relative">
         <form ref={formRef} onSubmit={(e) => e.preventDefault()} className="mb-4">
-          <FormFieldText
-            name="name"
-            label="Name"
-            placeholder="Name of the permission set"
-            defaultValue={initialPermissionSet?.name ?? ''}
-            inputType="text"
-            className="mt-4 mb-2"
-            autocomplete="off"
-          />
+          <Field className="mt-4 mb-2">
+            <FieldLabel htmlFor="name">Name</FieldLabel>
+            <Input
+              id="name"
+              name="name"
+              placeholder="Name of the permission set"
+              defaultValue={initialPermissionSet?.name ?? ''}
+              autoComplete="off"
+              spellCheck={false}
+            />
+          </Field>
           {renderInitialPermissions()}
         </form>
       </div>

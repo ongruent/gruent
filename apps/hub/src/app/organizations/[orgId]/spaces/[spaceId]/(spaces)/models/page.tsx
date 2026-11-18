@@ -2,11 +2,11 @@ import gruentClient from '@gruent/hub/lib/gruent'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
 import CreateModelModal from '@gruent/hub/components/modals/CreateModelModal'
 import ModelsTable from '@gruent/hub/components/organisms/ModelsTable'
-import Container from '@gruent/libs/frontend/components/templates/Container'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
-import { CirclePlusIcon, ShapesIcon } from 'lucide-react'
+import Container from '@gruent/libs/frontend/components/Container'
+import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
+import { CirclePlusIcon, CircleXIcon, ShapesIcon } from 'lucide-react'
 import ListTablePlaceholder from '@gruent/hub/components/molecules/ListTablePlaceholder'
-import Callout from '@gruent/libs/frontend/components/molecules/Callout'
+import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 import { Tag } from '@prisma/client'
 
 export const metadata = {
@@ -37,12 +37,11 @@ const ModelsPage = async ({ params, searchParams }) => {
   if (errors && errors.length > 0) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not list the models for this space"
-          description={`${errors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not list the models for this space</AlertTitle>
+          <AlertDescription>{`${errors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -50,12 +49,11 @@ const ModelsPage = async ({ params, searchParams }) => {
   if (!models) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not list the models for this space"
-          description={`The models could not be listed. Try logging out and logging back in.`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not list the models for this space</AlertTitle>
+          <AlertDescription>{`The models could not be listed. Try logging out and logging back in.`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -66,12 +64,11 @@ const ModelsPage = async ({ params, searchParams }) => {
   if (tagListErrors && tagListErrors.length > 0) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not list the tags for this space"
-          description={`${tagListErrors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not list the tags for this space</AlertTitle>
+          <AlertDescription>{`${tagListErrors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -79,12 +76,11 @@ const ModelsPage = async ({ params, searchParams }) => {
   if (!tagListResponse) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not list the tags for this space"
-          description={`The tags could not be listed. Try logging out and logging back in.`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not list the tags for this space</AlertTitle>
+          <AlertDescription>{`The tags could not be listed. Try logging out and logging back in.`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -119,10 +115,10 @@ const ModelsPage = async ({ params, searchParams }) => {
             <ListTablePlaceholder title="Models" description="Define the structure of your data.">
               <ShapesIcon size="3em" className="text-gray-600 mb-2" />
               <p className="text-gray-600 text-center mb-2">No models... yet!</p>
-              <Button variant="primary" className="text-sm" modalId="createModel">
-                <CirclePlusIcon size="1em" className="mr-1" />
+              <OpenModalButton modalId="createModel">
+                <CirclePlusIcon />
                 <span>Create your first model</span>
-              </Button>
+              </OpenModalButton>
             </ListTablePlaceholder>
           )}
         </section>

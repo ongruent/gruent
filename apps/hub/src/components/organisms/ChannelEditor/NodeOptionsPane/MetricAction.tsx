@@ -1,12 +1,19 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
 import { ChannelNode, MetricActionNodeConfig } from '@gruent/libs/legacy/engine/nodes/v1'
 import { Model, Thing } from '@prisma/client'
 import { FC, useEffect, useMemo, useState } from 'react'
 import { PlusIcon } from 'lucide-react'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import { ModelAttributes } from '@gruent/libs/engine/dependencies/models'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 
 type Props = {
   models: Model[]
@@ -152,7 +159,7 @@ const MetricAction: FC<Props> = ({ models, things }) => {
   if (!models || models.length < 1)
     return (
       <p className="mb-2">
-        <Button variant="underline" onClick={() => openModal('createModel')}>
+        <Button variant="link" onClick={() => openModal('createModel')}>
           Add at least one model
         </Button>{' '}
         to your space before using this node.
@@ -162,7 +169,7 @@ const MetricAction: FC<Props> = ({ models, things }) => {
   if (!clickhouseOptions || clickhouseOptions.length <= 0)
     return (
       <p className="mb-2">
-        <Button variant="underline" onClick={() => openModal('createThing')}>
+        <Button variant="link" onClick={() => openModal('createThing')}>
           Add a Clickhouse database
         </Button>{' '}
         to your space before using this node.
@@ -171,27 +178,55 @@ const MetricAction: FC<Props> = ({ models, things }) => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-row gap-2">
-        <FormFieldSelect
-          name="model"
-          label="Model"
-          className="grow"
-          options={modelOptions}
-          value={selectedModel ? selectedModel.id : '__GRUENT_IGNORE__'}
-          onChange={(e) => setSelectedModel(models.find((m) => m.id === e.target.value))}
-        />
-        <Button text="Create model" className="my-3" onClick={() => openModal('createModel')}>
-          <PlusIcon size="1em" />
+      <div className="flex flex-row items-end gap-2">
+        <Field className="my-3 grow">
+          <FieldLabel htmlFor="model">Model</FieldLabel>
+          <Select
+            name="model"
+            value={selectedModel ? selectedModel.id : ''}
+            onValueChange={(value) => setSelectedModel(models.find((m) => m.id === value))}
+          >
+            <SelectTrigger id="model" className="w-full">
+              <SelectValue placeholder="Select an option" />
+            </SelectTrigger>
+            <SelectContent>
+              {modelOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Button
+          size="icon"
+          aria-label="Create model"
+          className="my-3"
+          onClick={() => openModal('createModel')}
+        >
+          <PlusIcon />
         </Button>
       </div>
       {selectedModel && numericAttributeOptions.length > 0 && (
-        <FormFieldSelect
-          name="attribute"
-          label="Value"
-          options={numericAttributeOptions}
-          value={selectedAttribute || '__GRUENT_IGNORE__'}
-          onChange={(e) => setSelectedAttribute(e.target.value)}
-        />
+        <Field className="my-3">
+          <FieldLabel htmlFor="attribute">Value</FieldLabel>
+          <Select
+            name="attribute"
+            value={selectedAttribute || ''}
+            onValueChange={(value) => setSelectedAttribute(value)}
+          >
+            <SelectTrigger id="attribute" className="w-full">
+              <SelectValue placeholder="Select an option" />
+            </SelectTrigger>
+            <SelectContent>
+              {numericAttributeOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
       )}
       {selectedModel && numericAttributeOptions.length === 0 && (
         <p className="text-sm text-red-500">
@@ -203,13 +238,25 @@ const MetricAction: FC<Props> = ({ models, things }) => {
         <p className="text-sm text-red-500">Please select a value attribute for the metric.</p>
       )}
       {selectedModel && metadataOptions.length > 0 && (
-        <FormFieldSelect
-          name="metadata"
-          label="Metadata"
-          options={metadataOptions}
-          value={selectedMetadata || '__GRUENT_IGNORE__'}
-          onChange={(e) => setSelectedMetadata(e.target.value)}
-        />
+        <Field className="my-3">
+          <FieldLabel htmlFor="metadata">Metadata</FieldLabel>
+          <Select
+            name="metadata"
+            value={selectedMetadata || ''}
+            onValueChange={(value) => setSelectedMetadata(value)}
+          >
+            <SelectTrigger id="metadata" className="w-full">
+              <SelectValue placeholder="Select an option" />
+            </SelectTrigger>
+            <SelectContent>
+              {metadataOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
       )}
       {selectedModel && metadataOptions.length === 0 && (
         <p className="text-sm text-red-500">
@@ -220,20 +267,32 @@ const MetricAction: FC<Props> = ({ models, things }) => {
       {selectedModel && !selectedMetadata && metadataOptions.length > 0 && (
         <p className="text-sm text-red-500">Please select a metadata attribute.</p>
       )}
-      <FormFieldSelect
-        name="clickhouseDatabase"
-        label="Clickhouse Database"
-        options={clickhouseOptions}
-        value={selectedClickhouse ? selectedClickhouse.id : '__GRUENT_IGNORE__'}
-        onChange={(e) =>
-          setSelectedClickhouse(
-            things.find((s) => {
-              if (s.id === e.target.value) return true
-              return false
-            }),
-          )
-        }
-      />
+      <Field className="my-3">
+        <FieldLabel htmlFor="clickhouseDatabase">Clickhouse Database</FieldLabel>
+        <Select
+          name="clickhouseDatabase"
+          value={selectedClickhouse ? selectedClickhouse.id : ''}
+          onValueChange={(value) =>
+            setSelectedClickhouse(
+              things.find((s) => {
+                if (s.id === value) return true
+                return false
+              }),
+            )
+          }
+        >
+          <SelectTrigger id="clickhouseDatabase" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            {clickhouseOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
       {!selectedClickhouse && (
         <p className="text-sm text-red-500">Please select a Clickhouse database.</p>
       )}

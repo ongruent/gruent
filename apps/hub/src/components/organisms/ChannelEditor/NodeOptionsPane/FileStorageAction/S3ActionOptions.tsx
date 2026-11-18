@@ -1,11 +1,12 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
 import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import { S3ActionSubnodeConfig } from '@gruent/libs/engine/nodes/v1/src/action/fileStorage/lib/awsS3'
 import { Thing } from '@prisma/client'
 import { FC, useEffect, useMemo, useState } from 'react'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 
 type Props = {
   things: Thing[]
@@ -74,7 +75,7 @@ const S3ActionOptions: FC<Props> = ({ things, selectedFileStorageThing }) => {
   if (!s3Buckets || s3Buckets.length <= 0)
     return (
       <p>
-        <Button variant="underline" onClick={() => openModal('createThing')}>
+        <Button variant="link" onClick={() => openModal('createThing')}>
           Add an S3 Bucket
         </Button>{' '}
         to your space before using this node.
@@ -83,12 +84,17 @@ const S3ActionOptions: FC<Props> = ({ things, selectedFileStorageThing }) => {
 
   return (
     <>
-      <FormFieldText
-        name="s3Key"
-        label="S3 Key"
-        value={s3Key || ''}
-        onChange={(e) => setS3Key(e.target.value)}
-      />
+      <Field className="my-3">
+        <FieldLabel htmlFor="s3Key">S3 Key</FieldLabel>
+        <Input
+          id="s3Key"
+          name="s3Key"
+          value={s3Key || ''}
+          onChange={(e) => setS3Key(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
     </>
   )
 }

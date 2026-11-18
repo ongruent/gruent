@@ -1,9 +1,16 @@
 'use client'
 
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 import useAuth from '@gruent/hub/hooks/useAuth'
 import gruentClient from '@gruent/hub/lib/gruent'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import { Thing } from '@prisma/client'
 import { useQuery } from '@tanstack/react-query'
@@ -75,7 +82,7 @@ const NatsClient: FC<Props> = ({ setFormData, spaceId, initial }) => {
     return (
       <p>
         No NATS servers were found in this space. You'll have to&nbsp;
-        <Button variant="underline" onClick={() => openModal('createThing')}>
+        <Button variant="link" onClick={() => openModal('createThing')}>
           create a NATS server
         </Button>
         &nbsp;in this space before creating a NATS client.
@@ -85,14 +92,21 @@ const NatsClient: FC<Props> = ({ setFormData, spaceId, initial }) => {
 
   return (
     <>
-      <FormFieldSelect
-        name="server"
-        label="Server"
-        className="mt-4 mb-2"
-        options={natsServerOptions}
-        value={server}
-        onChange={(e) => setServer(e.target.value)}
-      />
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="server">Server</FieldLabel>
+        <Select name="server" value={server ?? ''} onValueChange={(value) => setServer(value)}>
+          <SelectTrigger id="server" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            {natsServerOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
     </>
   )
 }

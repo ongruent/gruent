@@ -1,7 +1,8 @@
+import { CircleXIcon } from 'lucide-react'
 import ModelImportForm from '@gruent/hub/components/organisms/ModelImportForm'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
 import gruentClient from '@gruent/hub/lib/gruent'
-import Callout from '@gruent/libs/frontend/components/molecules/Callout'
+import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 export const metadata = {
   title: 'Import a model | GRUENT',
 }
@@ -21,24 +22,22 @@ const ImportModelPage = async ({ params }) => {
   if (errors && errors.length > 0)
     return (
       <div className="mt-4 px-8 py-2 max-w-full mb-10">
-        <Callout
-          className="max-w-xl"
-          title="Could not get the secrets in this space"
-          description={`${errors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not get the secrets in this space</AlertTitle>
+          <AlertDescription>{`${errors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
 
   if (!secrets)
     return (
       <div className="mt-4 px-8 py-2 max-w-full mb-10">
-        <Callout
-          className="max-w-xl"
-          title="Could not get the secrets in this space"
-          description={`The secrets could not be listed. Try logging out and logging back in.`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not get the secrets in this space</AlertTitle>
+          <AlertDescription>{`The secrets could not be listed. Try logging out and logging back in.`}</AlertDescription>
+        </Alert>
       </div>
     )
 

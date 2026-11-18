@@ -1,14 +1,15 @@
 'use client'
 
 import { handleUpdatePolicy } from '@gruent/hub/actions/policies'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Checkbox } from '@gruent/libs/frontend/components/core/checkbox'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { Policy } from '@gruent/libs/gruent-js/src/policies'
 import { XIcon } from 'lucide-react'
 import { FC, useCallback, useMemo, useState } from 'react'
 import gruentClient from '@gruent/hub/lib/gruent'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
 import useAuth from '@gruent/hub/hooks/useAuth'
 
 type Props = {
@@ -189,18 +190,23 @@ const PolicySection: FC<Props> = ({ policy, revoke, spaceId, certificateId, clas
   return (
     <section className={className}>
       <h2>Certificate</h2>
-      <Button text="Download bundle" onClick={handleDownloadBundleClick} />
+      <Button onClick={handleDownloadBundleClick}>Download bundle</Button>
       <h2 className="mt-4">Policy</h2>
       <h3 className="mt-2 text-sm">Allowed Subscription Topics</h3>
       {allowedSubscriptionTopics.map((topic, i) => {
         return (
           <div key={`topic${i + 1}`} className="relative">
-            <FormFieldText
-              name={`topic${i + 1}`}
-              label={`Topic ${i + 1}`}
-              value={topic}
-              onChange={(e) => handleEditTopic('subscribe', i, e.target.value)}
-            />
+            <Field className="my-3">
+              <FieldLabel htmlFor={`topic${i + 1}`}>{`Topic ${i + 1}`}</FieldLabel>
+              <Input
+                id={`topic${i + 1}`}
+                name={`topic${i + 1}`}
+                value={topic}
+                onChange={(e) => handleEditTopic('subscribe', i, e.target.value)}
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </Field>
             <XIcon
               size="1em"
               className="absolute -right-5 top-1/2 -translate-y-1/2 cursor-pointer"
@@ -210,19 +216,25 @@ const PolicySection: FC<Props> = ({ policy, revoke, spaceId, certificateId, clas
         )
       })}
       <Button
-        text="Add subscription topic"
         onClick={() => setAllowedSubscriptionTopics((current) => [...current, `${spaceId}/`])}
-      />
+      >
+        Add subscription topic
+      </Button>
       <h3 className="mt-2 text-sm">Allowed Publish Topics</h3>
       {allowedPublishTopics.map((topic, i) => {
         return (
           <div key={`topic${i + 1}`} className="relative">
-            <FormFieldText
-              name={`topic${i + 1}`}
-              label={`Topic ${i + 1}`}
-              value={topic}
-              onChange={(e) => handleEditTopic('publish', i, e.target.value)}
-            />
+            <Field className="my-3">
+              <FieldLabel htmlFor={`topic${i + 1}`}>{`Topic ${i + 1}`}</FieldLabel>
+              <Input
+                id={`topic${i + 1}`}
+                name={`topic${i + 1}`}
+                value={topic}
+                onChange={(e) => handleEditTopic('publish', i, e.target.value)}
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </Field>
             <XIcon
               size="1em"
               className="absolute -right-5 top-1/2 -translate-y-1/2 cursor-pointer"
@@ -231,27 +243,30 @@ const PolicySection: FC<Props> = ({ policy, revoke, spaceId, certificateId, clas
           </div>
         )
       })}
-      <Button
-        text="Add publish topic"
-        onClick={() => setAllowedPublishTopics((current) => [...current, `${spaceId}/`])}
-      />
+      <Button onClick={() => setAllowedPublishTopics((current) => [...current, `${spaceId}/`])}>
+        Add publish topic
+      </Button>
       {showSaveChangesButton && (
         <div>
-          <Button className="mt-4" text="Save changes" onClick={handleSavePolicy} />
+          <Button className="mt-4" onClick={handleSavePolicy}>
+            Save changes
+          </Button>
         </div>
       )}
       <h2 className="mt-4">Revoke certificate</h2>
-      <FormFieldSelect
-        name="revoke"
-        variant="cards"
-        options={[{ value: 'true', label: 'Revoke' }]}
-        optional
-        hideLabel
-        disabled={isRevokeLoading}
-        label="Revoke"
-        value={revoke.toString()}
-        onChange={(e) => handleRevokeCheckbox(e.target.value === 'true')}
-      />
+      <Field orientation="horizontal" className="my-3 w-fit">
+        <Checkbox
+          id="revoke"
+          name="revoke"
+          value="true"
+          checked={revoke}
+          onCheckedChange={(checked) => handleRevokeCheckbox(checked === true)}
+          disabled={isRevokeLoading}
+        />
+        <FieldLabel htmlFor="revoke" className="font-normal">
+          Revoke
+        </FieldLabel>
+      </Field>
     </section>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { handleDeleteOrganization } from '@gruent/hub/actions/organizations'
-import Modal from '@gruent/libs/frontend/components/organisms/Modal'
+import Modal from '@gruent/libs/frontend/components/Modal'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { Organization } from '@prisma/client'
 import { useRouter } from 'next/navigation'
@@ -35,7 +35,12 @@ const DeleteOrganizationModal: FC<Props> = ({ organization }) => {
   }
 
   return (
-    <Modal id="deleteOrganization" onAccept={handleAccept} acceptText="Delete">
+    <Modal
+      id="deleteOrganization"
+      title="Delete organization"
+      onAccept={handleAccept}
+      acceptText="Delete"
+    >
       <h2 className="text-lg">Delete organization</h2>
       <p className="mb-6">
         Once deleted, organizations cannot be recovered. Are you sure you want to delete{' '}

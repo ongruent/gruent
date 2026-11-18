@@ -1,10 +1,11 @@
 'use client'
 
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { FC, FormEvent, useCallback, useMemo, useRef, useState } from 'react'
 import MqttClient from '@gruent/hub/components/organisms/ThingFormPartials/MqttClient'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
 import HttpServer from '@gruent/hub/components/organisms/ThingFormPartials/HttpServer'
 import MqttBroker from '@gruent/hub/components/organisms/ThingFormPartials/MqttBroker'
 import { handleHealthcheckThing, handleUpdateThing } from '@gruent/hub/actions/things'
@@ -227,28 +228,36 @@ const ThingSettingsForm: FC<Props> = ({ orgId, spaceId, thing, className, secret
   return (
     <div className={className}>
       <form ref={formRef} onSubmit={(e) => handleSubmit(e)}>
-        <FormFieldText
-          name="name"
-          label="Name"
-          placeholder="Name of the thing"
-          inputType="text"
-          className="mt-4 mb-2"
-          autocomplete="off"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <FormFieldText
-          name="category"
-          label="Category"
-          className="mt-4 mb-2"
-          disabled
-          value={thing.thingCategory}
-        />
+        <Field className="mt-4 mb-2">
+          <FieldLabel htmlFor="name">Name</FieldLabel>
+          <Input
+            id="name"
+            name="name"
+            placeholder="Name of the thing"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoComplete="off"
+            spellCheck={false}
+          />
+        </Field>
+        <Field className="mt-4 mb-2">
+          <FieldLabel htmlFor="category">Category</FieldLabel>
+          <Input
+            id="category"
+            name="category"
+            value={thing.thingCategory}
+            autoComplete="off"
+            spellCheck={false}
+            readOnly
+          />
+        </Field>
         {currentCategoryFormFields}
         <div className="flex gap-2">
-          <Button type="submit" text="Update" />
+          <Button type="submit">Update</Button>
           {showHealthcheckButton && (
-            <Button text="Test" variant="secondary" onClick={handleHealthcheck} />
+            <Button variant="secondary" onClick={handleHealthcheck}>
+              Test
+            </Button>
           )}
         </div>
       </form>

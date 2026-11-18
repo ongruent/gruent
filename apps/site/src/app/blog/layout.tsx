@@ -1,4 +1,4 @@
-import Container from '@gruent/libs/frontend/components/templates/Container'
+import Container from '@gruent/libs/frontend/components/Container'
 
 const BlogDetailsLayout = ({ children }) => {
   return (

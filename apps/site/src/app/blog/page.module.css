@@ -1,3 +1,5 @@
+@reference '../../../../../libs/frontend/src/styles.css';
+
 .post {
   @apply rounded bg-gray-50 border border-gray-100 shadow mb-4 flex overflow-hidden;
 
@@ -7,5 +9,5 @@
 }
 
 .featuredPost {
-  @apply border-primary;
+  @apply border-brand-primary;
 }

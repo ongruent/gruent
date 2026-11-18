@@ -1,11 +1,11 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import { Checkbox } from '@gruent/libs/frontend/components/core/checkbox'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import { TimerSourceConfig } from '@gruent/libs/engine/nodes/v1/src/source/timer'
 import { FC, useEffect, useState, useMemo } from 'react'
 import { ChevronDownIcon } from 'lucide-react'
-
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
 
 const TimerSourceOptions: FC = () => {
   const upsertNode = useChannelEditorStore((state) => state.upsertNode)
@@ -294,158 +294,173 @@ const TimerSourceOptions: FC = () => {
           <li key={index}>{time}</li>
         ))}
       </ul>
-      <div className="flex gap-4">
-        <FormFieldText
-          name="seconds"
-          label="Seconds"
-          className="grow"
-          inputType="number"
-          min={'1'}
-          max={'59'}
-          value={seconds}
-          onChange={(e) => {
-            setSeconds(e.target.value)
-          }}
-        />
-        <FormFieldSelect
-          name="secondsExact"
-          label="Seconds Exact"
-          variant="cards"
-          options={[{ label: 'Exact', value: 'exact' }]}
-          optional
-          hideLabel
-          value={secondsExact ? 'exact' : ''}
-          onChange={(e) => {
-            setSecondsExact(e.target.value === 'exact')
-          }}
-        />
+      <div className="flex items-center gap-4">
+        <Field className="my-3 grow">
+          <FieldLabel htmlFor="seconds">Seconds</FieldLabel>
+          <Input
+            id="seconds"
+            name="seconds"
+            type="number"
+            min="1"
+            max="59"
+            value={seconds}
+            onChange={(e) => {
+              setSeconds(e.target.value)
+            }}
+            autoComplete="off"
+            spellCheck={false}
+          />
+        </Field>
+        <Field orientation="horizontal" className="w-fit">
+          <Checkbox
+            id="secondsExact"
+            name="secondsExact"
+            value="exact"
+            checked={secondsExact}
+            onCheckedChange={(checked) => setSecondsExact(checked === true)}
+          />
+          <FieldLabel htmlFor="secondsExact" className="font-normal">
+            Exact
+          </FieldLabel>
+        </Field>
       </div>
-      <div className="flex gap-4">
-        <FormFieldText
-          name="minutes"
-          label="Minutes"
-          className="grow"
-          inputType="number"
-          min={'1'}
-          max={'59'}
-          value={minutes}
-          onChange={(e) => {
-            setMinutes(e.target.value)
-          }}
-        />
-        <FormFieldSelect
-          name="minutesExact"
-          label="Minutes Exact"
-          variant="cards"
-          options={[{ label: 'Exact', value: 'exact' }]}
-          optional
-          hideLabel
-          value={minutesExact ? 'exact' : ''}
-          onChange={(e) => {
-            setMinutesExact(e.target.value === 'exact')
-          }}
-        />
+      <div className="flex items-center gap-4">
+        <Field className="my-3 grow">
+          <FieldLabel htmlFor="minutes">Minutes</FieldLabel>
+          <Input
+            id="minutes"
+            name="minutes"
+            type="number"
+            min="1"
+            max="59"
+            value={minutes}
+            onChange={(e) => {
+              setMinutes(e.target.value)
+            }}
+            autoComplete="off"
+            spellCheck={false}
+          />
+        </Field>
+        <Field orientation="horizontal" className="w-fit">
+          <Checkbox
+            id="minutesExact"
+            name="minutesExact"
+            value="exact"
+            checked={minutesExact}
+            onCheckedChange={(checked) => setMinutesExact(checked === true)}
+          />
+          <FieldLabel htmlFor="minutesExact" className="font-normal">
+            Exact
+          </FieldLabel>
+        </Field>
       </div>
-      <div className="flex gap-4">
-        <FormFieldText
-          name="hours"
-          label="Hours"
-          className="grow"
-          inputType="number"
-          min={'1'}
-          max={'23'}
-          value={hours}
-          onChange={(e) => {
-            setHours(e.target.value)
-          }}
-        />
-        <FormFieldSelect
-          name="hoursExact"
-          label="Hours Exact"
-          variant="cards"
-          options={[{ label: 'Exact', value: 'exact' }]}
-          optional
-          hideLabel
-          value={hoursExact ? 'exact' : ''}
-          onChange={(e) => {
-            setHoursExact(e.target.value === 'exact')
-          }}
-        />
+      <div className="flex items-center gap-4">
+        <Field className="my-3 grow">
+          <FieldLabel htmlFor="hours">Hours</FieldLabel>
+          <Input
+            id="hours"
+            name="hours"
+            type="number"
+            min="1"
+            max="23"
+            value={hours}
+            onChange={(e) => {
+              setHours(e.target.value)
+            }}
+            autoComplete="off"
+            spellCheck={false}
+          />
+        </Field>
+        <Field orientation="horizontal" className="w-fit">
+          <Checkbox
+            id="hoursExact"
+            name="hoursExact"
+            value="exact"
+            checked={hoursExact}
+            onCheckedChange={(checked) => setHoursExact(checked === true)}
+          />
+          <FieldLabel htmlFor="hoursExact" className="font-normal">
+            Exact
+          </FieldLabel>
+        </Field>
       </div>
-      <div className="flex gap-4">
-        <FormFieldText
-          name="dayOfWeek"
-          label="Day of Week"
-          className="grow"
-          inputType="number"
-          min={'1'}
-          max={'7'}
-          value={dayOfWeek}
-          onChange={(e) => {
-            setDayOfWeek(e.target.value)
-          }}
-        />
-        <FormFieldSelect
-          name="dayOfWeekExact"
-          label="Day of Week Exact"
-          variant="cards"
-          options={[{ label: 'Exact', value: 'exact' }]}
-          optional
-          hideLabel
-          value={dayOfWeekExact ? 'exact' : ''}
-          onChange={(e) => {
-            setDayOfWeekExact(e.target.value === 'exact')
-          }}
-        />
+      <div className="flex items-center gap-4">
+        <Field className="my-3 grow">
+          <FieldLabel htmlFor="dayOfWeek">Day of Week</FieldLabel>
+          <Input
+            id="dayOfWeek"
+            name="dayOfWeek"
+            type="number"
+            min="1"
+            max="7"
+            value={dayOfWeek}
+            onChange={(e) => {
+              setDayOfWeek(e.target.value)
+            }}
+            autoComplete="off"
+            spellCheck={false}
+          />
+        </Field>
+        <Field orientation="horizontal" className="w-fit">
+          <Checkbox
+            id="dayOfWeekExact"
+            name="dayOfWeekExact"
+            value="exact"
+            checked={dayOfWeekExact}
+            onCheckedChange={(checked) => setDayOfWeekExact(checked === true)}
+          />
+          <FieldLabel htmlFor="dayOfWeekExact" className="font-normal">
+            Exact
+          </FieldLabel>
+        </Field>
       </div>
-      <div className="flex gap-4">
-        <FormFieldText
-          name="dayOfMonth"
-          label="Day of Month"
-          className="grow"
-          inputType="number"
-          min={'1'}
-          max={'31'}
-          value={dayOfMonth}
-          onChange={(e) => {
-            setDayOfMonth(e.target.value)
-          }}
-        />
-        <FormFieldSelect
-          name="dayOfMonthExact"
-          label="Day of Month Exact"
-          variant="cards"
-          options={[{ label: 'Exact', value: 'exact' }]}
-          optional
-          hideLabel
-          value={dayOfMonthExact ? 'exact' : ''}
-          onChange={(e) => {
-            setDayOfMonthExact(e.target.value === 'exact')
-          }}
-        />
+      <div className="flex items-center gap-4">
+        <Field className="my-3 grow">
+          <FieldLabel htmlFor="dayOfMonth">Day of Month</FieldLabel>
+          <Input
+            id="dayOfMonth"
+            name="dayOfMonth"
+            type="number"
+            min="1"
+            max="31"
+            value={dayOfMonth}
+            onChange={(e) => {
+              setDayOfMonth(e.target.value)
+            }}
+            autoComplete="off"
+            spellCheck={false}
+          />
+        </Field>
+        <Field orientation="horizontal" className="w-fit">
+          <Checkbox
+            id="dayOfMonthExact"
+            name="dayOfMonthExact"
+            value="exact"
+            checked={dayOfMonthExact}
+            onCheckedChange={(checked) => setDayOfMonthExact(checked === true)}
+          />
+          <FieldLabel htmlFor="dayOfMonthExact" className="font-normal">
+            Exact
+          </FieldLabel>
+        </Field>
       </div>
       {/* <div className="flex gap-4">
-        <FormFieldText
-          name="month"
-          label="Month"
-          className="grow"
-          inputType="number"
-          min={'1'}
-          max={'12'}
-          value={month}
-        />
-        <FormFieldSelect
-          name="monthExact"
-          label="Month Exact"
-          variant="cards"
-          options={[{ label: 'Exact', value: 'exact' }]}
-          optional
-          hideLabel
-          value={monthExact ? 'exact' : ''}
-          onChange={(e) => {
-            setMonthExact(e.target.value === 'exact')
-          }}
-        />
+        <Field className="my-3 grow">
+          <FieldLabel htmlFor="month">Month</FieldLabel>
+          <Input id="month" name="month" type="number" min="1" max="12" value={month} />
+        </Field>
+        <Field orientation="horizontal" className="w-fit">
+          <Checkbox
+            id="monthExact"
+            name="monthExact"
+            value="exact"
+            checked={monthExact}
+            onCheckedChange={(checked) => setMonthExact(checked === true)}
+          />
+          <FieldLabel htmlFor="monthExact" className="font-normal">
+            Exact
+          </FieldLabel>
+        </Field>
       </div> */}
 
       <span
@@ -463,7 +478,17 @@ const TimerSourceOptions: FC = () => {
       </span>
 
       {showAdvanced && (
-        <FormFieldText name="cronExpression" label="CRON Expression" value={cronExpression} />
+        <Field className="my-3">
+          <FieldLabel htmlFor="cronExpression">CRON Expression</FieldLabel>
+          <Input
+            id="cronExpression"
+            name="cronExpression"
+            value={cronExpression}
+            readOnly
+            autoComplete="off"
+            spellCheck={false}
+          />
+        </Field>
       )}
     </>
   )

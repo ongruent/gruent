@@ -1,8 +1,9 @@
 'use client'
 
 import { FC, useMemo, useState } from 'react'
-import Modal from '@gruent/libs/frontend/components/organisms/Modal'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import Modal from '@gruent/libs/frontend/components/Modal'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import gruentClient from '@gruent/hub/lib/gruent'
@@ -88,22 +89,25 @@ const CreateMemberModal: FC<Props> = ({ orgId }) => {
   }
 
   return (
-    <Modal id="addMember" showAccept={false}>
+    <Modal id="addMember" title="Add a member" showAccept={false}>
       <h2>Add a member</h2>
       <p className="text-gray-500">
         <small>Invite people to collaborate on channels, data, devices, and more.</small>
       </p>
       <div className="relative">
-        <FormFieldText
-          value={emailInput}
-          onChange={(e) => setEmailInput(e.target.value)}
-          name="search"
-          label="Search"
-          placeholder="Search by email address"
-          inputType="email"
-          className="my-4"
-          autocomplete="off"
-        />
+        <Field className="my-4">
+          <FieldLabel htmlFor="search">Search</FieldLabel>
+          <Input
+            id="search"
+            name="search"
+            type="email"
+            value={emailInput}
+            onChange={(e) => setEmailInput(e.target.value)}
+            placeholder="Search by email address"
+            autoComplete="off"
+            spellCheck={false}
+          />
+        </Field>
         {emailInput.length > 3 && (
           <ul className="absolute top-11 bg-white dark:bg-gray-900 border border-gray-200 w-full rounded-b">
             {userList.length <= 0 && isSearchMembersLoading && (

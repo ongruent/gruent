@@ -1,11 +1,12 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
 import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import { MinioActionSubnodeConfig } from '@gruent/libs/engine/nodes/v1/src/action/fileStorage/lib/minio'
 import { Thing } from '@prisma/client'
 import { FC, useEffect, useMemo, useState } from 'react'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 
 type Props = {
   things: Thing[]
@@ -74,7 +75,7 @@ const MinioActionOptions: FC<Props> = ({ things, selectedFileStorageThing }) => 
   if (!minioBuckets || minioBuckets.length <= 0)
     return (
       <p>
-        <Button variant="underline" onClick={() => openModal('createThing')}>
+        <Button variant="link" onClick={() => openModal('createThing')}>
           Add a Minio Bucket
         </Button>{' '}
         to your space before using this node.
@@ -83,12 +84,17 @@ const MinioActionOptions: FC<Props> = ({ things, selectedFileStorageThing }) => 
 
   return (
     <>
-      <FormFieldText
-        name="minioKey"
-        label="Minio Key"
-        value={minioKey || ''}
-        onChange={(e) => setMinioKey(e.target.value)}
-      />
+      <Field className="my-3">
+        <FieldLabel htmlFor="minioKey">Minio Key</FieldLabel>
+        <Input
+          id="minioKey"
+          name="minioKey"
+          value={minioKey || ''}
+          onChange={(e) => setMinioKey(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
     </>
   )
 }

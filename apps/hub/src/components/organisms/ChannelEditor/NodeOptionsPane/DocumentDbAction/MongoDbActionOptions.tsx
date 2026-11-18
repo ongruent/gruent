@@ -1,6 +1,4 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import {
@@ -10,8 +8,18 @@ import {
 } from '@gruent/libs/legacy/engine/nodes/v1/src/action/documentDb/lib/mongodb'
 import { Thing, Model } from '@prisma/client'
 import { FC, useEffect, useMemo, useState } from 'react'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import { Textarea } from '@gruent/libs/frontend/components/core/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 
 type Props = {
   things: Thing[]
@@ -293,7 +301,7 @@ const MongoDbActionOptions: FC<Props> = ({
   if (!mongoDbServers || mongoDbServers.length <= 0)
     return (
       <p>
-        <Button variant="underline" onClick={() => openModal('createThing')}>
+        <Button variant="link" onClick={() => openModal('createThing')}>
           Add a MongoDB server
         </Button>{' '}
         to your space before using this node.
@@ -315,13 +323,25 @@ const MongoDbActionOptions: FC<Props> = ({
         </p>
       )}
       {databaseOptions.length > 0 && (
-        <FormFieldSelect
-          options={databaseOptions}
-          name="database"
-          label="Database"
-          value={database || ''}
-          onChange={(e) => setDatabase(e.target.value)}
-        />
+        <Field className="my-3">
+          <FieldLabel htmlFor="database">Database</FieldLabel>
+          <Select
+            name="database"
+            value={database || ''}
+            onValueChange={(value) => setDatabase(value)}
+          >
+            <SelectTrigger id="database" className="w-full">
+              <SelectValue placeholder="Select an option" />
+            </SelectTrigger>
+            <SelectContent>
+              {databaseOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
       )}
       {database && collectionOptions.length <= 0 && (
         <p>
@@ -335,21 +355,45 @@ const MongoDbActionOptions: FC<Props> = ({
         </p>
       )}
       {database && collectionOptions.length > 0 && (
-        <FormFieldSelect
-          options={collectionOptions}
-          name="collection"
-          label="Collection"
-          value={collection || ''}
-          onChange={(e) => setCollection(e.target.value)}
-        />
+        <Field className="my-3">
+          <FieldLabel htmlFor="collection">Collection</FieldLabel>
+          <Select
+            name="collection"
+            value={collection || ''}
+            onValueChange={(value) => setCollection(value)}
+          >
+            <SelectTrigger id="collection" className="w-full">
+              <SelectValue placeholder="Select an option" />
+            </SelectTrigger>
+            <SelectContent>
+              {collectionOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
       )}
-      <FormFieldSelect
-        name="method"
-        label="Query Method"
-        options={MongoDbQueryMethodOptions}
-        value={queryMethod || ''}
-        onChange={(e) => setQueryMethod(e.target.value as MongoDbQueryMethod | undefined)}
-      />
+      <Field className="my-3">
+        <FieldLabel htmlFor="method">Query Method</FieldLabel>
+        <Select
+          name="method"
+          value={queryMethod || ''}
+          onValueChange={(value) => setQueryMethod(value as MongoDbQueryMethod | undefined)}
+        >
+          <SelectTrigger id="method" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            {MongoDbQueryMethodOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
       {(queryMethod === MongoDbQueryMethod.Find ||
         queryMethod === MongoDbQueryMethod.FindOne ||
         queryMethod === MongoDbQueryMethod.FindOneAndUpdate ||
@@ -362,13 +406,16 @@ const MongoDbActionOptions: FC<Props> = ({
         // TODO:
         // queryMethod === MongoDbQueryMethod.UpdateMany
         <>
-          <label>Query Filter</label>
-          <textarea
-            className="w-full min-h-36 p-2"
-            name="filter"
-            value={filter || ''}
-            onChange={(e) => setFilter(e.target.value)}
-          />
+          <Field className="my-3">
+            <FieldLabel htmlFor="filter">Query Filter</FieldLabel>
+            <Textarea
+              id="filter"
+              className="min-h-36"
+              name="filter"
+              value={filter || ''}
+              onChange={(e) => setFilter(e.target.value)}
+            />
+          </Field>
         </>
       )}
       {(queryMethod === MongoDbQueryMethod.FindOneAndUpdate ||
@@ -380,38 +427,59 @@ const MongoDbActionOptions: FC<Props> = ({
         // queryMethod === MongoDbQueryMethod.InsertMany
         // queryMethod === MongoDbQueryMethod.UpdateMany
         <>
-          <label>Document</label>
-          <textarea
-            className="w-full min-h-36 p-2"
-            name="document"
-            value={document || ''}
-            onChange={(e) => setDocument(e.target.value)}
-          />
+          <Field className="my-3">
+            <FieldLabel htmlFor="document">Document</FieldLabel>
+            <Textarea
+              id="document"
+              className="min-h-36"
+              name="document"
+              value={document || ''}
+              onChange={(e) => setDocument(e.target.value)}
+            />
+          </Field>
         </>
       )}
       {selectedDocumentDbThing && models && (
         <>
-          <FormFieldSelect
-            name="templateModel"
-            label="Template model (optional)"
-            options={modelOptions} // Populate the model dropdown
-            value={selectedTemplateModel?.id || '__GRUENT_IGNORE__'}
-            onChange={(e) => setSelectedTemplateModel(models.find((m) => m.id === e.target.value))}
-          />
+          <Field className="my-3">
+            <FieldLabel htmlFor="templateModel">Template model (optional)</FieldLabel>
+            <Select
+              name="templateModel"
+              value={selectedTemplateModel?.id || ''}
+              onValueChange={(value) =>
+                setSelectedTemplateModel(models.find((m) => m.id === value))
+              }
+            >
+              <SelectTrigger id="templateModel" className="w-full">
+                <SelectValue placeholder="Select an option" />
+              </SelectTrigger>
+              <SelectContent>
+                {modelOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
         </>
       )}
       {selectedTemplateModel && templateVariables && templateVariables.length > 0 && (
         <>
           <h3>Message Template Variables</h3>
           {templateVariables.map((field) => (
-            <FormFieldText
-              name={field}
-              key={field}
-              label={field}
-              placeholder={`Default value for ${field} (optional)`}
-              value={defaultValues[field] || ''}
-              onChange={(e) => handleDefaultValueChange(field, e.target.value)}
-            />
+            <Field key={field} className="my-3">
+              <FieldLabel htmlFor={field}>{field}</FieldLabel>
+              <Input
+                id={field}
+                name={field}
+                placeholder={`Default value for ${field} (optional)`}
+                value={defaultValues[field] || ''}
+                onChange={(e) => handleDefaultValueChange(field, e.target.value)}
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </Field>
           ))}
         </>
       )}

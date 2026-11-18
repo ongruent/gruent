@@ -1,5 +1,4 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
 import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import {
   HttpActionNodeConfig,
@@ -7,9 +6,17 @@ import {
 } from '@gruent/libs/legacy/engine/nodes/v1/src/action/http'
 import { Thing } from '@prisma/client'
 import { FC, useEffect, useMemo, useState } from 'react'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
-import { PlusIcon } from 'lucide-react'
+import { PlusIcon, XIcon } from 'lucide-react'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 
 type Props = {
   things: Thing[]
@@ -107,7 +114,7 @@ const HttpActionOptions: FC<Props> = ({ things }) => {
   if (!httpServers || httpServers.length <= 0)
     return (
       <p className="mb-2">
-        <Button variant="underline" onClick={() => openModal('createThing')}>
+        <Button variant="link" onClick={() => openModal('createThing')}>
           Add an HTTP server
         </Button>{' '}
         to your space before using this node.
@@ -116,67 +123,94 @@ const HttpActionOptions: FC<Props> = ({ things }) => {
 
   return (
     <>
-      <div className="flex flex-row gap-2">
-        <FormFieldSelect
-          name="httpServer::thing"
-          label="HTTP Server"
-          className="grow"
-          options={httpServerOptions}
-          value={selectedHttpServer?.id ?? '__GRUENT_IGNORE__'}
-          onChange={(e) =>
-            setSelectedHttpServer(
-              httpServers.find((s) => {
-                if (s.id === e.target.value) return true
-                return false
-              }),
-            )
-          }
-        />
-        <Button className="my-3" onClick={() => openModal('createThing')}>
-          <PlusIcon size="1em" />
+      <div className="flex flex-row items-end gap-2">
+        <Field className="my-3 grow">
+          <FieldLabel htmlFor="httpServer::thing">HTTP Server</FieldLabel>
+          <Select
+            name="httpServer::thing"
+            value={selectedHttpServer?.id ?? ''}
+            onValueChange={(value) =>
+              setSelectedHttpServer(
+                httpServers.find((s) => {
+                  if (s.id === value) return true
+                  return false
+                }),
+              )
+            }
+          >
+            <SelectTrigger id="httpServer::thing" className="w-full">
+              <SelectValue placeholder="Select an option" />
+            </SelectTrigger>
+            <SelectContent>
+              {httpServerOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Button
+          size="icon"
+          aria-label="Create thing"
+          className="my-3"
+          onClick={() => openModal('createThing')}
+        >
+          <PlusIcon />
         </Button>
       </div>
-      <FormFieldSelect
-        name="path"
-        label="Path"
-        disabled={!selectedHttpServer}
-        options={selectedHttpServerPathOptions}
-        optional
-        value={selectedHttpServerPath}
-        onChange={(e) => setSelectedHttpServerPath(e.target.value)}
-      />
-      <FormFieldSelect
-        name="method"
-        label="Method"
-        options={[
-          {
-            label: 'GET',
-            value: 'GET',
-          },
-          {
-            label: 'POST',
-            value: 'POST',
-          },
-          {
-            label: 'PUT',
-            value: 'PUT',
-          },
-          {
-            label: 'DELETE',
-            value: 'DELETE',
-          },
-          {
-            label: 'HEAD',
-            value: 'HEAD',
-          },
-          {
-            label: 'PATCH',
-            value: 'PATCH',
-          },
-        ]}
-        value={selectedMethod}
-        onChange={(e) => setSelectedMethod(e.target.value as HttpMethod)}
-      />
+      <Field className="my-3">
+        <FieldLabel htmlFor="path">Path (optional)</FieldLabel>
+        <div className="flex items-center gap-2">
+          <Select
+            name="path"
+            value={selectedHttpServerPath ?? ''}
+            onValueChange={(value) => setSelectedHttpServerPath(value)}
+            disabled={!selectedHttpServer}
+          >
+            <SelectTrigger id="path" className="w-full">
+              <SelectValue placeholder="Select an option" />
+            </SelectTrigger>
+            <SelectContent>
+              {selectedHttpServerPathOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {selectedHttpServerPath && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Clear selection"
+              onClick={() => setSelectedHttpServerPath('')}
+            >
+              <XIcon />
+            </Button>
+          )}
+        </div>
+      </Field>
+      <Field className="my-3">
+        <FieldLabel htmlFor="method">Method</FieldLabel>
+        <Select
+          name="method"
+          value={selectedMethod ?? ''}
+          onValueChange={(value) => setSelectedMethod(value as HttpMethod)}
+        >
+          <SelectTrigger id="method" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="GET">GET</SelectItem>
+            <SelectItem value="POST">POST</SelectItem>
+            <SelectItem value="PUT">PUT</SelectItem>
+            <SelectItem value="DELETE">DELETE</SelectItem>
+            <SelectItem value="HEAD">HEAD</SelectItem>
+            <SelectItem value="PATCH">PATCH</SelectItem>
+          </SelectContent>
+        </Select>
+      </Field>
     </>
   )
 }

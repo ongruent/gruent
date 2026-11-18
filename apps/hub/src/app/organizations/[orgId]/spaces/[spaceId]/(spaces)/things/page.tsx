@@ -2,11 +2,11 @@ import gruentClient from '@gruent/hub/lib/gruent'
 import CreateThingModal from '@gruent/hub/components/modals/CreateThingModal'
 import ThingsTable from '@gruent/hub/components/organisms/ThingsTable'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
-import { CirclePlusIcon, RouterIcon } from 'lucide-react'
-import Container from '@gruent/libs/frontend/components/templates/Container'
+import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
+import { CirclePlusIcon, CircleXIcon, RouterIcon } from 'lucide-react'
+import Container from '@gruent/libs/frontend/components/Container'
 import ListTablePlaceholder from '@gruent/hub/components/molecules/ListTablePlaceholder'
-import Callout from '@gruent/libs/frontend/components/molecules/Callout'
+import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 import { Tag } from '@prisma/client'
 
 export const metadata = {
@@ -37,12 +37,11 @@ const ThingsPage = async ({ params, searchParams }) => {
   if (thingListErrors && thingListErrors.length > 0) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not list the things for this space"
-          description={`${thingListErrors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not list the things for this space</AlertTitle>
+          <AlertDescription>{`${thingListErrors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -50,12 +49,11 @@ const ThingsPage = async ({ params, searchParams }) => {
   if (!things) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not list the things for this space"
-          description={`The things could not be listed. Try logging out and logging back in.`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not list the things for this space</AlertTitle>
+          <AlertDescription>{`The things could not be listed. Try logging out and logging back in.`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -66,12 +64,11 @@ const ThingsPage = async ({ params, searchParams }) => {
   if (tagListErrors && tagListErrors.length > 0) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not list the tags for this space"
-          description={`${tagListErrors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not list the tags for this space</AlertTitle>
+          <AlertDescription>{`${tagListErrors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -79,12 +76,11 @@ const ThingsPage = async ({ params, searchParams }) => {
   if (!tagListResponse) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not list the tags for this space"
-          description={`The tags could not be listed. Try logging out and logging back in.`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not list the tags for this space</AlertTitle>
+          <AlertDescription>{`The tags could not be listed. Try logging out and logging back in.`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -119,10 +115,10 @@ const ThingsPage = async ({ params, searchParams }) => {
             >
               <RouterIcon size="3em" className="text-gray-600 mb-2" />
               <p className="text-gray-600 text-center mb-2">No things... yet!</p>
-              <Button variant="primary" className="text-sm" modalId="createThing">
-                <CirclePlusIcon size="1em" className="mr-1" />
+              <OpenModalButton modalId="createThing">
+                <CirclePlusIcon />
                 <span>Create your first thing</span>
-              </Button>
+              </OpenModalButton>
             </ListTablePlaceholder>
           )}
         </section>

@@ -1,11 +1,18 @@
 'use client'
 
-import { ChevronDownIcon, ChevronUpIcon, PlusIcon } from 'lucide-react'
+import { CheckIcon, ChevronDownIcon, PlusIcon } from 'lucide-react'
 import { Organization, Space } from '@prisma/client'
-import { useClickOutside } from '@react-hooks-library/core'
-import { FC, useMemo, useRef, useState } from 'react'
+import { FC, useMemo } from 'react'
 import CreateSpaceModal from '@gruent/hub/components/modals/CreateSpaceModal'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@gruent/libs/frontend/components/core/dropdown-menu'
+import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import Link from 'next/link'
 
 type Props = {
@@ -14,17 +21,6 @@ type Props = {
 }
 
 const SpaceSelectDropDown: FC<Props> = ({ organization, currentSpaceId }) => {
-  const [isDropDownOpen, setIsDropDownOpen] = useState<boolean>(false)
-
-  const handleToggleDropDown = () => {
-    setIsDropDownOpen((current) => !current)
-  }
-
-  const dropdownRef = useRef(null)
-  useClickOutside(dropdownRef, () => {
-    setIsDropDownOpen(false)
-  })
-
   const currentSpace = useMemo(() => {
     if (!organization?.spaces || organization.spaces.length <= 0) return
 
@@ -46,58 +42,39 @@ const SpaceSelectDropDown: FC<Props> = ({ organization, currentSpaceId }) => {
   return (
     <>
       <CreateSpaceModal orgId={organization.id} />
-      <div className="relative select-none w-fit min-w-[15rem]" ref={dropdownRef}>
-        <div className="group pr-8 cursor-pointer flex items-center" onClick={handleToggleDropDown}>
-          <p className="text-gray-700 dark:text-gray-300 font-semibold">{currentSpace.name}</p>
-          {isDropDownOpen ? (
-            <ChevronUpIcon size="1.5em" className="transition opacity-100" />
-          ) : (
-            <ChevronDownIcon
-              size="1.5em"
-              className="transition opacity-0 group-hover:opacity-100"
-            />
-          )}
-        </div>
-        {isDropDownOpen && (
-          <>
-            <div className="absolute top-8 -left-4 py-3 rounded-sm border p-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 z-10 w-full">
-              {organization.spaces.map((space) => {
-                const { name: spaceName, id: spaceId } = space
+      <DropdownMenu modal={false}>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="-ml-3 font-semibold">
+            {currentSpace.name}
+            <ChevronDownIcon className="text-muted-foreground" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="min-w-60">
+          {organization.spaces.map((space) => {
+            const { name: spaceName, id: spaceId } = space
 
-                if (spaceId == currentSpaceId)
-                  return (
-                    <div
-                      className="my-1 cursor-pointer transition bg-green-100 dark:bg-green-700 text-green-700 dark:text-white border border-green-200 dark:border-green-400 py-1 px-4 rounded-sm"
-                      key={spaceId}
-                    >
-                      {spaceName}
-                    </div>
-                  )
+            if (spaceId === currentSpaceId)
+              return (
+                <DropdownMenuItem key={spaceId}>
+                  {spaceName}
+                  <CheckIcon className="ml-auto" />
+                </DropdownMenuItem>
+              )
 
-                return (
-                  <Link
-                    key={spaceId}
-                    className="my-1 cursor-pointer transition rounded-sm block border border-transparent hover:bg-green-100 dark:hover:bg-green-800 hover:border-green-200 dark:hover:border-green-700 hover:text-green-700 dark:hover:text-green-300 py-1 px-4"
-                    href={`/organizations/${organization.id}/spaces/${spaceId}`}
-                  >
-                    {spaceName}
-                  </Link>
-                )
-              })}
-              <hr className="my-2 border-gray-300 dark:border-gray-700" />
-              <div className="py-1 px-4">
-                <Button
-                  variant="underline"
-                  modalId="createSpace"
-                  className="text-gray-700 dark:text-gray-300"
-                >
-                  Create a new space <PlusIcon size="1em" className="ml-1" />
-                </Button>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
+            return (
+              <DropdownMenuItem key={spaceId} asChild>
+                <Link href={`/organizations/${organization.id}/spaces/${spaceId}`}>
+                  {spaceName}
+                </Link>
+              </DropdownMenuItem>
+            )
+          })}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={() => openModal('createSpace')}>
+            <PlusIcon /> Create a new space
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </>
   )
 }

@@ -2,14 +2,20 @@
 
 import { FC } from 'react'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
-import ContextMenu from '@gruent/hub/components/atoms/ContextMenu'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@gruent/libs/frontend/components/core/dropdown-menu'
 import {
   handleDeleteChannel,
   handlePublishChannel,
   handleUnpublishChannel,
 } from '@gruent/hub/actions/channels'
 import { Channel } from '@prisma/client'
-import { CloudIcon, CloudOffIcon, Trash2Icon } from 'lucide-react'
+import { CloudIcon, CloudOffIcon, EllipsisVerticalIcon, Trash2Icon } from 'lucide-react'
 
 type Props = {
   channel: Channel
@@ -18,76 +24,82 @@ type Props = {
 }
 
 const ChannelContextMenu: FC<Props> = ({ channel, spaceId }) => {
-  const publishOption = (() => {
-    if (!channel.publishedAt)
-      return {
-        icon: CloudIcon,
-        title: 'Publish',
-        onClick: async () => {
-          const { error } = await handlePublishChannel(spaceId, channel.id)
-          if (error) {
-            addToast({
-              title: 'Could not publish the channel',
-              body: `The channel could not be published: ${error}`,
-              level: 'error',
-            })
-          } else {
-            addToast({
-              title: 'Publish request sent',
-              body: 'The channel should be published soon. This may take a few seconds.',
-              level: 'success',
-            })
-          }
-        },
-      }
-
-    return {
-      icon: CloudOffIcon,
-      title: 'Unpublish',
-      onClick: async () => {
-        const { error } = await handleUnpublishChannel(spaceId, channel.id)
-        if (error) {
-          addToast({
-            title: 'Could not unpublish the channel',
-            body: `The channel could not be unpublished: ${error}`,
-            level: 'error',
-          })
-        } else {
-          addToast({
-            title: 'Unpublish request sent',
-            body: 'The channel should be unpublished soon. This may take a few seconds.',
-            level: 'success',
-          })
-        }
-      },
+  const handlePublish = async () => {
+    const { error } = await handlePublishChannel(spaceId, channel.id)
+    if (error) {
+      addToast({
+        title: 'Could not publish the channel',
+        body: `The channel could not be published: ${error}`,
+        level: 'error',
+      })
+    } else {
+      addToast({
+        title: 'Publish request sent',
+        body: 'The channel should be published soon. This may take a few seconds.',
+        level: 'success',
+      })
     }
-  })()
+  }
 
-  const contextMenuButtons = [
-    publishOption,
-    {
-      icon: Trash2Icon,
-      title: 'Delete',
-      onClick: async () => {
-        const { error } = await handleDeleteChannel(spaceId, channel.id)
-        if (error) {
-          addToast({
-            title: 'Could not delete the channel',
-            body: `The channel could not be deleted: ${error}`,
-            level: 'error',
-          })
-        } else {
-          addToast({
-            title: 'Successfully deleted channel',
-            body: 'Successfully deleted the channel from your space.',
-            level: 'success',
-          })
-        }
-      },
-    },
-  ]
+  const handleUnpublish = async () => {
+    const { error } = await handleUnpublishChannel(spaceId, channel.id)
+    if (error) {
+      addToast({
+        title: 'Could not unpublish the channel',
+        body: `The channel could not be unpublished: ${error}`,
+        level: 'error',
+      })
+    } else {
+      addToast({
+        title: 'Unpublish request sent',
+        body: 'The channel should be unpublished soon. This may take a few seconds.',
+        level: 'success',
+      })
+    }
+  }
 
-  return <ContextMenu contextMenuButtons={contextMenuButtons} />
+  const handleDelete = async () => {
+    const { error } = await handleDeleteChannel(spaceId, channel.id)
+    if (error) {
+      addToast({
+        title: 'Could not delete the channel',
+        body: `The channel could not be deleted: ${error}`,
+        level: 'error',
+      })
+    } else {
+      addToast({
+        title: 'Successfully deleted channel',
+        body: 'Successfully deleted the channel from your space.',
+        level: 'success',
+      })
+    }
+  }
+
+  return (
+    <div className="flex justify-end">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon-sm" aria-label="Open actions menu">
+            <EllipsisVerticalIcon />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-44">
+          {!channel.publishedAt ? (
+            <DropdownMenuItem onSelect={handlePublish}>
+              <CloudIcon /> Publish
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem onSelect={handleUnpublish}>
+              <CloudOffIcon /> Unpublish
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuItem variant="destructive" onSelect={handleDelete}>
+            <Trash2Icon /> Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  )
 }
 
 export default ChannelContextMenu

@@ -1,9 +1,16 @@
 'use client'
 
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 import { Dispatch, FC, useEffect, useMemo, useState } from 'react'
 import { Thing } from '@prisma/client'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
 
 type Props = {
   setFormData: Dispatch<Map<string, string | number | string[] | number[]>>
@@ -45,42 +52,69 @@ const ClickhouseDatabase: FC<Props> = ({ setFormData, secretOptions, initial }) 
 
   return (
     <>
-      <FormFieldText
-        name="host"
-        label="Host"
-        className="mt-4 mb-2"
-        value={host}
-        onChange={(e) => setHost(e.target.value)}
-      />
-      <FormFieldText
-        name="port"
-        label="Port"
-        className="mt-4 mb-2"
-        value={port.toString()}
-        onChange={(e) => setPort(parseInt(e.target.value))}
-      />
-      <FormFieldText
-        name="username"
-        label="Username"
-        className="mt-4 mb-2"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-      />
-      <FormFieldSelect
-        name="password"
-        label="Database Password"
-        className="mt-4 mb-2"
-        value={password}
-        options={secretOptions}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <FormFieldText
-        name="database"
-        label="Database Name"
-        className="mt-4 mb-2"
-        value={database}
-        onChange={(e) => setDatabase(e.target.value)}
-      />
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="host">Host</FieldLabel>
+        <Input
+          id="host"
+          name="host"
+          value={host}
+          onChange={(e) => setHost(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="port">Port</FieldLabel>
+        <Input
+          id="port"
+          name="port"
+          value={port.toString()}
+          onChange={(e) => setPort(parseInt(e.target.value))}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="username">Username</FieldLabel>
+        <Input
+          id="username"
+          name="username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="password">Database Password</FieldLabel>
+        <Select
+          name="password"
+          value={password ?? ''}
+          onValueChange={(value) => setPassword(value)}
+        >
+          <SelectTrigger id="password" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            {secretOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="database">Database Name</FieldLabel>
+        <Input
+          id="database"
+          name="database"
+          value={database}
+          onChange={(e) => setDatabase(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
     </>
   )
 }

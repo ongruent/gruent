@@ -1,8 +1,9 @@
 'use client'
 
 import { FC, createRef, useCallback } from 'react'
-import Modal from '@gruent/libs/frontend/components/organisms/Modal'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import Modal from '@gruent/libs/frontend/components/Modal'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { useRouter } from 'next/navigation'
 import noop from '@gruent/libs/frontend/util/noop'
@@ -55,6 +56,7 @@ const CreateOrganizationModal: FC<Props> = () => {
   return (
     <Modal
       id="createOrganization"
+      title="Create a new organization"
       onAccept={handleAccept}
       onClose={handleClose}
       acceptText="Create"
@@ -66,7 +68,10 @@ const CreateOrganizationModal: FC<Props> = () => {
         </p>
       </div>
       <form onSubmit={noop} ref={formRef} className="mb-4">
-        <FormFieldText label="Name" name="name" className="w-full" autocomplete="off" />
+        <Field className="my-3 w-full">
+          <FieldLabel htmlFor="name">Name</FieldLabel>
+          <Input id="name" name="name" autoComplete="off" spellCheck={false} />
+        </Field>
       </form>
     </Modal>
   )

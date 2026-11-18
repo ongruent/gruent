@@ -1,5 +1,5 @@
-import Container from '@gruent/libs/frontend/components/templates/Container'
-import ChannelsCostCalculator from '@gruent/libs/frontend/components/organisms/GridExamplePriceCalculator'
+import Container from '@gruent/libs/frontend/components/Container'
+import ChannelsCostCalculator from '@gruent/libs/frontend/components/GridExamplePriceCalculator'
 import {
   ArrowDownUpIcon,
   ArrowLeftRightIcon,
@@ -22,8 +22,8 @@ import {
   UsersIcon,
 } from 'lucide-react'
 
-import styles from './page.module.scss'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
+import styles from './page.module.css'
+import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
 import { Metadata } from 'next'
 import RuntimeSelector from './RuntimeSelector'
 
@@ -84,7 +84,7 @@ const Pricing = async ({ searchParams }) => {
         </div>
         <div className="z-10 relative pt-24 pb-14">
           <Container>
-            <h1 className="text-center text-primary text-4xl">
+            <h1 className="text-center text-brand-primary text-4xl">
               Usage-based pricing, for everyone.
             </h1>
             <h2 className="text-center text-white text-2xl font-light mt-2 mb-12">
@@ -174,13 +174,13 @@ const Pricing = async ({ searchParams }) => {
                   <p className="text-gray-400 mb-2 mx-14 text-center">
                     <small>Prices subject to change throughout beta</small>
                   </p>
-                  <Button
-                    variant="blank"
+                  <OpenModalButton
+                    variant="ghost"
                     modalId="betaSignup"
-                    className="py-4 px-14 mx-auto w-full bg-gray-100 border-0"
+                    className="h-auto py-4 px-14 mx-auto w-full bg-gray-100 rounded-xs"
                   >
-                    Get started in minutes <ArrowRightIcon size="1em" />
-                  </Button>
+                    Get started in minutes <ArrowRightIcon />
+                  </OpenModalButton>
                 </div>
               </div>
               <div className="p-[2px] w-fit h-fit mx-auto mt-10" style={{ background: '#0d3e25' }}>

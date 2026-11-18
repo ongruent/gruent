@@ -1,7 +1,7 @@
 'use client'
 
 import { FC, useCallback, useEffect, useRef } from 'react'
-import Modal from '@gruent/libs/frontend/components/organisms/Modal'
+import Modal from '@gruent/libs/frontend/components/Modal'
 import { useQuery } from '@tanstack/react-query'
 import gruentClient from '@gruent/hub/lib/gruent'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
@@ -119,7 +119,13 @@ const CreateThingModal: FC<Props> = ({ orgId, spaceId, onClose, onSubmit }) => {
   }, [secretsError])
 
   return (
-    <Modal id="createThing" acceptText="Create" onAccept={handleAccept} onClose={onClose}>
+    <Modal
+      id="createThing"
+      title="Create a thing"
+      acceptText="Create"
+      onAccept={handleAccept}
+      onClose={onClose}
+    >
       <h2>Create a thing</h2>
       <p className="text-gray-500 mb-2">
         <small>Create a thing to use in the channel editor.</small>

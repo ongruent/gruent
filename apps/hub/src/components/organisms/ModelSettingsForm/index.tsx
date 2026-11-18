@@ -1,9 +1,17 @@
 'use client'
 
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Checkbox } from '@gruent/libs/frontend/components/core/checkbox'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 import gruentClient from '@gruent/hub/lib/gruent'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { ChevronDownIcon, ChevronRightIcon, GripVerticalIcon, XIcon } from 'lucide-react'
 import { Model } from '@prisma/client'
@@ -140,7 +148,6 @@ const AttributeRow: FC<{
               </div>
             ))}
             <Button
-              text="Add nested field"
               className="w-full mb-4"
               onClick={() => {
                 const newNestedAttribute: ModelAttribute = {
@@ -159,7 +166,9 @@ const AttributeRow: FC<{
                   },
                 })
               }}
-            />
+            >
+              Add nested field
+            </Button>
           </div>
         )}
       </div>
@@ -172,7 +181,6 @@ const AttributeRow: FC<{
           renderAttributeWithChildren(id, subAttribute, currentLevel + 1),
         )}
         <Button
-          text="Add attribute to array item"
           className="w-full mb-4"
           onClick={() => {
             const order = Object.values(attribute.arrayObjectAttributes || {}).length
@@ -193,7 +201,9 @@ const AttributeRow: FC<{
               },
             })
           }}
-        />
+        >
+          Add attribute to array item
+        </Button>
       </div>
     )
   }
@@ -224,57 +234,83 @@ const AttributeRow: FC<{
               className="absolute top-1/2 -translate-y-1/4 -right-5 transition cursor-pointer text-red-500 hover:text-red-600 dark:hover:text-red-400"
               onClick={onDelete}
             />
-            <FormFieldText
-              name={`key-${attribute.id}`}
-              label="Key"
-              className="grow mb-0 min-w-[300px] mr-4"
-              value={attribute.key || ''}
-              onChange={(e) => {
-                const updatedAttribute = { ...attribute, key: e.target.value }
-                onUpdate(updatedAttribute)
-              }}
-            />
-            <FormFieldSelect
-              name="value"
-              label="Value"
-              className="grow mb-0"
-              options={[
-                { label: 'String', value: 'string' },
-                { label: 'Boolean', value: 'boolean' },
-                { label: 'Number', value: 'number' },
-                { label: 'Object', value: 'object' },
-                { label: 'Array', value: 'array' },
-              ]}
-              value={attribute.type}
-              onChange={(e) => {
-                const newType = e.target.value as ModelAttribute['type']
-                onUpdate({
-                  ...attribute,
-                  type: newType,
-                  subtype: newType === 'array' ? 'string' : undefined,
-                })
-              }}
-            />
+            <Field className="mt-3 grow mb-0 min-w-[300px] mr-4">
+              <FieldLabel htmlFor={`key-${attribute.id}`}>Key</FieldLabel>
+              <Input
+                id={`key-${attribute.id}`}
+                name={`key-${attribute.id}`}
+                value={attribute.key || ''}
+                onChange={(e) => {
+                  const updatedAttribute = { ...attribute, key: e.target.value }
+                  onUpdate(updatedAttribute)
+                }}
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </Field>
+            <Field className="mt-3 grow mb-0">
+              <FieldLabel htmlFor={`value-${attribute.id}`}>Value</FieldLabel>
+              <Select
+                name="value"
+                value={attribute.type ?? ''}
+                onValueChange={(value) => {
+                  const newType = value as ModelAttribute['type']
+                  onUpdate({
+                    ...attribute,
+                    type: newType,
+                    subtype: newType === 'array' ? 'string' : undefined,
+                  })
+                }}
+              >
+                <SelectTrigger id={`value-${attribute.id}`} className="w-full">
+                  <SelectValue placeholder="Select an option" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    { label: 'String', value: 'string' },
+                    { label: 'Boolean', value: 'boolean' },
+                    { label: 'Number', value: 'number' },
+                    { label: 'Object', value: 'object' },
+                    { label: 'Array', value: 'array' },
+                  ].map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
           </div>
           {attribute.type === 'array' && (
-            <FormFieldSelect
-              name="subtype"
-              label="Array Type"
-              className="grow mb-0"
-              options={[
-                { label: 'String', value: 'string' },
-                { label: 'Boolean', value: 'boolean' },
-                { label: 'Number', value: 'number' },
-                { label: 'Object', value: 'object' },
-              ]}
-              value={attribute.subtype || 'string'}
-              onChange={(e) =>
-                onUpdate({
-                  ...attribute,
-                  subtype: e.target.value as ModelAttribute['subtype'],
-                })
-              }
-            />
+            <Field className="mt-3 grow mb-0">
+              <FieldLabel htmlFor={`subtype-${attribute.id}`}>Array Type</FieldLabel>
+              <Select
+                name="subtype"
+                value={attribute.subtype || 'string'}
+                onValueChange={(value) =>
+                  onUpdate({
+                    ...attribute,
+                    subtype: value as ModelAttribute['subtype'],
+                  })
+                }
+              >
+                <SelectTrigger id={`subtype-${attribute.id}`} className="w-full">
+                  <SelectValue placeholder="Select an option" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    { label: 'String', value: 'string' },
+                    { label: 'Boolean', value: 'boolean' },
+                    { label: 'Number', value: 'number' },
+                    { label: 'Object', value: 'object' },
+                  ].map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
           )}
           <span
             className="mt-1 flex items-center transition text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-sm select-none cursor-pointer"
@@ -289,26 +325,34 @@ const AttributeRow: FC<{
           </span>
           {showAttributeOptions && (
             <div className="flex gap-2 text-gray-700 dark:text-gray-300">
-              <FormFieldSelect
-                name={`${attribute.id}_required`}
-                variant="cards"
-                options={[{ value: 'true', label: 'Required' }]}
-                optional
-                hideLabel
-                label="Required"
-                value={attribute.required.toString()}
-                onChange={(e) => onUpdate({ ...attribute, required: e.target.value === 'true' })}
-              />
-              <FormFieldSelect
-                name={`${attribute.id}_protected`}
-                variant="cards"
-                options={[{ value: 'true', label: 'Protected' }]}
-                optional
-                hideLabel
-                label="Protected"
-                value={attribute.protected.toString()}
-                onChange={(e) => onUpdate({ ...attribute, protected: e.target.value === 'true' })}
-              />
+              <Field orientation="horizontal" className="w-fit">
+                <Checkbox
+                  id={`${attribute.id}_required`}
+                  name={`${attribute.id}_required`}
+                  value="true"
+                  checked={attribute.required}
+                  onCheckedChange={(checked) =>
+                    onUpdate({ ...attribute, required: checked === true })
+                  }
+                />
+                <FieldLabel htmlFor={`${attribute.id}_required`} className="font-normal">
+                  Required
+                </FieldLabel>
+              </Field>
+              <Field orientation="horizontal" className="w-fit">
+                <Checkbox
+                  id={`${attribute.id}_protected`}
+                  name={`${attribute.id}_protected`}
+                  value="true"
+                  checked={attribute.protected}
+                  onCheckedChange={(checked) =>
+                    onUpdate({ ...attribute, protected: checked === true })
+                  }
+                />
+                <FieldLabel htmlFor={`${attribute.id}_protected`} className="font-normal">
+                  Protected
+                </FieldLabel>
+              </Field>
             </div>
           )}
 
@@ -538,7 +582,6 @@ const ModelSettingsForm: FC<Props> = ({
             <>
               {renderAttributes(attribute.id, level + 1)}
               <Button
-                text="Add attribute"
                 className={`w-full mb-4 ml-0 ${
                   Object.values(attributes).some((a) => a.parentId === attribute.id) ? 'mt-4' : ''
                 }`}
@@ -563,7 +606,9 @@ const ModelSettingsForm: FC<Props> = ({
                     }
                   })
                 }}
-              />
+              >
+                Add attribute
+              </Button>
             </>
           )}
         </div>
@@ -572,16 +617,19 @@ const ModelSettingsForm: FC<Props> = ({
 
   return (
     <form onSubmit={handleSubmit}>
-      <FormFieldText
-        label="Model Name"
-        name="modelName"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
+      <Field className="my-3">
+        <FieldLabel htmlFor="modelName">Model Name</FieldLabel>
+        <Input
+          id="modelName"
+          name="modelName"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
       {renderAttributes()}
       <Button
-        type="button"
-        text="Add attribute"
         className="w-full mb-4"
         onClick={() => {
           setAttributes((current: ModelAttributes) => {
@@ -603,8 +651,10 @@ const ModelSettingsForm: FC<Props> = ({
             }
           })
         }}
-      />
-      {showSaveButton && <Button type="submit" text="Save" />}
+      >
+        Add attribute
+      </Button>
+      {showSaveButton && <Button type="submit">Save</Button>}
     </form>
   )
 }

@@ -21,10 +21,10 @@ import {
   SlidersHorizontalIcon,
 } from 'lucide-react'
 import TagMenu from '../../modals/TagMenu'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import { useClickOutside } from '@react-hooks-library/core'
 import SearchBar from '../../molecules/SearchBar'
-// import IndeterminateCheckbox from "../../atoms/IndeterminateCheckbox"
 
 type Props = {
   models: (Model & { tags?: (AppliedTag & { tag: Tag })[] })[]
@@ -64,13 +64,11 @@ const ModelsTable: FC<Props> = ({
     // {
     //   id: 'select',
     //   cell: ({ row }) => (
-    //     <IndeterminateCheckbox
-    //       {...{
-    //         checked: row.getIsSelected(),
-    //         disabled: !row.getCanSelect(),
-    //         indeterminate: row.getIsSomeSelected(),
-    //         onChange: row.getToggleSelectedHandler(),
-    //       }}
+    //     <Checkbox
+    //       aria-label="Select row"
+    //       checked={row.getIsSelected()}
+    //       disabled={!row.getCanSelect()}
+    //       onCheckedChange={(checked) => row.toggleSelected(checked === true)}
     //     />
     //   ),
     // },
@@ -130,16 +128,26 @@ const ModelsTable: FC<Props> = ({
                   tags={tags}
                 />
               )}
-              <Button variant="underline" onClick={() => setTagCreateSubject(info.row.original)}>
-                <PlusIcon size=".875em" />
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                aria-label="Add tag"
+                onClick={() => setTagCreateSubject(info.row.original)}
+              >
+                <PlusIcon />
               </Button>
             </div>
           )
         }
         return (
           <div className="relative">
-            <Button variant="underline" onClick={() => setTagCreateSubject(info.row.original)}>
-              <PlusIcon size=".875em" />
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              aria-label="Add tag"
+              onClick={() => setTagCreateSubject(info.row.original)}
+            >
+              <PlusIcon />
             </Button>
             {tagCreateSubject === info.row.original && (
               <TagMenu
@@ -224,14 +232,16 @@ const ModelsTable: FC<Props> = ({
             <SearchBar paramKey="q" initialFilter={searchFilter} placeholder="Search things" />
             <div className="grow" />
             <Button
-              variant="transparent"
-              className="px-2"
+              variant="outline"
+              size="icon"
+              aria-label="Filter options"
+              aria-expanded={showFilterOptions}
               onClick={() => setShowFilterOptions((current) => !current)}
             >
-              <SlidersHorizontalIcon size="1.3333em" />
+              <SlidersHorizontalIcon />
             </Button>
-            <Button variant="transparent" className="text-sm" modalId="createModel">
-              <CirclePlusIcon size="1em" className="mr-1" />
+            <Button variant="outline" onClick={() => openModal('createModel')}>
+              <CirclePlusIcon />
               <span>Create</span>
             </Button>
             {showFilterOptions && (
@@ -247,8 +257,8 @@ const ModelsTable: FC<Props> = ({
                         return (
                           <Button
                             key={tag.id}
-                            variant="transparent"
-                            className="text-sm border-primary!"
+                            size="sm"
+                            aria-pressed
                             onClick={() => handleTagFilterChange(tag.id)}
                           >
                             {tag.name}
@@ -258,8 +268,9 @@ const ModelsTable: FC<Props> = ({
                       return (
                         <Button
                           key={tag.id}
-                          variant="transparent"
-                          className="text-sm"
+                          variant="outline"
+                          size="sm"
+                          aria-pressed={false}
                           onClick={() => handleTagFilterChange(tag.id)}
                         >
                           {tag.name}

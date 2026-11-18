@@ -8,7 +8,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { calculateBlogPostSlug } from '@gruent/libs/frontend/util/calculateBlogPostSlug'
 
-import styles from './page.module.scss'
+import styles from './page.module.css'
 import { Metadata } from 'next'
 import dayjs from 'dayjs'
 import redis from '@gruent/site/lib/upstash'

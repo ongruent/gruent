@@ -1,9 +1,16 @@
 'use client'
 
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 import { Dispatch, FC, useEffect, useMemo, useState } from 'react'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
 import { XIcon } from 'lucide-react'
 import { Thing } from '@prisma/client'
 
@@ -44,54 +51,77 @@ const HttpServer: FC<Props> = ({ setFormData, initial }) => {
 
   return (
     <>
-      <FormFieldSelect
-        name="protocol"
-        label="Protocol"
-        options={[
-          {
-            label: 'http',
-            value: 'http',
-          },
-          {
-            label: 'https',
-            value: 'https',
-          },
-        ]}
-        className="mt-4 mb-2"
-        value={protocol}
-        onChange={(e) => setProtocol(e.target.value as 'http' | 'https')}
-      />
-      <FormFieldText
-        name="host"
-        label="Host"
-        className="mt-4 mb-2"
-        value={host}
-        onChange={(e) => setHost(e.target.value)}
-      />
-      <FormFieldText
-        name="port"
-        label="Port"
-        inputType="number"
-        className="mt-4 mb-2"
-        value={port.toString()}
-        onChange={(e) => setPort(parseInt(e.target.value))}
-      />
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="protocol">Protocol</FieldLabel>
+        <Select
+          name="protocol"
+          value={protocol ?? ''}
+          onValueChange={(value) => setProtocol(value as 'http' | 'https')}
+        >
+          <SelectTrigger id="protocol" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            {[
+              {
+                label: 'http',
+                value: 'http',
+              },
+              {
+                label: 'https',
+                value: 'https',
+              },
+            ].map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="host">Host</FieldLabel>
+        <Input
+          id="host"
+          name="host"
+          value={host}
+          onChange={(e) => setHost(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="port">Port</FieldLabel>
+        <Input
+          id="port"
+          name="port"
+          type="number"
+          value={port.toString()}
+          onChange={(e) => setPort(parseInt(e.target.value))}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
       {paths.map((path, i) => {
         return (
           <div key={`path-${i}`} className="flex mt-4 mb-2 items-center">
-            <FormFieldText
-              name={`path-${i}`}
-              label={`Path ${i + 1}`}
-              className="grow"
-              value={path}
-              onChange={(e) =>
-                setPaths((current) => {
-                  const n = [...current]
-                  n[i] = e.target.value
-                  return n
-                })
-              }
-            />
+            <Field className="my-3 grow">
+              <FieldLabel htmlFor={`path-${i}`}>{`Path ${i + 1}`}</FieldLabel>
+              <Input
+                id={`path-${i}`}
+                name={`path-${i}`}
+                value={path}
+                onChange={(e) =>
+                  setPaths((current) => {
+                    const n = [...current]
+                    n[i] = e.target.value
+                    return n
+                  })
+                }
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </Field>
             <XIcon
               size="1em"
               className="-mr-4 text-gray-500 hover:text-red-500 transition cursor-pointer"
@@ -103,11 +133,9 @@ const HttpServer: FC<Props> = ({ setFormData, initial }) => {
         )
       })}
       <div className="flex">
-        <Button
-          text="Add Path"
-          className="mb-4"
-          onClick={() => setPaths((current) => [...current, ''])}
-        />
+        <Button className="mb-4" onClick={() => setPaths((current) => [...current, ''])}>
+          Add Path
+        </Button>
       </div>
     </>
   )

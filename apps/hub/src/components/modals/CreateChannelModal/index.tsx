@@ -1,8 +1,9 @@
 'use client'
 
 import { FC, createRef, useCallback } from 'react'
-import Modal from '@gruent/libs/frontend/components/organisms/Modal'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import Modal from '@gruent/libs/frontend/components/Modal'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import noop from '@gruent/libs/frontend/util/noop'
 import { closeModal } from '@gruent/libs/frontend/hooks/useModal'
@@ -55,7 +56,13 @@ const CreateChannelModal: FC<Props> = ({ spaceId }) => {
   }, [formRef])
 
   return (
-    <Modal id="createChannel" onAccept={handleAccept} onClose={handleClose} acceptText="Create">
+    <Modal
+      id="createChannel"
+      title="Create a new channel"
+      onAccept={handleAccept}
+      onClose={handleClose}
+      acceptText="Create"
+    >
       <div className="mb-6">
         <h2>Create a new channel</h2>
         <p className="text-gray-500">
@@ -63,7 +70,10 @@ const CreateChannelModal: FC<Props> = ({ spaceId }) => {
         </p>
       </div>
       <form onSubmit={noop} ref={formRef} className="mb-4">
-        <FormFieldText label="Name" name="name" className="w-full" />
+        <Field className="my-3 w-full">
+          <FieldLabel htmlFor="name">Name</FieldLabel>
+          <Input id="name" name="name" autoComplete="off" spellCheck={false} />
+        </Field>
       </form>
     </Modal>
   )

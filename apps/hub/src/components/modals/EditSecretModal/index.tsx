@@ -1,11 +1,12 @@
 'use client'
 
 import { FC, useCallback, useRef } from 'react'
-import Modal from '@gruent/libs/frontend/components/organisms/Modal'
+import Modal from '@gruent/libs/frontend/components/Modal'
 import { useMutation } from '@tanstack/react-query'
 import { closeModal } from '@gruent/libs/frontend/hooks/useModal'
 import { useRouter } from 'next/navigation'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 import { handleUpdateSecret } from '@gruent/hub/actions/secrets'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 
@@ -66,15 +67,33 @@ const EditSecretModal: FC<Props> = ({ spaceId, name: secretName, showModal, onCl
   if (!showModal) return null
 
   return (
-    <Modal id="editSecret" onAccept={handleSubmit} onClose={handleClose} acceptText="Update">
+    <Modal
+      id="editSecret"
+      title="Edit secret"
+      onAccept={handleSubmit}
+      onClose={handleClose}
+      acceptText="Update"
+    >
       <h2>Edit secret</h2>
       <p className="text-gray-500">
         <small>Change a secret&apos;s name.</small>
       </p>
       <div className="relative">
         <form ref={formRef} onSubmit={(e) => e.preventDefault()} className="mb-4">
-          <FormFieldText name="name" label="Name" defaultValue={secretName} />
-          <FormFieldText name="value" label="Value" />
+          <Field className="my-3">
+            <FieldLabel htmlFor="name">Name</FieldLabel>
+            <Input
+              id="name"
+              name="name"
+              defaultValue={secretName}
+              autoComplete="off"
+              spellCheck={false}
+            />
+          </Field>
+          <Field className="my-3">
+            <FieldLabel htmlFor="value">Value</FieldLabel>
+            <Input id="value" name="value" autoComplete="off" spellCheck={false} />
+          </Field>
         </form>
       </div>
     </Modal>

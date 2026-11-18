@@ -5,12 +5,12 @@ import ApiKeysTable from '@gruent/hub/components/organisms/ApiKeyTable'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
 import PermissionSetTable from '@gruent/hub/components/organisms/PermissionSetTable'
 import SearchBar from '@gruent/hub/components/molecules/SearchBar'
-import Container from '@gruent/libs/frontend/components/templates/Container'
+import Container from '@gruent/libs/frontend/components/Container'
 import CreateApiKeyModal from '@gruent/hub/components/modals/CreateApiKeyModal'
-import { CirclePlusIcon, SquareTerminalIcon } from 'lucide-react'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
+import { CirclePlusIcon, CircleXIcon, SquareTerminalIcon } from 'lucide-react'
+import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
 import ListTablePlaceholder from '@gruent/hub/components/molecules/ListTablePlaceholder'
-import Callout from '@gruent/libs/frontend/components/molecules/Callout'
+import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 
 export const metadata = {
   title: 'Team | GRUENT',
@@ -43,12 +43,11 @@ const TeamPage = async ({ params, searchParams }) => {
   if (listUsersErrors && listUsersErrors.length > 0) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not list the members for this space"
-          description={`${listUsersErrors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not list the members for this space</AlertTitle>
+          <AlertDescription>{`${listUsersErrors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -56,12 +55,11 @@ const TeamPage = async ({ params, searchParams }) => {
   if (!users) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not get the channels for this space"
-          description={`The channels could not be retrieved. Try logging out and logging back in.`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not get the channels for this space</AlertTitle>
+          <AlertDescription>{`The channels could not be retrieved. Try logging out and logging back in.`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -80,12 +78,11 @@ const TeamPage = async ({ params, searchParams }) => {
   if (listPermissionSetsErrors && listPermissionSetsErrors.length > 0) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not list the permission sets for this space"
-          description={`${listPermissionSetsErrors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not list the permission sets for this space</AlertTitle>
+          <AlertDescription>{`${listPermissionSetsErrors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -93,12 +90,11 @@ const TeamPage = async ({ params, searchParams }) => {
   if (!permissionSets) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not get the permission sets for this space"
-          description={`The permission sets could not be retrieved. Try logging out and logging back in.`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not get the permission sets for this space</AlertTitle>
+          <AlertDescription>{`The permission sets could not be retrieved. Try logging out and logging back in.`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -121,12 +117,11 @@ const TeamPage = async ({ params, searchParams }) => {
   if (listApiKeysErrors && listApiKeysErrors.length > 0) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not list the API keys for this space"
-          description={`${listApiKeysErrors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not list the API keys for this space</AlertTitle>
+          <AlertDescription>{`${listApiKeysErrors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -134,12 +129,11 @@ const TeamPage = async ({ params, searchParams }) => {
   if (!apiKeys) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not get the API keys for this space"
-          description={`The API keys could not be retrieved. Try logging out and logging back in.`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not get the API keys for this space</AlertTitle>
+          <AlertDescription>{`The API keys could not be retrieved. Try logging out and logging back in.`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -180,10 +174,10 @@ const TeamPage = async ({ params, searchParams }) => {
             <>
               <div className="absolute top-8 right-10 mb-1 flex items-end gap-2">
                 <div className="grow" />
-                <Button variant="transparent" className="text-sm" modalId="addApiKey">
-                  <CirclePlusIcon size="1em" className="mr-1" />
+                <OpenModalButton variant="outline" modalId="addApiKey">
+                  <CirclePlusIcon />
                   <span>Create</span>
-                </Button>
+                </OpenModalButton>
               </div>
               <ApiKeysTable
                 orgId={orgId}
@@ -203,10 +197,10 @@ const TeamPage = async ({ params, searchParams }) => {
             >
               <SquareTerminalIcon size="3em" className="text-gray-600 mb-2" />
               <p className="text-gray-600 text-center mb-2">No API keys... yet!</p>
-              <Button variant="primary" className="text-sm" modalId="addApiKey">
-                <CirclePlusIcon size="1em" className="mr-1" />
+              <OpenModalButton modalId="addApiKey">
+                <CirclePlusIcon />
                 <span>Create your first API key</span>
-              </Button>
+              </OpenModalButton>
             </ListTablePlaceholder>
           )}
         </section>
@@ -218,10 +212,10 @@ const TeamPage = async ({ params, searchParams }) => {
         >
           <div className="absolute top-8 right-10 mb-1 flex items-end gap-2">
             <div className="grow" />
-            <Button variant="transparent" className="text-sm" modalId="addPermissionSet">
-              <CirclePlusIcon size="1em" className="mr-1" />
+            <OpenModalButton variant="outline" modalId="addPermissionSet">
+              <CirclePlusIcon />
               <span>Create</span>
-            </Button>
+            </OpenModalButton>
           </div>
           <PermissionSetTable
             orgId={orgId}

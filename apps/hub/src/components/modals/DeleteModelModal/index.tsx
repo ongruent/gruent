@@ -2,7 +2,7 @@
 
 import useAuth from '@gruent/hub/hooks/useAuth'
 import gruentClient from '@gruent/hub/lib/gruent'
-import Modal from '@gruent/libs/frontend/components/organisms/Modal'
+import Modal from '@gruent/libs/frontend/components/Modal'
 import { closeModal } from '@gruent/libs/frontend/hooks/useModal'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { Model } from '@prisma/client'
@@ -48,7 +48,7 @@ const DeleteModelModal: FC<Props> = ({ orgId, spaceId, model }) => {
   }
 
   return (
-    <Modal id="deleteModel" onAccept={handleAccept} acceptText="Delete">
+    <Modal id="deleteModel" title="Delete model" onAccept={handleAccept} acceptText="Delete">
       <h2 className="text-lg">Delete model</h2>
       <p className="mb-6">
         Once deleted, spaces cannot be recovered. Are you sure you want to delete {model.name}?

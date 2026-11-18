@@ -1,5 +1,5 @@
 import notion from '@gruent/site/lib/notion'
-import NotionBlockRenderer from '@gruent/libs/frontend/components/templates/NotionBlockRenderer'
+import NotionBlockRenderer from '@gruent/libs/frontend/components/NotionBlockRenderer'
 import type { Metadata, ResolvingMetadata } from 'next'
 import Link from 'next/link'
 import {
@@ -12,10 +12,11 @@ import {
   calculateBlogPostSlug,
   slugToNotionQuery,
 } from '@gruent/libs/frontend/util/calculateBlogPostSlug'
-import styles from './page.module.scss'
+import styles from './page.module.css'
 import { notFound } from 'next/navigation'
 import TableOfContents from './TableOfContents'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
 import { GitForkIcon, TagIcon } from 'lucide-react'
 
 import Image from 'next/image'
@@ -295,10 +296,10 @@ const BlogPostPage = async ({ params }) => {
             Create an account and start connecting for free until you&apos;re ready to commit.
           </p>
           <div className="flex">
-            <Button text="Start Now" modalId="betaSignup" />
-            <a href="/pricing">
-              <Button className="ml-4" variant="transparent" text="See Pricing" />
-            </a>
+            <OpenModalButton modalId="betaSignup">Start Now</OpenModalButton>
+            <Button asChild className="ml-4" variant="outline">
+              <Link href="/pricing">See Pricing</Link>
+            </Button>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">

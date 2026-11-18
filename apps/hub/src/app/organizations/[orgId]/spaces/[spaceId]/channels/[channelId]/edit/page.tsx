@@ -1,7 +1,8 @@
 import getAccessToken from '@gruent/hub/util/getAccessToken'
 import ChannelByIdEditClientPage from './client'
 import gruentClient from '@gruent/hub/lib/gruent'
-import Callout from '@gruent/libs/frontend/components/molecules/Callout'
+import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
+import { CircleXIcon } from 'lucide-react'
 export const metadata = {
   title: 'Edit channel | GRUENT',
 }
@@ -20,12 +21,11 @@ const ChannelByIdEditPage = async ({ params }) => {
   if (spaceErrors && spaceErrors.length > 0) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not get the space details"
-          description={`${spaceErrors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not get the space details</AlertTitle>
+          <AlertDescription>{`${spaceErrors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -37,12 +37,11 @@ const ChannelByIdEditPage = async ({ params }) => {
   if (organizationErrors && organizationErrors.length > 0) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not get the organization details"
-          description={`${organizationErrors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not get the organization details</AlertTitle>
+          <AlertDescription>{`${organizationErrors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
   }

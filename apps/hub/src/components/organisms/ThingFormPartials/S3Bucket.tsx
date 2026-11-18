@@ -1,7 +1,14 @@
 'use client'
 
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 import { Thing } from '@prisma/client'
 import { Dispatch, FC, useEffect, useMemo, useState } from 'react'
 
@@ -43,35 +50,58 @@ const S3Bucket: FC<Props> = ({ setFormData, secretOptions, initial }) => {
 
   return (
     <>
-      <FormFieldText
-        name="AwsAccessKeyId"
-        label="AWS Access Key ID"
-        className="mt-4 mb-2"
-        value={AwsAccessKeyId}
-        onChange={(e) => setAwsAccessKeyId(e.target.value)}
-      />
-      <FormFieldSelect
-        name="AwsSecretAccessKey"
-        label="AWS Secret Access Key"
-        className="mt-4 mb-2"
-        value={AwsSecretAccessKey}
-        options={secretOptions}
-        onChange={(e) => setAwsSecretAccessKey(e.target.value)}
-      />
-      <FormFieldText
-        name="AwsRegion"
-        label="AWS Region"
-        className="mt-4 mb-2"
-        value={AwsRegion}
-        onChange={(e) => setAwsRegion(e.target.value)}
-      />
-      <FormFieldText
-        name="bucketName"
-        label="Bucket Name"
-        className="mt-4 mb-2"
-        value={bucketName}
-        onChange={(e) => setbucketName(e.target.value)}
-      />
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="AwsAccessKeyId">AWS Access Key ID</FieldLabel>
+        <Input
+          id="AwsAccessKeyId"
+          name="AwsAccessKeyId"
+          value={AwsAccessKeyId}
+          onChange={(e) => setAwsAccessKeyId(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="AwsSecretAccessKey">AWS Secret Access Key</FieldLabel>
+        <Select
+          name="AwsSecretAccessKey"
+          value={AwsSecretAccessKey ?? ''}
+          onValueChange={(value) => setAwsSecretAccessKey(value)}
+        >
+          <SelectTrigger id="AwsSecretAccessKey" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            {secretOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="AwsRegion">AWS Region</FieldLabel>
+        <Input
+          id="AwsRegion"
+          name="AwsRegion"
+          value={AwsRegion}
+          onChange={(e) => setAwsRegion(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="bucketName">Bucket Name</FieldLabel>
+        <Input
+          id="bucketName"
+          name="bucketName"
+          value={bucketName}
+          onChange={(e) => setbucketName(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
     </>
   )
 }
