@@ -1,10 +1,17 @@
 'use client'
 
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 import useAuth from '@gruent/hub/hooks/useAuth'
 import gruentClient from '@gruent/hub/lib/gruent'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import { Thing } from '@prisma/client'
 import { useQuery } from '@tanstack/react-query'
@@ -92,7 +99,7 @@ const MqttClient: FC<Props> = ({ setFormData, spaceId, secretOptions, initial })
     return (
       <p>
         No MQTT brokers were found in this space. You'll have to&nbsp;
-        <Button variant="underline" onClick={() => openModal('createThing')}>
+        <Button variant="link" onClick={() => openModal('createThing')}>
           create an MQTT broker
         </Button>
         &nbsp;in this space before creating an MQTT client.
@@ -102,36 +109,62 @@ const MqttClient: FC<Props> = ({ setFormData, spaceId, secretOptions, initial })
 
   return (
     <>
-      <FormFieldSelect
-        name="broker"
-        label="Broker"
-        className="mt-4 mb-2"
-        options={mqttBrokerOptions}
-        value={broker}
-        onChange={(e) => setBroker(e.target.value)}
-      />
-      <FormFieldText
-        name="username"
-        label="Username (optional)"
-        className="mt-4 mb-2"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-      />
-      <FormFieldSelect
-        name="password"
-        label="Password (optional)"
-        className="mt-4 mb-2"
-        value={password}
-        options={secretOptions}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <FormFieldText
-        name="clientId"
-        label="Client ID (optional)"
-        className="mt-4 mb-2"
-        value={clientId}
-        onChange={(e) => setClientId(e.target.value)}
-      />
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="broker">Broker</FieldLabel>
+        <Select name="broker" value={broker ?? ''} onValueChange={(value) => setBroker(value)}>
+          <SelectTrigger id="broker" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            {mqttBrokerOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="username">Username (optional)</FieldLabel>
+        <Input
+          id="username"
+          name="username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="password">Password (optional)</FieldLabel>
+        <Select
+          name="password"
+          value={password ?? ''}
+          onValueChange={(value) => setPassword(value)}
+        >
+          <SelectTrigger id="password" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            {secretOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="clientId">Client ID (optional)</FieldLabel>
+        <Input
+          id="clientId"
+          name="clientId"
+          value={clientId}
+          onChange={(e) => setClientId(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
     </>
   )
 }

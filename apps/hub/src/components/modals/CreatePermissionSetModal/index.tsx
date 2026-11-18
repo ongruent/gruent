@@ -1,13 +1,20 @@
 'use client'
 
 import { FC, useCallback, useRef } from 'react'
-import Modal from '@gruent/libs/frontend/components/organisms/Modal'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import Modal from '@gruent/libs/frontend/components/Modal'
+import { Checkbox } from '@gruent/libs/frontend/components/core/checkbox'
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { closeModal } from '@gruent/libs/frontend/hooks/useModal'
 import { handleAddPermissionSet } from '@gruent/hub/actions/permissionSets'
 import { defaultOrgPermissions, defaultSpacePermissions } from '@gruent/libs/http/permissions'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
 
 type Props = {
   orgId: string
@@ -34,6 +41,7 @@ const CreatePermissionSetModal: FC<Props> = ({ orgId, spaceId }) => {
   return (
     <Modal
       id="addPermissionSet"
+      title="Add a permission set"
       acceptText="Create"
       onAccept={handleFormSubmit}
       onClose={handleFormClose}
@@ -91,13 +99,16 @@ const CreatePermissionSetModal: FC<Props> = ({ orgId, spaceId }) => {
           }
         }}
       >
-        <FormFieldText
-          name="name"
-          label="Name"
-          placeholder="Name of the permission set"
-          className="my-4"
-          autocomplete="off"
-        />
+        <Field className="my-4">
+          <FieldLabel htmlFor="name">Name</FieldLabel>
+          <Input
+            id="name"
+            name="name"
+            placeholder="Name of the permission set"
+            autoComplete="off"
+            spellCheck={false}
+          />
+        </Field>
         {Object.keys(defaultPermissions).map((namespace) => {
           return (
             <div key={namespace}>
@@ -106,16 +117,19 @@ const CreatePermissionSetModal: FC<Props> = ({ orgId, spaceId }) => {
                 key={namespace}
                 className="px-6 py-4 mb-4 border border-gray-200 dark:border-gray-700 rounded-xs"
               >
-                <FormFieldSelect
-                  name={namespace}
-                  label="Select permissions"
-                  variant="cards"
-                  multiple
-                  options={Object.keys(defaultPermissions[namespace]).map((action) => ({
-                    value: action,
-                    label: action,
-                  }))}
-                />
+                <FieldSet className="my-3">
+                  <FieldLegend variant="label">Select permissions</FieldLegend>
+                  <FieldGroup data-slot="checkbox-group" className="flex-row flex-wrap gap-3">
+                    {Object.keys(defaultPermissions[namespace]).map((action) => (
+                      <Field key={action} orientation="horizontal" className="w-fit">
+                        <Checkbox id={`${namespace}-${action}`} name={namespace} value={action} />
+                        <FieldLabel htmlFor={`${namespace}-${action}`} className="font-normal">
+                          {action}
+                        </FieldLabel>
+                      </Field>
+                    ))}
+                  </FieldGroup>
+                </FieldSet>
               </div>
             </div>
           )

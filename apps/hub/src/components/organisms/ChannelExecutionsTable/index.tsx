@@ -14,9 +14,8 @@ import dayjs from 'dayjs'
 import { useRouter } from 'next/navigation'
 import ListTablePlaceholder from '../../molecules/ListTablePlaceholder'
 import { SettingsIcon, SlidersHorizontalIcon } from 'lucide-react'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
+import { Button } from '@gruent/libs/frontend/components/core/button'
 import { useClickOutside } from '@react-hooks-library/core'
-// import IndeterminateCheckbox from "../../atoms/IndeterminateCheckbox"
 
 type ChannelExecutionListItem = {
   executionId: string
@@ -183,11 +182,13 @@ const ChannelExecutionsTable: FC<Props> = ({
               <div className="flex flex-wrap items-end gap-2 mb-1 relative">
                 <div className="grow" />
                 <Button
-                  variant="transparent"
-                  className="px-2"
+                  variant="outline"
+                  size="icon"
+                  aria-label="Filter options"
+                  aria-expanded={showFilterOptions}
                   onClick={() => setShowFilterOptions((current) => !current)}
                 >
-                  <SlidersHorizontalIcon size="1.3333em" />
+                  <SlidersHorizontalIcon />
                 </Button>
                 {showFilterOptions && (
                   <div
@@ -202,8 +203,8 @@ const ChannelExecutionsTable: FC<Props> = ({
                             return (
                               <Button
                                 key={status}
-                                variant="transparent"
-                                className="text-sm border-primary!"
+                                size="sm"
+                                aria-pressed
                                 onClick={() => handleStatusFilterChange(status)}
                               >
                                 {status}
@@ -213,8 +214,9 @@ const ChannelExecutionsTable: FC<Props> = ({
                           return (
                             <Button
                               key={status}
-                              variant="transparent"
-                              className="text-sm"
+                              variant="outline"
+                              size="sm"
+                              aria-pressed={false}
                               onClick={() => handleStatusFilterChange(status)}
                             >
                               {status}

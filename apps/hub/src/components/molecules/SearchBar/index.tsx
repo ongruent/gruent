@@ -1,5 +1,8 @@
 'use client'
 
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import { cn } from 'cn'
 import { SearchIcon, XIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { FC, useEffect, useState } from 'react'
@@ -41,18 +44,26 @@ const SearchBar: FC<Props> = ({
     <div className="relative">
       <SearchIcon size="1em" className="absolute left-1 top-1/2 -translate-y-1/2 text-gray-500" />
       {search && (
-        <XIcon
-          size="1em"
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 cursor-pointer"
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          aria-label="Clear search"
+          className="absolute right-1 top-1/2 -translate-y-1/2 text-gray-500"
           onClick={() => setSearch('')}
-        />
+        >
+          <XIcon />
+        </Button>
       )}
-      <input
+      <Input
         type="text"
+        aria-label={placeholder ?? 'Search'}
         onChange={(e) => setSearch(e.target.value)}
         value={search}
         placeholder={placeholder}
-        className={`${className} w-full px-8 py-1 border-b bg-transparent transition outline-hidden border-gray-200 hover:border-gray-300 focus:border-gray-700 text-sm text-gray-700`}
+        className={cn(
+          'h-auto px-8 py-1 rounded-none border-0 border-b shadow-none bg-transparent dark:bg-transparent focus-visible:ring-0 focus-visible:border-gray-700 border-gray-200 hover:border-gray-300 text-sm text-gray-700',
+          className,
+        )}
       />
     </div>
   )

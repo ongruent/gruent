@@ -1,11 +1,18 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
 import { ChannelNode, ChannelNodeConfig, defaultNodes } from '@gruent/libs/legacy/engine/nodes/v1'
 import { HttpMethod } from '@gruent/libs/legacy/engine/nodes/v1/src/action/http'
 import { HttpSourceNodeConfig } from '@gruent/libs/legacy/engine/nodes/v1/src/source/http'
 import { FC, useEffect, useState } from 'react'
 import NodeLibrarySectionNode from '../NodeLibraryPane/NodeLibrarySectionNode'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 
 type Props = {
   channelId: string
@@ -63,47 +70,40 @@ const HttpSourceOptions: FC<Props> = ({ channelId }) => {
 
   return (
     <>
-      <FormFieldSelect
-        name="method"
-        label="Method"
-        options={[
-          {
-            label: HttpMethod.GET,
-            value: HttpMethod.GET,
-          },
-          {
-            label: HttpMethod.POST,
-            value: HttpMethod.POST,
-          },
-          {
-            label: HttpMethod.PUT,
-            value: HttpMethod.PUT,
-          },
-          {
-            label: HttpMethod.DELETE,
-            value: HttpMethod.DELETE,
-          },
-          {
-            label: HttpMethod.HEAD,
-            value: HttpMethod.HEAD,
-          },
-          {
-            label: HttpMethod.PATCH,
-            value: HttpMethod.PATCH,
-          },
-        ]}
-        value={selectedMethod}
-        onChange={(e) => setSelectedMethod(e.target.value as HttpMethod)}
-      />
-      <FormFieldText
-        name="responseTimeout"
-        label="Response Timeout"
-        inputType="number"
-        min="1"
-        max="30"
-        value={responseTimeout.toString()}
-        onChange={(e) => setResponseTimeout(parseInt(e.target.value))}
-      />
+      <Field className="my-3">
+        <FieldLabel htmlFor="method">Method</FieldLabel>
+        <Select
+          name="method"
+          value={selectedMethod}
+          onValueChange={(value) => setSelectedMethod(value as HttpMethod)}
+        >
+          <SelectTrigger id="method" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={HttpMethod.GET}>{HttpMethod.GET}</SelectItem>
+            <SelectItem value={HttpMethod.POST}>{HttpMethod.POST}</SelectItem>
+            <SelectItem value={HttpMethod.PUT}>{HttpMethod.PUT}</SelectItem>
+            <SelectItem value={HttpMethod.DELETE}>{HttpMethod.DELETE}</SelectItem>
+            <SelectItem value={HttpMethod.HEAD}>{HttpMethod.HEAD}</SelectItem>
+            <SelectItem value={HttpMethod.PATCH}>{HttpMethod.PATCH}</SelectItem>
+          </SelectContent>
+        </Select>
+      </Field>
+      <Field className="my-3">
+        <FieldLabel htmlFor="responseTimeout">Response Timeout</FieldLabel>
+        <Input
+          id="responseTimeout"
+          name="responseTimeout"
+          type="number"
+          min="1"
+          max="30"
+          value={responseTimeout.toString()}
+          onChange={(e) => setResponseTimeout(parseInt(e.target.value))}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
       <NodeLibrarySectionNode
         label="HTTP Response-action"
         defaultNode={defaultNodes.get('HTTP Response-action') as ChannelNode<ChannelNodeConfig>}

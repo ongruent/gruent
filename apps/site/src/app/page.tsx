@@ -1,7 +1,9 @@
-import Container from '@gruent/libs/frontend/components/templates/Container'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
+import Container from '@gruent/libs/frontend/components/Container'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
+import Link from 'next/link'
 
-import styles from './page.module.scss'
+import styles from './page.module.css'
 import {
   ChartLineIcon,
   ChartNoAxesColumnIncreasingIcon,
@@ -62,8 +64,8 @@ const HomePage = () => {
             connections within minutes and scale to thousands of calls per second.
           </p>
           <div className="flex gap-4 mt-4">
-            <Button text="Start Now" modalId="betaSignup" />
-            {/* <Button text="Learn More" href="/products" variant="transparent" /> */}
+            <OpenModalButton modalId="betaSignup">Start Now</OpenModalButton>
+            {/* <Button asChild variant="outline"><Link href="/products">Learn More</Link></Button> */}
           </div>
         </Container>
       </header>
@@ -78,11 +80,11 @@ const HomePage = () => {
           <div className="grow h-3 bg-green-700" />
           <div className="grow h-3 bg-green-800" />
         </section>
-        <section className="pt-24 pb-0 text-gray-100 bg-secondary">
+        <section className="pt-24 pb-0 text-gray-100 bg-brand-secondary">
           <Container>
             <div className="max-w-3xl mx-auto">
               <div>
-                <h2 className="text-5xl lg:text-6xl my-8 text-primary text-center">
+                <h2 className="text-5xl lg:text-6xl my-8 text-brand-primary text-center">
                   Integrate any hardware, software, or protocol
                 </h2>
                 <p className="text-2xl text-white text-center">
@@ -187,10 +189,10 @@ const HomePage = () => {
                   ready to commit.
                 </p>
                 <div className="flex">
-                  <Button text="Start Now" modalId="betaSignup" />
-                  <a href="/pricing">
-                    <Button className="ml-4" variant="transparent" text="See Pricing" />
-                  </a>
+                  <OpenModalButton modalId="betaSignup">Start Now</OpenModalButton>
+                  <Button asChild className="ml-4" variant="outline">
+                    <Link href="/pricing">See Pricing</Link>
+                  </Button>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -216,11 +218,11 @@ const HomePage = () => {
           </Container>
         </section>
         {/* <div className="overflow-hidden max-w-screen h-32 skew-y-2 bg-gray-100 -mt-8 -mb-16" /> */}
-        <section className="pt-24 pb-32 text-gray-100 bg-secondary">
+        <section className="pt-24 pb-32 text-gray-100 bg-brand-secondary">
           <Container>
             <div className="max-w-3xl mx-auto">
               <div>
-                <h2 className="text-5xl lg:text-6xl my-8 text-primary text-center">
+                <h2 className="text-5xl lg:text-6xl my-8 text-brand-primary text-center">
                   Performance at scale
                 </h2>
                 <p className="text-2xl text-white text-center">

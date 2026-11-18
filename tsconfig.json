@@ -1,0 +1,5 @@
+{
+  "//": "Only exposes the path aliases from tsconfig.base.json to tooling such as the shadcn CLI (components.json). Projects use their own tsconfig files.",
+  "extends": "./tsconfig.base.json",
+  "files": []
+}

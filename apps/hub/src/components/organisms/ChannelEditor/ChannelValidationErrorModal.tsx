@@ -1,13 +1,13 @@
 'use client'
 
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
-import Modal from '@gruent/libs/frontend/components/organisms/Modal'
+import Modal from '@gruent/libs/frontend/components/Modal'
 
 const ChannelValidationErrorModal = () => {
   const validationErrors = useChannelEditorStore((state) => state.validationErrors)
 
   return (
-    <Modal id="channelValidationErrors" showAccept={false}>
+    <Modal id="channelValidationErrors" title="Channel Validation Errors" showAccept={false}>
       <h2>Channel Validation Errors</h2>
       {validationErrors &&
         validationErrors.channelErrors &&

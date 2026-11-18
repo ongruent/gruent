@@ -1,5 +1,16 @@
 'use client'
 
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
+import { Textarea } from '@gruent/libs/frontend/components/core/textarea'
 import { ThingCategoryOptions } from '@gruent/hub/components/modals/CreateThingModal'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { useSearchParams } from 'next/navigation'
@@ -13,9 +24,6 @@ import {
   useState,
 } from 'react'
 import MqttClient from '../ThingFormPartials/MqttClient'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
 import HttpServer from '../ThingFormPartials/HttpServer'
 import MqttBroker from '../ThingFormPartials/MqttBroker'
 import { handleAddThing, handleHealthcheckThing } from '@gruent/hub/actions/things'
@@ -32,7 +40,6 @@ import AwsSESEndpoint from '../ThingFormPartials/AwsSesEndpoint'
 import AwsSNSEndpoint from '../ThingFormPartials/AwsSnsEndpoint'
 import SendgridClient from '../ThingFormPartials/SendgridClient'
 import MongoDbServer from '../ThingFormPartials/MongoDbServer'
-import FormFieldTextArea from '@gruent/libs/frontend/components/atoms/FormFieldTextArea'
 
 type Props = {
   orgId: string
@@ -318,13 +325,16 @@ const CreateThingForm = forwardRef(
       <>
         {importMode && (
           <section className="mb-8">
-            <FormFieldTextArea
-              label="Import object"
-              name="thingJson"
-              value={thingJson}
-              onChange={(e) => setThingJson(e.target.value)}
-              className="h-40"
-            />
+            <Field className="my-3">
+              <FieldLabel htmlFor="thingJson">Import object</FieldLabel>
+              <Textarea
+                id="thingJson"
+                name="thingJson"
+                value={thingJson}
+                onChange={(e) => setThingJson(e.target.value)}
+                className="h-40"
+              />
+            </Field>
             {thingImportError && (
               <p className="text-red-400">Invalid thing import object: {thingImportError}</p>
             )}
@@ -342,36 +352,51 @@ const CreateThingForm = forwardRef(
                 handleSubmit()
               }}
             >
-              <FormFieldText
-                name="name"
-                label="Name"
-                placeholder="Name of the thing"
-                inputType="text"
-                className="mt-4 mb-2"
-                autocomplete="off"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-              <FormFieldSelect
-                name="category"
-                label="Category"
-                className="mt-4 mb-2"
-                options={ThingCategoryOptions}
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              />
+              <Field className="mt-4 mb-2">
+                <FieldLabel htmlFor="name">Name</FieldLabel>
+                <Input
+                  id="name"
+                  name="name"
+                  placeholder="Name of the thing"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+              </Field>
+              <Field className="mt-4 mb-2">
+                <FieldLabel htmlFor="category">Category</FieldLabel>
+                <Select
+                  name="category"
+                  value={category ?? ''}
+                  onValueChange={(value) => setCategory(value)}
+                >
+                  <SelectTrigger id="category" className="w-full">
+                    <SelectValue placeholder="Select an option" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ThingCategoryOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
               {currentCategoryFormFields}
               <div className="flex gap-2">
-                {!hideSubmit && <Button type="submit" text="Create" />}
+                {!hideSubmit && <Button type="submit">Create</Button>}
                 {showHealthcheckButton && (
-                  <Button text="Test" variant="secondary" onClick={handleHealthcheck} />
+                  <Button variant="secondary" onClick={handleHealthcheck}>
+                    Test
+                  </Button>
                 )}
               </div>
             </form>
           </section>
         )}
         <div className="flex justify-end">
-          <Button variant="underline" onClick={() => setImportMode(!importMode)}>
+          <Button variant="link" onClick={() => setImportMode(!importMode)}>
             {importMode ? 'Create mode' : 'Import mode'}
           </Button>
         </div>

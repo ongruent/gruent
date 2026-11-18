@@ -6,8 +6,35 @@ import { FC, useCallback, useEffect } from 'react'
 import useChannelConfig from '@gruent/libs/frontend/hooks/useChannelConfig'
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
 import { useDebounce } from '@react-hooks-library/core'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+  FieldTitle,
+} from '@gruent/libs/frontend/components/core/field'
+import { RadioGroup, RadioGroupItem } from '@gruent/libs/frontend/components/core/radio-group'
 import useAuth from '@gruent/hub/hooks/useAuth'
+
+const runtimeOptions = [
+  {
+    value: 'small',
+    label: 'Small',
+    description: 'Up to 5 requests per second. Minimum $5/mo.',
+  },
+  {
+    value: 'medium',
+    label: 'Medium',
+    description: 'Up to 50 requests per second. Minimum $10/mo.',
+  },
+  {
+    value: 'large',
+    label: 'Large',
+    description: 'Up to 200 requests per second. Minimum $15/mo.',
+  },
+]
 
 type Props = {
   channel: Channel
@@ -62,32 +89,33 @@ const ChannelOptionsPane: FC<Props> = ({ channel, spaceId }) => {
       <h2 className="uppercase text-gray-500 font-bold text-xs mb-2">Channel Options</h2>
       {channelConfig && (
         <>
-          <FormFieldSelect
-            name="runtime"
-            label="Runtime Size"
-            options={[
-              {
-                value: 'small',
-                label: 'Small',
-                description: 'Up to 5 requests per second. Minimum $5/mo.',
-              },
-              {
-                value: 'medium',
-                label: 'Medium',
-                description: 'Up to 50 requests per second. Minimum $10/mo.',
-              },
-              {
-                value: 'large',
-                label: 'Large',
-                description: 'Up to 200 requests per second. Minimum $15/mo.',
-              },
-            ]}
-            variant="cards"
-            value={channelConfig.runtime?.size || 'small'}
-            onChange={(e) =>
-              handleChangeRuntimeSize(e.target.value as 'small' | 'medium' | 'large')
-            }
-          />
+          <FieldSet className="my-3">
+            <FieldLegend variant="label">Runtime Size</FieldLegend>
+            <RadioGroup
+              name="runtime"
+              value={channelConfig.runtime?.size || 'small'}
+              onValueChange={(value) =>
+                handleChangeRuntimeSize(value as 'small' | 'medium' | 'large')
+              }
+              className="flex flex-wrap gap-2"
+            >
+              {runtimeOptions.map((option) => (
+                <FieldLabel
+                  key={option.value}
+                  htmlFor={`runtime-${option.value}`}
+                  className="max-w-56"
+                >
+                  <Field orientation="horizontal">
+                    <FieldContent>
+                      <FieldTitle>{option.label}</FieldTitle>
+                      <FieldDescription>{option.description}</FieldDescription>
+                    </FieldContent>
+                    <RadioGroupItem value={option.value} id={`runtime-${option.value}`} />
+                  </Field>
+                </FieldLabel>
+              ))}
+            </RadioGroup>
+          </FieldSet>
         </>
       )}
     </div>

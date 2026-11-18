@@ -1,7 +1,14 @@
 'use client'
 
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 import { Thing } from '@prisma/client'
 import { Dispatch, FC, useEffect, useMemo, useState } from 'react'
 
@@ -40,37 +47,56 @@ const MqttBroker: FC<Props> = ({ setFormData, initial }) => {
 
   return (
     <>
-      <FormFieldSelect
-        name="protocol"
-        label="Protocol"
-        options={[
-          {
-            label: 'mqtt',
-            value: 'mqtt',
-          },
-          {
-            label: 'mqtts',
-            value: 'mqtts',
-          },
-        ]}
-        className="mt-4 mb-2"
-        value={protocol}
-        onChange={(e) => setProtocol(e.target.value as 'mqtt' | 'mqtts')}
-      />
-      <FormFieldText
-        name="host"
-        label="Host"
-        className="mt-4 mb-2"
-        value={host}
-        onChange={(e) => setHost(e.target.value)}
-      />
-      <FormFieldText
-        name="port"
-        label="Port"
-        className="mt-4 mb-2"
-        value={port.toString()}
-        onChange={(e) => setPort(parseInt(e.target.value))}
-      />
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="protocol">Protocol</FieldLabel>
+        <Select
+          name="protocol"
+          value={protocol ?? ''}
+          onValueChange={(value) => setProtocol(value as 'mqtt' | 'mqtts')}
+        >
+          <SelectTrigger id="protocol" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            {[
+              {
+                label: 'mqtt',
+                value: 'mqtt',
+              },
+              {
+                label: 'mqtts',
+                value: 'mqtts',
+              },
+            ].map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="host">Host</FieldLabel>
+        <Input
+          id="host"
+          name="host"
+          value={host}
+          onChange={(e) => setHost(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="port">Port</FieldLabel>
+        <Input
+          id="port"
+          name="port"
+          value={port.toString()}
+          onChange={(e) => setPort(parseInt(e.target.value))}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
     </>
   )
 }

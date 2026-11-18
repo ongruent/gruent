@@ -1,8 +1,9 @@
 'use client'
 
 import { FC, createRef, useCallback } from 'react'
-import Modal from '@gruent/libs/frontend/components/organisms/Modal'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import Modal from '@gruent/libs/frontend/components/Modal'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { useRouter } from 'next/navigation'
 import noop from '@gruent/libs/frontend/util/noop'
@@ -55,7 +56,13 @@ const CreateSpaceModal: FC<Props> = ({ orgId }) => {
   }, [formRef])
 
   return (
-    <Modal id="createSpace" onAccept={handleAccept} onClose={handleClose} acceptText="Create">
+    <Modal
+      id="createSpace"
+      title="Create a new space"
+      onAccept={handleAccept}
+      onClose={handleClose}
+      acceptText="Create"
+    >
       <div className="mb-6">
         <h2>Create a new space</h2>
         <p className="text-gray-500">
@@ -63,7 +70,10 @@ const CreateSpaceModal: FC<Props> = ({ orgId }) => {
         </p>
       </div>
       <form onSubmit={noop} ref={formRef} className="mb-4">
-        <FormFieldText label="Name" name="name" className="w-full" autocomplete="off" />
+        <Field className="my-3 w-full">
+          <FieldLabel htmlFor="name">Name</FieldLabel>
+          <Input id="name" name="name" autoComplete="off" spellCheck={false} />
+        </Field>
       </form>
     </Modal>
   )

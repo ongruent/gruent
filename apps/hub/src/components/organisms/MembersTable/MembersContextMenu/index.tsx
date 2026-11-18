@@ -1,13 +1,19 @@
 'use client'
 
-import { FC, useCallback, useMemo, useState } from 'react'
+import { FC, useCallback, useState } from 'react'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import { PermissionSet } from '@prisma/client'
-import ContextMenu from '@gruent/hub/components/atoms/ContextMenu'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@gruent/libs/frontend/components/core/dropdown-menu'
 import { handleChangeMemberRole, handleRemoveMember } from '@gruent/hub/actions/members'
 import EditUserPermissionsModal from '@gruent/hub/components/modals/EditUserPermissionsModal'
-import { PencilLineIcon, Trash2Icon, UserLockIcon } from 'lucide-react'
+import { EllipsisVerticalIcon, PencilLineIcon, Trash2Icon, UserLockIcon } from 'lucide-react'
 
 type Props = {
   userId: string
@@ -52,58 +58,22 @@ const MemberContextMenu: FC<Props> = ({
     [orgId, userId],
   )
 
-  const contextMenuButtons = useMemo(() => {
-    const adminCmb = [
-      {
-        icon: UserLockIcon,
-        title: 'Change role',
-        description: 'Change role to member',
-        onClick: () => {
-          handleChangeRole('MEMBER')
-        },
-      },
-    ]
-
-    const memberCmb = [
-      {
-        icon: UserLockIcon,
-        title: 'Change role',
-        description: 'Change role to admin',
-        onClick: () => {
-          handleChangeRole('ADMIN')
-        },
-      },
-      {
-        icon: PencilLineIcon,
-        title: 'Edit',
-        onClick: () => handleEditPermissions(),
-      },
-      {
-        icon: Trash2Icon,
-        title: 'Remove',
-        description: "Revoke this member's access to this organization.",
-        onClick: async () => {
-          const { error } = await handleRemoveMember(orgId, userId)
-          if (error) {
-            addToast({
-              title: 'Could not remove the team member',
-              body: `The team member that you selected could not be removed: ${error}`,
-              level: 'error',
-            })
-          } else {
-            addToast({
-              title: 'Successfully removed team member',
-              body: 'Successfully removed the team member from your organization.',
-              level: 'success',
-            })
-          }
-        },
-      },
-    ]
-
-    if (admin) return adminCmb
-    return memberCmb
-  }, [admin, orgId, userId, handleChangeRole])
+  const handleRemove = async () => {
+    const { error } = await handleRemoveMember(orgId, userId)
+    if (error) {
+      addToast({
+        title: 'Could not remove the team member',
+        body: `The team member that you selected could not be removed: ${error}`,
+        level: 'error',
+      })
+    } else {
+      addToast({
+        title: 'Successfully removed team member',
+        body: 'Successfully removed the team member from your organization.',
+        level: 'success',
+      })
+    }
+  }
 
   return (
     <>
@@ -115,7 +85,48 @@ const MemberContextMenu: FC<Props> = ({
         permissionSets={permissionSets}
         onClose={() => setShowModal(false)}
       />
-      <ContextMenu contextMenuButtons={contextMenuButtons} />
+      <div className="flex justify-end">
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon-sm" aria-label="Open actions menu">
+              <EllipsisVerticalIcon />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-44">
+            {admin ? (
+              <DropdownMenuItem onSelect={() => handleChangeRole('MEMBER')}>
+                <UserLockIcon />
+                <div className="flex flex-col">
+                  <span>Change role</span>
+                  <span className="text-xs text-muted-foreground">Change role to member</span>
+                </div>
+              </DropdownMenuItem>
+            ) : (
+              <>
+                <DropdownMenuItem onSelect={() => handleChangeRole('ADMIN')}>
+                  <UserLockIcon />
+                  <div className="flex flex-col">
+                    <span>Change role</span>
+                    <span className="text-xs text-muted-foreground">Change role to admin</span>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={handleEditPermissions}>
+                  <PencilLineIcon /> Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem variant="destructive" onSelect={handleRemove}>
+                  <Trash2Icon />
+                  <div className="flex flex-col">
+                    <span>Remove</span>
+                    <span className="text-xs text-muted-foreground">
+                      Revoke this member&apos;s access to this organization.
+                    </span>
+                  </div>
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </>
   )
 }

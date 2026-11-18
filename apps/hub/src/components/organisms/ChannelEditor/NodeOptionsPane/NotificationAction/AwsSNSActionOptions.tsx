@@ -1,13 +1,21 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import { AwsSNSActionSubnodeConfig } from '@gruent/libs/engine/nodes/v1/src/action/notification/lib/awsSNS'
 import { Thing, Model } from '@prisma/client'
 import { FC, useEffect, useMemo, useState } from 'react'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import { Textarea } from '@gruent/libs/frontend/components/core/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 
 type Props = {
   things: Thing[]
@@ -216,7 +224,7 @@ const AwsSNSOptions: FC<Props> = ({ things, models, selectedNotificationThing })
   if (!awsSNS || awsSNS.length <= 0)
     return (
       <p>
-        <Button variant="underline" onClick={() => openModal('createThing')}>
+        <Button variant="link" onClick={() => openModal('createThing')}>
           Add an AWS SNS Endpoint
         </Button>{' '}
         to your space before using this node.
@@ -226,43 +234,69 @@ const AwsSNSOptions: FC<Props> = ({ things, models, selectedNotificationThing })
   // Render form fields for the SNS node configuration
   return (
     <>
-      <FormFieldText
-        name="topicARN"
-        label="Topic ARN"
-        value={topicARN || ''}
-        onChange={(e) => setTopicARN(e.target.value)}
-      />
-      <label>Template Message</label>
-      <textarea
-        className="w-full min-h-36 p-2"
-        name="templateMessage"
-        value={templateMessage || ''}
-        onChange={(e) => setTemplateMessage(e.target.value)}
-      />
+      <Field className="my-3">
+        <FieldLabel htmlFor="topicARN">Topic ARN</FieldLabel>
+        <Input
+          id="topicARN"
+          name="topicARN"
+          value={topicARN || ''}
+          onChange={(e) => setTopicARN(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+      <Field className="my-3">
+        <FieldLabel htmlFor="templateMessage">Template Message</FieldLabel>
+        <Textarea
+          id="templateMessage"
+          className="min-h-36"
+          name="templateMessage"
+          value={templateMessage || ''}
+          onChange={(e) => setTemplateMessage(e.target.value)}
+        />
+      </Field>
       {selectedNotificationThing && models && (
         <>
           {/* Add model dropdown after selecting SES or SNS */}
-          <FormFieldSelect
-            name="templateModel"
-            label="Template model (optional)"
-            options={modelOptions} // Populate the model dropdown
-            value={selectedTemplateModel?.id || '__GRUENT_IGNORE__'}
-            onChange={(e) => setSelectedTemplateModel(models.find((s) => s.id === e.target.value))}
-          />
+          <Field className="my-3">
+            <FieldLabel htmlFor="templateModel">Template model (optional)</FieldLabel>
+            <Select
+              name="templateModel"
+              value={selectedTemplateModel?.id || ''}
+              onValueChange={(value) =>
+                setSelectedTemplateModel(models.find((s) => s.id === value))
+              }
+            >
+              <SelectTrigger id="templateModel" className="w-full">
+                <SelectValue placeholder="Select an option" />
+              </SelectTrigger>
+              <SelectContent>
+                {modelOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
         </>
       )}
       {selectedTemplateModel && templateVariables && templateVariables.length > 0 && (
         <>
           <h3>Message Template Variables</h3>
           {templateVariables.map((attribute) => (
-            <FormFieldText
-              name={attribute}
-              key={attribute}
-              label={attribute}
-              placeholder={`Default value for ${attribute} (optional)`}
-              value={defaultValues[attribute] || ''}
-              onChange={(e) => handleDefaultValueChange(attribute, e.target.value)}
-            />
+            <Field key={attribute} className="my-3">
+              <FieldLabel htmlFor={attribute}>{attribute}</FieldLabel>
+              <Input
+                id={attribute}
+                name={attribute}
+                placeholder={`Default value for ${attribute} (optional)`}
+                value={defaultValues[attribute] || ''}
+                onChange={(e) => handleDefaultValueChange(attribute, e.target.value)}
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </Field>
           ))}
         </>
       )}

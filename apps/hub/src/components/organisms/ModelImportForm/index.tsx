@@ -1,7 +1,8 @@
 'use client'
 
 import { FC, useMemo, useState } from 'react'
-import FormFieldTextArea from '@gruent/libs/frontend/components/atoms/FormFieldTextArea'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Textarea } from '@gruent/libs/frontend/components/core/textarea'
 import { ModelAttributes } from '@gruent/libs/engine/dependencies/models'
 import ModelSettingsForm from '../ModelSettingsForm'
 import { handleAddModel } from '@gruent/hub/actions/models'
@@ -68,13 +69,16 @@ const ModelImportForm: FC<Props> = ({ orgId, spaceId }: Props) => {
   return (
     <>
       <section className="mb-8">
-        <FormFieldTextArea
-          label="Import object"
-          name="modelJson"
-          value={modelJson}
-          onChange={(e) => setModelJson(e.target.value)}
-          className="h-40"
-        />
+        <Field className="my-3">
+          <FieldLabel htmlFor="modelJson">Import object</FieldLabel>
+          <Textarea
+            id="modelJson"
+            name="modelJson"
+            value={modelJson}
+            onChange={(e) => setModelJson(e.target.value)}
+            className="h-40"
+          />
+        </Field>
         {modelImportError && (
           <p className="text-red-400">Invalid model import object: {modelImportError}</p>
         )}

@@ -1,7 +1,14 @@
 'use client'
 
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 import { Thing } from '@prisma/client'
 import { Dispatch, FC, useEffect, useMemo, useState } from 'react'
 
@@ -47,54 +54,86 @@ const MinioBucket: FC<Props> = ({ setFormData, secretOptions, initial }) => {
 
   return (
     <>
-      <FormFieldText
-        name="MinioEndpoint"
-        label="Minio Endpoint"
-        className="mt-4 mb-2"
-        value={MinioEndpoint}
-        onChange={(e) => setMinioEndpoint(e.target.value)}
-      />
-      <FormFieldText
-        name="MinioAccessKeyId"
-        label="Minio Access Key ID"
-        className="mt-4 mb-2"
-        value={MinioAccessKeyId}
-        onChange={(e) => setMinioAccessKeyId(e.target.value)}
-      />
-      <FormFieldSelect
-        name="MinioSecretAccessKey"
-        label="Minio Secret Access Key"
-        className="mt-4 mb-2"
-        value={MinioSecretAccessKey}
-        options={secretOptions}
-        onChange={(e) => setMinioSecretAccessKey(e.target.value)}
-      />
-      <FormFieldText
-        name="bucketName"
-        label="Bucket Name"
-        className="mt-4 mb-2"
-        value={bucketName}
-        onChange={(e) => setbucketName(e.target.value)}
-      />
-      <FormFieldSelect
-        name="UseSSL"
-        label="Use SSL"
-        className="mt-4 mb-2"
-        options={[
-          {
-            label: 'True',
-            value: 'true', // Changed to a string representation of true/false
-          },
-          {
-            label: 'False',
-            value: 'false',
-          },
-        ]}
-        value={UseSSL ? 'true' : 'false'} // Convert boolean to string
-        onChange={
-          (e) => setUseSSL(e.target.value === 'true') // Convert string back to boolean
-        }
-      />
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="MinioEndpoint">Minio Endpoint</FieldLabel>
+        <Input
+          id="MinioEndpoint"
+          name="MinioEndpoint"
+          value={MinioEndpoint}
+          onChange={(e) => setMinioEndpoint(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="MinioAccessKeyId">Minio Access Key ID</FieldLabel>
+        <Input
+          id="MinioAccessKeyId"
+          name="MinioAccessKeyId"
+          value={MinioAccessKeyId}
+          onChange={(e) => setMinioAccessKeyId(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="MinioSecretAccessKey">Minio Secret Access Key</FieldLabel>
+        <Select
+          name="MinioSecretAccessKey"
+          value={MinioSecretAccessKey ?? ''}
+          onValueChange={(value) => setMinioSecretAccessKey(value)}
+        >
+          <SelectTrigger id="MinioSecretAccessKey" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            {secretOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="bucketName">Bucket Name</FieldLabel>
+        <Input
+          id="bucketName"
+          name="bucketName"
+          value={bucketName}
+          onChange={(e) => setbucketName(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="UseSSL">Use SSL</FieldLabel>
+        <Select
+          name="UseSSL"
+          value={UseSSL ? 'true' : 'false'}
+          onValueChange={(value) => setUseSSL(value === 'true')}
+        >
+          <SelectTrigger id="UseSSL" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            {[
+              {
+                label: 'True',
+                value: 'true',
+              },
+              {
+                label: 'False',
+                value: 'false',
+              },
+            ].map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
     </>
   )
 }

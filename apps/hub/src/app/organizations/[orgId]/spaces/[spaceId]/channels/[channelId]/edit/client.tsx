@@ -2,7 +2,6 @@
 
 import { FC, useCallback, useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Callout from '@gruent/libs/frontend/components/molecules/Callout'
 import ChannelEditor from '@gruent/hub/components/organisms/ChannelEditor'
 import type { ChannelConfig } from '@gruent/libs/engine/channels/index'
 import { useQuery } from '@tanstack/react-query'
@@ -10,8 +9,10 @@ import gruentClient from '@gruent/hub/lib/gruent'
 import {
   CircleIcon,
   CirclePlusIcon,
+  CircleXIcon,
   ClipboardIcon,
   CloudIcon,
+  EllipsisVerticalIcon,
   FileSearchIcon,
   GitForkIcon,
   HistoryIcon,
@@ -28,7 +29,7 @@ import NodeLibraryPane from '@gruent/hub/components/organisms/ChannelEditor/Node
 import NodeOptionsPane from '@gruent/hub/components/organisms/ChannelEditor/NodeOptionsPane'
 import ChannelOptionsPane from '@gruent/hub/components/organisms/ChannelEditor/ChannelOptionsPane'
 import NoteOptionsPane from '@gruent/hub/components/organisms/ChannelEditor/NoteOptionsPane'
-import Modal from '@gruent/libs/frontend/components/organisms/Modal'
+import Modal from '@gruent/libs/frontend/components/Modal'
 import ChannelExecutionsTable from '@gruent/hub/components/organisms/ChannelExecutionsTable'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import useChannelConfig from '@gruent/libs/frontend/hooks/useChannelConfig'
@@ -37,16 +38,23 @@ import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import Link from 'next/link'
 import dayjs from 'dayjs'
 import Loading from '../loading'
-import NodeExecutionLogEntry from '@gruent/libs/frontend/components/molecules/NodeExecutionLogEntry'
+import NodeExecutionLogEntry from '@gruent/libs/frontend/components/NodeExecutionLogEntry'
 import { Space } from '@prisma/client'
 import { Organization } from '@prisma/client'
-import ContextMenu from '@gruent/hub/components/atoms/ContextMenu'
 import { handleDeleteChannel } from '@gruent/hub/actions/channels'
 import { useRouter } from 'next/navigation'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
 import CreateModelModal from '@gruent/hub/components/modals/CreateModelModal'
 import CreateThingModal from '@gruent/hub/components/modals/CreateThingModal'
 import useAuth from '@gruent/hub/hooks/useAuth'
+import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
+} from '@gruent/libs/frontend/components/core/dropdown-menu'
 
 type Props = {
   orgId: string
@@ -64,6 +72,12 @@ const ChannelByIdEditClientPage: FC<Props> = ({
   space,
 }) => {
   const router = useRouter()
+
+  // shortcut hint shown in the actions menu (display only, matches the old ContextMenu)
+  const modifierKeySymbol = useMemo(() => {
+    if (typeof navigator === 'undefined') return '^'
+    return navigator.platform.toLowerCase().includes('mac') ? '⌘' : '^'
+  }, [])
 
   const [previousPublishStatus, setPreviousPublishStatus] = useState<
     'PUBLISHED' | 'INITIALIZING' | 'UNPUBLISHED'
@@ -200,12 +214,11 @@ const ChannelByIdEditClientPage: FC<Props> = ({
     if (isCurrentExecutionLoading) return <Loading />
     if (getCurrentExecutionError)
       return (
-        <Callout
-          className="max-w-xl"
-          title="Could not get the selected channel execution"
-          description={`${getCurrentExecutionError.message}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not get the selected channel execution</AlertTitle>
+          <AlertDescription>{`${getCurrentExecutionError.message}`}</AlertDescription>
+        </Alert>
       )
     if (!currentExecution) return
 
@@ -506,12 +519,11 @@ const ChannelByIdEditClientPage: FC<Props> = ({
   if (getChannelConfigStatus === 'error') {
     return (
       <div className="w-full h-full flex justify-center items-center">
-        <Callout
-          className="max-w-xl"
-          title="Could not get the channel config"
-          description={`${getChannelConfigError.message}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not get the channel config</AlertTitle>
+          <AlertDescription>{`${getChannelConfigError.message}`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -630,7 +642,9 @@ const ChannelByIdEditClientPage: FC<Props> = ({
               Last saved: {dayjs(channel?.updatedAt).format('M/D/YY')} at{' '}
               {dayjs(channel?.updatedAt).format('hh:mm a')}
             </p>
-            <Button text="Save" variant="transparent" className="text-xs" onClick={handleSave} />
+            <Button variant="outline" className="text-xs" onClick={handleSave}>
+              Save
+            </Button>
             <FileSearchIcon
               size="1.5em"
               className="transition cursor-pointer hover:text-green-700"
@@ -647,40 +661,28 @@ const ChannelByIdEditClientPage: FC<Props> = ({
                 })
               }
             />
-            <ContextMenu
-              iconSize="1.3333em"
-              contextMenuButtons={[
-                {
-                  icon: ShareIcon,
-                  title: 'Export',
-                  hotkey: {
-                    modifiers: ['ctrlOrMeta'],
-                    key: 'E',
-                  },
-                  onClick: () => openModal('exportChannel'),
-                },
-                {
-                  icon: SaveIcon,
-                  title: 'Save',
-                  hotkey: {
-                    modifiers: ['ctrlOrMeta'],
-                    key: 'S',
-                  },
-                  onClick: handleSave,
-                },
-                {
-                  icon: PanelsTopLeftIcon,
-                  title: 'Switch modes',
-                  hotkey: {
-                    modifiers: ['ctrlOrMeta'],
-                    key: 'I',
-                  },
-                  onClick: () => openModal('channelExecutionsTable'),
-                },
-                {
-                  icon: Trash2Icon,
-                  title: 'Delete',
-                  onClick: async () => {
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon-sm" aria-label="Open actions menu">
+                  <EllipsisVerticalIcon />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-44">
+                <DropdownMenuItem onSelect={() => openModal('exportChannel')}>
+                  <ShareIcon /> Export
+                  <DropdownMenuShortcut>{modifierKeySymbol}E</DropdownMenuShortcut>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={handleSave}>
+                  <SaveIcon /> Save
+                  <DropdownMenuShortcut>{modifierKeySymbol}S</DropdownMenuShortcut>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => openModal('channelExecutionsTable')}>
+                  <PanelsTopLeftIcon /> Switch modes
+                  <DropdownMenuShortcut>{modifierKeySymbol}I</DropdownMenuShortcut>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onSelect={async () => {
                     const { error } = await handleDeleteChannel(spaceId, channelId)
                     if (error) {
                       addToast({
@@ -696,10 +698,12 @@ const ChannelByIdEditClientPage: FC<Props> = ({
                       })
                       router.push(`/organizations/${orgId}/spaces/${spaceId}`)
                     }
-                  },
-                },
-              ]}
-            />
+                  }}
+                >
+                  <Trash2Icon /> Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
@@ -707,7 +711,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
         id="channelEditor"
         className="flex overflow-y-hidden bg-gray-50 text-gray-700 dark:bg-gray-900 dark:text-gray-200 relative w-[calc(100vw-65px)] h-[calc(100vh-57px)]"
       >
-        <Modal id="channelExecutionsTable" showAccept={false}>
+        <Modal id="channelExecutionsTable" title="Channel executions" showAccept={false}>
           <p>
             <CloudIcon size="1em" className="mr-1" />
             {channelStatus === 'PUBLISHED' && (
@@ -728,12 +732,11 @@ const ChannelByIdEditClientPage: FC<Props> = ({
           </p>
           {getChannelExecutionsError && (
             <>
-              <Callout
-                className="max-w-xl"
-                title="Could not get channel executions"
-                description={`${getChannelExecutionsError.message}`}
-                variant="error"
-              />
+              <Alert variant="destructive" className="w-fit max-w-xl">
+                <CircleXIcon />
+                <AlertTitle>Could not get channel executions</AlertTitle>
+                <AlertDescription>{`${getChannelExecutionsError.message}`}</AlertDescription>
+              </Alert>
             </>
           )}
           {!getChannelExecutionsError && (
@@ -763,7 +766,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
           )}
         </Modal>
         {currentExecutionDetailsJsx && (
-          <Modal id="channelExecutionDetails" showAccept={false}>
+          <Modal id="channelExecutionDetails" title="Channel execution details" showAccept={false}>
             <div style={{ width: '50vw' }}>
               <div className="mb-4 text-gray-600 dark:text-gray-500">
                 <small>
@@ -805,7 +808,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
             </div>
           </Modal>
         )}
-        <Modal id="exportChannel" showAccept={false}>
+        <Modal id="exportChannel" title="Export channel" showAccept={false}>
           <div
             style={{ maxWidth: 500, maxHeight: 500 }}
             className="overflow-scroll bg-gray-900 text-sm text-gray-200 rounded-sm p-3"
@@ -840,7 +843,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
                 ) : (
                   <CirclePlusIcon
                     size="1.5em"
-                    className="transition text-gray-700 dark:text-gray-300 hover:text-primary bg-gray-50 dark:bg-gray-900"
+                    className="transition text-gray-700 dark:text-gray-300 hover:text-brand-primary bg-gray-50 dark:bg-gray-900"
                     onClick={() => setNodeLibraryOpen(true)}
                   />
                 )}

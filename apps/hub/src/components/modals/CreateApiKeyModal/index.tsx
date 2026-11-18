@@ -1,12 +1,19 @@
 'use client'
 
 import { FC, useCallback, useRef } from 'react'
-import Modal from '@gruent/libs/frontend/components/organisms/Modal'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import Modal from '@gruent/libs/frontend/components/Modal'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 import { PermissionSet } from '@prisma/client'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { closeModal } from '@gruent/libs/frontend/hooks/useModal'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 import { handleAddApiKey } from '@gruent/hub/actions/apiKeys'
 
 type Props = {
@@ -28,7 +35,13 @@ const CreateApiKeyModal: FC<Props> = ({ orgId, spaceId, permissionSets }) => {
   }
 
   return (
-    <Modal id="addApiKey" acceptText="Create" onAccept={handleFormSubmit} onClose={handleFormClose}>
+    <Modal
+      id="addApiKey"
+      title="Add an API key"
+      acceptText="Create"
+      onAccept={handleFormSubmit}
+      onClose={handleFormClose}
+    >
       <h2>Add an API key</h2>
       <p className="text-gray-500">
         <small>
@@ -65,24 +78,34 @@ const CreateApiKeyModal: FC<Props> = ({ orgId, spaceId, permissionSets }) => {
           }
         }}
       >
-        <FormFieldText
-          name="name"
-          label="Name"
-          placeholder="Name of the API key"
-          className="my-4"
-          autocomplete="off"
-        />
-        <FormFieldSelect
-          name="permissionSetId"
-          label="Permission Set"
-          options={permissionSets.map((permissionSet) => {
-            const { name, id } = permissionSet
-            return {
-              value: id,
-              label: name,
-            }
-          })}
-        />
+        <Field className="my-4">
+          <FieldLabel htmlFor="name">Name</FieldLabel>
+          <Input
+            id="name"
+            name="name"
+            placeholder="Name of the API key"
+            autoComplete="off"
+            spellCheck={false}
+          />
+        </Field>
+        <Field className="my-3">
+          <FieldLabel htmlFor="permissionSetId">Permission Set</FieldLabel>
+          <Select name="permissionSetId">
+            <SelectTrigger id="permissionSetId" className="w-full">
+              <SelectValue placeholder="Select an option" />
+            </SelectTrigger>
+            <SelectContent>
+              {permissionSets.map((permissionSet) => {
+                const { name, id } = permissionSet
+                return (
+                  <SelectItem key={id} value={id}>
+                    {name}
+                  </SelectItem>
+                )
+              })}
+            </SelectContent>
+          </Select>
+        </Field>
       </form>
     </Modal>
   )

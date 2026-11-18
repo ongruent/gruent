@@ -2,8 +2,9 @@
 
 import useAuth from '@gruent/hub/hooks/useAuth'
 import gruentClient from '@gruent/hub/lib/gruent'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { Organization } from '@prisma/client'
 import { useMutation } from '@tanstack/react-query'
@@ -55,16 +56,23 @@ const OrganizationSettingsForm: FC<Props> = ({ organization: initialOrganization
 
   return (
     <form onSubmit={handleSubmit}>
-      <FormFieldText
-        label="Organization Name"
-        name="organizationName"
-        value={organization.name}
-        onChange={(e) => {
-          const name = e.target.value
-          setOrganization((current) => ({ ...current, name }))
-        }}
-      />
-      <Button type="submit" text="Save" disabled={organization.name === initialOrganization.name} />
+      <Field className="my-3">
+        <FieldLabel htmlFor="organizationName">Organization Name</FieldLabel>
+        <Input
+          id="organizationName"
+          name="organizationName"
+          value={organization.name}
+          onChange={(e) => {
+            const name = e.target.value
+            setOrganization((current) => ({ ...current, name }))
+          }}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+      <Button type="submit" disabled={organization.name === initialOrganization.name}>
+        Save
+      </Button>
     </form>
   )
 }

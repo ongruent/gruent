@@ -1,7 +1,7 @@
 'use client'
 
 import { handleDeleteSpace } from '@gruent/hub/actions/spaces'
-import Modal from '@gruent/libs/frontend/components/organisms/Modal'
+import Modal from '@gruent/libs/frontend/components/Modal'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { Space } from '@prisma/client'
 import { useRouter } from 'next/navigation'
@@ -35,7 +35,7 @@ const DeleteSpaceModal: FC<Props> = ({ space }) => {
   }
 
   return (
-    <Modal id="deleteSpace" onAccept={handleAccept} acceptText="Delete">
+    <Modal id="deleteSpace" title="Delete space" onAccept={handleAccept} acceptText="Delete">
       <h2 className="text-lg">Delete space</h2>
       <p className="mb-6">
         Once deleted, spaces cannot be recovered. Are you sure you want to delete {space.name}?

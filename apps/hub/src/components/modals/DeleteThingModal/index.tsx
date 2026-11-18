@@ -1,7 +1,7 @@
 'use client'
 
 import { FC, useCallback } from 'react'
-import Modal from '@gruent/libs/frontend/components/organisms/Modal'
+import Modal from '@gruent/libs/frontend/components/Modal'
 import { useMutation } from '@tanstack/react-query'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { closeModal } from '@gruent/libs/frontend/hooks/useModal'
@@ -52,7 +52,13 @@ const DeleteThingModal: FC<Props> = ({ orgId, spaceId, thingId }) => {
   }, [deleteThingMutation])
 
   return (
-    <Modal id="deleteThing" onAccept={handleSubmit} onClose={handleClose} acceptText="Delete">
+    <Modal
+      id="deleteThing"
+      title="Delete a thing"
+      onAccept={handleSubmit}
+      onClose={handleClose}
+      acceptText="Delete"
+    >
       <h2>Delete a thing</h2>
       <p className="text-gray-500">
         <small>Delete a thing from your space.</small>

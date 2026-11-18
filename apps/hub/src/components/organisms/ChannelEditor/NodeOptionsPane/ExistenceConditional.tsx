@@ -1,12 +1,25 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
 import { ChannelNode, ExistenceConditionalNodeConfig } from '@gruent/libs/legacy/engine/nodes/v1'
 import { Model } from '@prisma/client'
 import { FC, useCallback, useEffect, useMemo, useState } from 'react'
 import { ModelAttribute, ModelAttributes } from '@gruent/libs/engine/dependencies/models'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
-import { PlusIcon } from 'lucide-react'
+import { ChevronDownIcon, PlusIcon } from 'lucide-react'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@gruent/libs/frontend/components/core/dropdown-menu'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 
 type Props = {
   models: Model[]
@@ -118,7 +131,7 @@ const ExistenceConditionalOptions: FC<Props> = ({ models }) => {
   if (!models || models.length < 1)
     return (
       <p className="mb-2">
-        <Button variant="underline" onClick={() => openModal('createModel')}>
+        <Button variant="link" onClick={() => openModal('createModel')}>
           Add at least one model
         </Button>{' '}
         to your space before using this node.
@@ -127,31 +140,73 @@ const ExistenceConditionalOptions: FC<Props> = ({ models }) => {
 
   return (
     <>
-      <div className="flex flex-row gap-2">
-        <FormFieldSelect
-          name="model"
-          label="Model"
-          className="grow"
-          options={modelOptions}
-          value={model ? model.id : '__GRUENT_IGNORE__'}
-          onChange={(e) => setModel(models.find((m) => m.id === e.target.value))}
-        />
-        <Button className="my-3" onClick={() => openModal('createModel')}>
-          <PlusIcon size="1em" />
+      <div className="flex flex-row items-end gap-2">
+        <Field className="my-3 grow">
+          <FieldLabel htmlFor="model">Model</FieldLabel>
+          <Select
+            name="model"
+            value={model ? model.id : ''}
+            onValueChange={(value) => setModel(models.find((m) => m.id === value))}
+          >
+            <SelectTrigger id="model" className="w-full">
+              <SelectValue placeholder="Select an option" />
+            </SelectTrigger>
+            <SelectContent>
+              {modelOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Button
+          size="icon"
+          aria-label="Create model"
+          className="my-3"
+          onClick={() => openModal('createModel')}
+        >
+          <PlusIcon />
         </Button>
       </div>
       {model && (
-        <FormFieldSelect
-          name="modelAttributes"
-          label="Attributes"
-          options={availableAttributes}
-          value={attributeIds}
-          multiple
-          onChange={(e) => {
-            const selectedOptions = Array.from(e.target.selectedOptions, (option) => option.value)
-            setAttributeIds(selectedOptions.filter((id) => id !== '__GRUENT_IGNORE__'))
-          }}
-        />
+        <Field className="my-3">
+          <FieldLabel htmlFor="modelAttributes">Attributes</FieldLabel>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                id="modelAttributes"
+                variant="outline"
+                className="w-full justify-between font-normal"
+              >
+                {attributeIds.length
+                  ? availableAttributes
+                      .filter((option) => attributeIds.includes(option.value))
+                      .map((option) => option.label)
+                      .join(', ')
+                  : 'Select options'}
+                <ChevronDownIcon />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-(--radix-dropdown-menu-trigger-width)">
+              {availableAttributes.map((option) => (
+                <DropdownMenuCheckboxItem
+                  key={option.value}
+                  checked={attributeIds.includes(option.value)}
+                  onSelect={(e) => e.preventDefault()}
+                  onCheckedChange={(checked) => {
+                    const selectedOptions = checked
+                      ? [...attributeIds, option.value]
+                      : attributeIds.filter((id) => id !== option.value)
+                    setAttributeIds(selectedOptions.filter((id) => id !== '__GRUENT_IGNORE__'))
+                  }}
+                >
+                  {option.label}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </Field>
       )}
     </>
   )

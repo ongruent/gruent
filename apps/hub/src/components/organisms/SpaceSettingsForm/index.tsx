@@ -2,8 +2,9 @@
 
 import useAuth from '@gruent/hub/hooks/useAuth'
 import gruentClient from '@gruent/hub/lib/gruent'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { Space } from '@prisma/client'
 import { useMutation } from '@tanstack/react-query'
@@ -56,16 +57,23 @@ const SpaceSettingsForm: FC<Props> = ({ orgId, space: initialSpace }) => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <FormFieldText
-        label="Space Name"
-        name="spaceName"
-        value={space.name}
-        onChange={(e) => {
-          const name = e.target.value
-          setSpace((current) => ({ ...current, name }))
-        }}
-      />
-      <Button type="submit" text="Save" disabled={space.name === initialSpace.name} />
+      <Field className="my-3">
+        <FieldLabel htmlFor="spaceName">Space Name</FieldLabel>
+        <Input
+          id="spaceName"
+          name="spaceName"
+          value={space.name}
+          onChange={(e) => {
+            const name = e.target.value
+            setSpace((current) => ({ ...current, name }))
+          }}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+      <Button type="submit" disabled={space.name === initialSpace.name}>
+        Save
+      </Button>
     </form>
   )
 }

@@ -1,14 +1,21 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
 import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import { FileStorageActionNodeConfig } from '@gruent/libs/engine/nodes/v1/src/action/fileStorage'
 import { Thing } from '@prisma/client'
 import { FC, useEffect, useMemo, useState } from 'react'
 import S3ActionOptions from './S3ActionOptions'
 import MinioActionOptions from './MinioActionOptions'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import { PlusIcon } from 'lucide-react'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 
 type Props = {
   things: Thing[]
@@ -114,7 +121,7 @@ const FileStorageActionOptions: FC<Props> = ({ things, orgId, spaceId }) => {
   if (!fileStorageThings || fileStorageThings.length <= 0)
     return (
       <p className="mb-2">
-        <Button variant="underline" onClick={() => openModal('createThing')}>
+        <Button variant="link" onClick={() => openModal('createThing')}>
           Add a file storage server
         </Button>{' '}
         to your space before using this node.
@@ -123,24 +130,40 @@ const FileStorageActionOptions: FC<Props> = ({ things, orgId, spaceId }) => {
 
   return (
     <>
-      <div className="flex flex-row gap-2">
-        <FormFieldSelect
-          name="fileStorageThing"
-          label="File Storage Thing"
-          className="grow"
-          options={fileStorageThingOptions}
-          value={selectedFileStorageThing?.id ?? '__GRUENT_IGNORE__'}
-          onChange={(e) =>
-            setSelectedFileStorageThing(
-              fileStorageThings.find((s) => {
-                if (s.id === e.target.value) return true
-                return false
-              }),
-            )
-          }
-        />
-        <Button className="my-3" onClick={() => openModal('createThing')}>
-          <PlusIcon size="1em" />
+      <div className="flex flex-row items-end gap-2">
+        <Field className="my-3 grow">
+          <FieldLabel htmlFor="fileStorageThing">File Storage Thing</FieldLabel>
+          <Select
+            name="fileStorageThing"
+            value={selectedFileStorageThing?.id ?? ''}
+            onValueChange={(value) =>
+              setSelectedFileStorageThing(
+                fileStorageThings.find((s) => {
+                  if (s.id === value) return true
+                  return false
+                }),
+              )
+            }
+          >
+            <SelectTrigger id="fileStorageThing" className="w-full">
+              <SelectValue placeholder="Select an option" />
+            </SelectTrigger>
+            <SelectContent>
+              {fileStorageThingOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Button
+          size="icon"
+          aria-label="Create thing"
+          className="my-3"
+          onClick={() => openModal('createThing')}
+        >
+          <PlusIcon />
         </Button>
       </div>
       {selectedSubnodeOptions}

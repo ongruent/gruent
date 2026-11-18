@@ -2,11 +2,11 @@ import CreateChannelModal from '@gruent/hub/components/modals/CreateChannelModal
 import gruentClient from '@gruent/hub/lib/gruent'
 import ChannelsTable from '@gruent/hub/components/organisms/ChannelsTable'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
-import Container from '@gruent/libs/frontend/components/templates/Container'
-import { CirclePlusIcon, GitForkIcon } from 'lucide-react'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
+import Container from '@gruent/libs/frontend/components/Container'
+import { CirclePlusIcon, CircleXIcon, GitForkIcon } from 'lucide-react'
+import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
 import ListTablePlaceholder from '@gruent/hub/components/molecules/ListTablePlaceholder'
-import Callout from '@gruent/libs/frontend/components/molecules/Callout'
+import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 import { Tag } from '@prisma/client'
 const SpaceDashboardPage = async ({ params, searchParams }) => {
   const { orgId, spaceId } = await params
@@ -32,12 +32,11 @@ const SpaceDashboardPage = async ({ params, searchParams }) => {
   if (errors && errors.length > 0) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not list the channels for this space"
-          description={`${errors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not list the channels for this space</AlertTitle>
+          <AlertDescription>{`${errors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -45,12 +44,11 @@ const SpaceDashboardPage = async ({ params, searchParams }) => {
   if (!channels) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Channel does not exist"
-          description={`The channel does not exist. Try logging out and logging back in.`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Channel does not exist</AlertTitle>
+          <AlertDescription>{`The channel does not exist. Try logging out and logging back in.`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -61,12 +59,11 @@ const SpaceDashboardPage = async ({ params, searchParams }) => {
   if (tagListErrors && tagListErrors.length > 0) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not list the tags for this space"
-          description={`${tagListErrors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not list the tags for this space</AlertTitle>
+          <AlertDescription>{`${tagListErrors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -74,12 +71,11 @@ const SpaceDashboardPage = async ({ params, searchParams }) => {
   if (!tagListResponse) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not list the tags for this space"
-          description={`The tags could not be listed. Try logging out and logging back in.`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not list the tags for this space</AlertTitle>
+          <AlertDescription>{`The tags could not be listed. Try logging out and logging back in.`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -120,10 +116,10 @@ const SpaceDashboardPage = async ({ params, searchParams }) => {
             >
               <GitForkIcon size="3em" className="text-gray-600 mb-2 rotate-180" />
               <p className="text-gray-600 text-center mb-2">No channels... yet!</p>
-              <Button variant="primary" className="text-sm" modalId="createChannel">
-                <CirclePlusIcon size="1em" className="mr-1" />
+              <OpenModalButton modalId="createChannel">
+                <CirclePlusIcon />
                 <span>Create your first channel</span>
-              </Button>
+              </OpenModalButton>
             </ListTablePlaceholder>
           )}
         </section>

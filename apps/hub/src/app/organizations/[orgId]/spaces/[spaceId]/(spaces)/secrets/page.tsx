@@ -2,11 +2,11 @@ import gruentClient from '@gruent/hub/lib/gruent'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
 import CreateSecretModal from '@gruent/hub/components/modals/CreateSecretModal'
 import SecretsTable from '@gruent/hub/components/organisms/SecretsTable'
-import { CirclePlusIcon, LockIcon } from 'lucide-react'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
-import Container from '@gruent/libs/frontend/components/templates/Container'
+import { CirclePlusIcon, CircleXIcon, LockIcon } from 'lucide-react'
+import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
+import Container from '@gruent/libs/frontend/components/Container'
 import ListTablePlaceholder from '@gruent/hub/components/molecules/ListTablePlaceholder'
-import Callout from '@gruent/libs/frontend/components/molecules/Callout'
+import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 
 export const metadata = {
   title: 'Secrets | GRUENT',
@@ -23,12 +23,11 @@ const SecretsPage = async ({ params }) => {
   if (errors && errors.length > 0) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not list the secrets for this space"
-          description={`${errors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not list the secrets for this space</AlertTitle>
+          <AlertDescription>{`${errors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -36,12 +35,11 @@ const SecretsPage = async ({ params }) => {
   if (!secrets) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not list the secrets for this space"
-          description={`The secrets could not be listed. Try logging out and logging back in.`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not list the secrets for this space</AlertTitle>
+          <AlertDescription>{`The secrets could not be listed. Try logging out and logging back in.`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -58,10 +56,10 @@ const SecretsPage = async ({ params }) => {
             <>
               <div className="absolute top-8 right-10 mb-1 flex items-end gap-2">
                 <div className="grow" />
-                <Button variant="transparent" className="text-sm" modalId="addSecret">
-                  <CirclePlusIcon size="1em" className="mr-1" />
+                <OpenModalButton variant="outline" modalId="addSecret">
+                  <CirclePlusIcon />
                   <span>Create</span>
-                </Button>
+                </OpenModalButton>
               </div>
               <SecretsTable
                 secrets={secrets}
@@ -78,10 +76,10 @@ const SecretsPage = async ({ params }) => {
             >
               <LockIcon size="3em" className="text-gray-600 mb-2" />
               <p className="text-gray-600 text-center mb-2">No secrets... yet!</p>
-              <Button variant="primary" className="text-sm" modalId="addSecret">
-                <CirclePlusIcon size="1em" className="mr-1" />
+              <OpenModalButton modalId="addSecret">
+                <CirclePlusIcon />
                 <span>Create your first secret</span>
-              </Button>
+              </OpenModalButton>
             </ListTablePlaceholder>
           )}
         </section>

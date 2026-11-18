@@ -13,7 +13,6 @@ import ListTable from '@gruent/hub/components/atoms/ListTable'
 import { useRouter } from 'next/navigation'
 import MemberContextMenu from './MembersContextMenu'
 import { MailIcon, UserCogIcon, UserLockIcon } from 'lucide-react'
-// import IndeterminateCheckbox from "../../atoms/IndeterminateCheckbox"
 
 type Member = OrganizationMember & {
   user: User
@@ -47,13 +46,11 @@ const MembersTable: FC<Props> = ({
     // {
     //   id: 'select',
     //   cell: ({ row }) => (
-    //     <IndeterminateCheckbox
-    //       {...{
-    //         checked: row.getIsSelected(),
-    //         disabled: !row.getCanSelect(),
-    //         indeterminate: row.getIsSomeSelected(),
-    //         onChange: row.getToggleSelectedHandler(),
-    //       }}
+    //     <Checkbox
+    //       aria-label="Select row"
+    //       checked={row.getIsSelected()}
+    //       disabled={!row.getCanSelect()}
+    //       onCheckedChange={(checked) => row.toggleSelected(checked === true)}
     //     />
     //   ),
     // },

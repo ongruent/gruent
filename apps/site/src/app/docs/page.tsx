@@ -1,9 +1,10 @@
-import Container from '@gruent/libs/frontend/components/templates/Container'
+import Container from '@gruent/libs/frontend/components/Container'
 
 import { Metadata } from 'next'
 
-import styles from './page.module.scss'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
+import styles from './page.module.css'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
 
 // // do not cache this page
 // export const revalidate = 1 * 60 // seconds
@@ -25,10 +26,10 @@ export const metadata: Metadata = {
 const DocsPage = () => {
   return (
     <>
-      <header id={styles.header} className={`${styles.dotGrid} border-b border-secondary`}>
+      <header id={styles.header} className={`${styles.dotGrid} border-b border-brand-secondary`}>
         <Container className="py-32">
           <div className={`${styles.headerContent}`}>
-            <h1 className="text-2xl lg:text-4xl max-w-2xl text-secondary">Documentation</h1>
+            <h1 className="text-2xl lg:text-4xl max-w-2xl text-brand-secondary">Documentation</h1>
             <p className="text-xl text-gray-600">Explore our guides and examples.</p>
           </div>
         </Container>
@@ -49,15 +50,23 @@ const DocsPage = () => {
             <p className="max-w-xl">
               Once we launch our upcoming beta platform, we will have a comprehensive documentation
               section for features, tutorials, and API reference. For now, check out our{' '}
-              <a href="https://discord.gg/prAJjW426d" target="_blank">
-                <Button variant="underline" className="!inline px-0 py-0">
+              <Button
+                asChild
+                variant="link"
+                className="!inline h-auto px-0 py-0 text-[length:inherit] whitespace-normal"
+              >
+                <a href="https://discord.gg/prAJjW426d" target="_blank">
                   community Discord
-                </Button>
-              </a>{' '}
+                </a>
+              </Button>{' '}
               or{' '}
-              <Button variant="underline" modalId="betaSignup" className="!inline px-0 py-0">
+              <OpenModalButton
+                variant="link"
+                modalId="betaSignup"
+                className="!inline h-auto px-0 py-0 text-[length:inherit] whitespace-normal"
+              >
                 sign up for our upcoming launch.
-              </Button>
+              </OpenModalButton>
             </p>
           </Container>
         </section>

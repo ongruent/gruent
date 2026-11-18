@@ -1,4 +1,6 @@
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import { CircleXIcon } from 'lucide-react'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 import gruentClient from '@gruent/hub/lib/gruent'
 import DeleteThingModal from '@gruent/hub/components/modals/DeleteThingModal'
 import PolicySection from './PolicySection'
@@ -6,9 +8,9 @@ import { Policy } from '@gruent/libs/gruent-js/src/policies'
 import ThingSettingsForm from '@gruent/hub/components/organisms/ThingSettingsForm'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
 import ExportThingButton from '@gruent/hub/components/molecules/ExportThingButton'
-import Container from '@gruent/libs/frontend/components/templates/Container'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
-import Callout from '@gruent/libs/frontend/components/molecules/Callout'
+import Container from '@gruent/libs/frontend/components/Container'
+import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
+import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 
 export const metadata = {
   title: 'Thing details | GRUENT',
@@ -25,24 +27,22 @@ const ThingDetailsPage = async ({ params }) => {
   if (errors && errors.length > 0)
     return (
       <div className="mt-4 px-8 py-2 max-w-full mb-10">
-        <Callout
-          className="max-w-xl"
-          title="Could not get the secrets in the space"
-          description={`${errors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not get the secrets in the space</AlertTitle>
+          <AlertDescription>{`${errors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
 
   if (!secrets)
     return (
       <div className="mt-4 px-8 py-2 max-w-full mb-10">
-        <Callout
-          className="max-w-xl"
-          title="Could not get the secrets"
-          description={`The secrets could not be retrieved. Try logging out and logging back in.`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not get the secrets</AlertTitle>
+          <AlertDescription>{`The secrets could not be retrieved. Try logging out and logging back in.`}</AlertDescription>
+        </Alert>
       </div>
     )
 
@@ -54,12 +54,11 @@ const ThingDetailsPage = async ({ params }) => {
   if (getThingErrors && getThingErrors.length > 0) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not get the thing details"
-          description={`${getThingErrors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not get the thing details</AlertTitle>
+          <AlertDescription>{`${getThingErrors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -67,12 +66,11 @@ const ThingDetailsPage = async ({ params }) => {
   if (!thing || !thing.attributes) {
     return (
       <div className="mt-4 px-8 py-2">
-        <Callout
-          className="max-w-xl"
-          title="Could not get the thing details"
-          description={`The thing details could not be retrieved. Try logging out and logging back in.`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not get the thing details</AlertTitle>
+          <AlertDescription>{`The thing details could not be retrieved. Try logging out and logging back in.`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -94,12 +92,11 @@ const ThingDetailsPage = async ({ params }) => {
   if (policyErrors && policyErrors.length > 0)
     return (
       <>
-        <Callout
-          className="max-w-xl"
-          title="Could not get the policy"
-          description={`${policyErrors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not get the policy</AlertTitle>
+          <AlertDescription>{`${policyErrors[0]}`}</AlertDescription>
+        </Alert>
       </>
     )
 
@@ -148,7 +145,17 @@ const ThingDetailsPage = async ({ params }) => {
           className="relative bg-gray-50 rounded-sm py-5 px-10 border border-gray-200 dark:bg-gray-900 dark:border-gray-800"
           style={{ boxShadow: '3px 3px 10px 0 rgba(0, 0, 0, 0.03)' }}
         >
-          <FormFieldText label="Thing ID" name="thingId" value={thing.id} disabled />
+          <Field className="my-3">
+            <FieldLabel htmlFor="thingId">Thing ID</FieldLabel>
+            <Input
+              id="thingId"
+              name="thingId"
+              value={thing.id}
+              autoComplete="off"
+              spellCheck={false}
+              readOnly
+            />
+          </Field>
           <hr className="my-6" />
           <h2 className="mb-2">Export</h2>
           <ExportThingButton
@@ -167,7 +174,9 @@ const ThingDetailsPage = async ({ params }) => {
           <p className="text-xs mb-2">
             These settings may have significant and irreversible changes to your thing.
           </p>
-          <Button modalId="deleteThing" text="Delete thing" className="bg-red-500 border-red-500" />
+          <OpenModalButton variant="destructive" modalId="deleteThing">
+            Delete thing
+          </OpenModalButton>
         </section>
       </Container>
     </>

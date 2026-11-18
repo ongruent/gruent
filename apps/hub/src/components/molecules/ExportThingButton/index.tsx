@@ -1,6 +1,6 @@
 'use client'
 
-import Button from '@gruent/libs/frontend/components/atoms/Button'
+import { Button } from '@gruent/libs/frontend/components/core/button'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import copyToClipboard from '@gruent/libs/frontend/util/copyToClipboard'
 import { FC, useCallback } from 'react'
@@ -36,7 +36,7 @@ const ExportThingButton: FC<Props> = ({ name, category, attributes }) => {
     }
   }, [name, category, attributes])
 
-  return <Button variant="primary" onClick={handleExport} text="Export thing" />
+  return <Button onClick={handleExport}>Export thing</Button>
 }
 
 export default ExportThingButton

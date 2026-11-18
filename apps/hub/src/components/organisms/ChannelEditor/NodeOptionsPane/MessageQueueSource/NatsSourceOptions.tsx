@@ -1,11 +1,12 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
 import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import { MessageQueueActionNodeConfig } from '@gruent/libs/engine/nodes/v1/src/action/messageQueue'
 import { Thing } from '@prisma/client'
 import { FC, useEffect, useState } from 'react'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 
 type Props = {
   things: Thing[]
@@ -68,7 +69,7 @@ const NatsSourceOptions: FC<Props> = ({
   if (!messageQueueClientOptions || messageQueueClientOptions.length <= 0)
     return (
       <p>
-        <Button variant="underline" onClick={() => openModal('createThing')}>
+        <Button variant="link" onClick={() => openModal('createThing')}>
           Add a message queue client
         </Button>{' '}
         to your space before using this node.
@@ -77,12 +78,17 @@ const NatsSourceOptions: FC<Props> = ({
 
   return (
     <>
-      <FormFieldText
-        name="topic"
-        label="Topic"
-        value={topic}
-        onChange={(e) => setTopic(e.target.value)}
-      />
+      <Field className="my-3">
+        <FieldLabel htmlFor="topic">Topic</FieldLabel>
+        <Input
+          id="topic"
+          name="topic"
+          value={topic}
+          onChange={(e) => setTopic(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
     </>
   )
 }

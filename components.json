@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "libs/frontend/src/styles.css",
+    "baseColor": "neutral",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "iconLibrary": "lucide",
+  "aliases": {
+    "components": "@gruent/libs/frontend/components",
+    "ui": "@gruent/libs/frontend/components/core",
+    "utils": "@gruent/libs/frontend/lib/utils",
+    "lib": "@gruent/libs/frontend/lib",
+    "hooks": "@gruent/libs/frontend/hooks"
+  }
+}

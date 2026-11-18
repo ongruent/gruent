@@ -1,7 +1,7 @@
 'use client'
 
 import { FC, useCallback, useState } from 'react'
-import Modal from '@gruent/libs/frontend/components/organisms/Modal'
+import Modal from '@gruent/libs/frontend/components/Modal'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { closeModal } from '@gruent/libs/frontend/hooks/useModal'
 import { CreateModelInput } from '@gruent/libs/gruent-js/src/models/create'
@@ -55,6 +55,7 @@ const CreateModelModal: FC<Props> = ({ spaceId, onClose, onSubmit }) => {
   return (
     <Modal
       id="createModel"
+      title="Add a model"
       onAccept={handleSubmit}
       onClose={handleClose}
       acceptText="Create"

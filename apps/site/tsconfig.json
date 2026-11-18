@@ -30,10 +30,9 @@
     "../../apps/gruent-com/.next/types/**/*.ts",
     "../../apps/gruent-com/dist/.next/types/**/*.ts",
     "../../apps/site/dist/.next/types/**/*.ts",
-    "../../libs/frontend/src/components/organisms/Modal/NewsletterModal/NewsletterModal.tsx",
     "next-env.d.ts",
     ".next/types/**/*.ts"
-, "../../libs/frontend/src/components/templates/NotionBlockRenderer/index.tsx"  ],
+, "../../libs/frontend/src/components/NotionBlockRenderer/index.tsx"  ],
   "exclude": [
     "node_modules",
     "jest.config.ts",

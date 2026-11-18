@@ -1,9 +1,10 @@
 import gruentClient from '@gruent/hub/lib/gruent'
-import NodeExecutionLogEntry from '@gruent/libs/frontend/components/molecules/NodeExecutionLogEntry'
+import NodeExecutionLogEntry from '@gruent/libs/frontend/components/NodeExecutionLogEntry'
 import Link from 'next/link'
 import dayjs from 'dayjs'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
-import Callout from '@gruent/libs/frontend/components/molecules/Callout'
+import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
+import { CircleXIcon, TriangleAlertIcon } from 'lucide-react'
 export const metadata = {
   title: 'Channel execution details | GRUENT',
 }
@@ -21,24 +22,22 @@ const ChannelExecutionByIdPage = async ({ params }) => {
   if (getChannelExecutionErrors && getChannelExecutionErrors.length > 0)
     return (
       <div className="mt-4 px-8 py-2 max-w-full mb-10">
-        <Callout
-          className="max-w-xl"
-          title="Could not retrieve the channel execution"
-          description={`${getChannelExecutionErrors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not retrieve the channel execution</AlertTitle>
+          <AlertDescription>{`${getChannelExecutionErrors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
 
   if (!channelExecution)
     return (
       <div className="mt-4 px-8 py-2 max-w-full mb-10">
-        <Callout
-          className="max-w-xl"
-          title="Invalid channel execution"
-          description={`This channel execution does not exist. Try logging out and logging back in.`}
-          variant="warning"
-        />
+        <Alert variant="warning" className="w-fit max-w-xl">
+          <TriangleAlertIcon />
+          <AlertTitle>Invalid channel execution</AlertTitle>
+          <AlertDescription>{`This channel execution does not exist. Try logging out and logging back in.`}</AlertDescription>
+        </Alert>
       </div>
     )
 

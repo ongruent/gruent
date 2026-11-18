@@ -1,12 +1,14 @@
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import { CircleXIcon, TriangleAlertIcon } from 'lucide-react'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 import ModelSettingsForm from '@gruent/hub/components/organisms/ModelSettingsForm'
 import DeleteModelModal from '@gruent/hub/components/modals/DeleteModelModal'
 import gruentClient from '@gruent/hub/lib/gruent'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
 import ExportModelButton from '@gruent/hub/components/molecules/ExportModelButton'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
-import Container from '@gruent/libs/frontend/components/templates/Container'
-import Callout from '@gruent/libs/frontend/components/molecules/Callout'
+import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
+import Container from '@gruent/libs/frontend/components/Container'
+import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 
 export const metadata = {
   title: 'Model details | GRUENT',
@@ -22,22 +24,20 @@ const ModelDetailsPage = async ({ params }) => {
 
   if (errors && errors.length > 0)
     return (
-      <Callout
-        className="max-w-xl"
-        title="Could not get the model details"
-        description={`${errors[0]}`}
-        variant="error"
-      />
+      <Alert variant="destructive" className="w-fit max-w-xl">
+        <CircleXIcon />
+        <AlertTitle>Could not get the model details</AlertTitle>
+        <AlertDescription>{`${errors[0]}`}</AlertDescription>
+      </Alert>
     )
 
   if (!model)
     return (
-      <Callout
-        className="max-w-xl"
-        title="Could not get the model details"
-        description={`The model details could not be retrieved. Try logging out and logging back in.`}
-        variant="error"
-      />
+      <Alert variant="destructive" className="w-fit max-w-xl">
+        <CircleXIcon />
+        <AlertTitle>Could not get the model details</AlertTitle>
+        <AlertDescription>{`The model details could not be retrieved. Try logging out and logging back in.`}</AlertDescription>
+      </Alert>
     )
   const { attributes, error: parseError } = (() => {
     try {
@@ -68,16 +68,25 @@ const ModelDetailsPage = async ({ params }) => {
           className="relative bg-gray-50 rounded-sm py-5 px-10 border border-gray-200 dark:bg-gray-900 dark:border-gray-800"
           style={{ boxShadow: '3px 3px 10px 0 rgba(0, 0, 0, 0.03)' }}
         >
-          <FormFieldText label="Model Id" name="modelId" value={model.id} disabled />
+          <Field className="my-3">
+            <FieldLabel htmlFor="modelId">Model Id</FieldLabel>
+            <Input
+              id="modelId"
+              name="modelId"
+              value={model.id}
+              autoComplete="off"
+              spellCheck={false}
+              readOnly
+            />
+          </Field>
           <hr className="my-6" />
           <h2 className="mb-2">Export</h2>
           {parseError && (
-            <Callout
-              className="max-w-xl"
-              title="Could not export the model"
-              description={`${parseError}`}
-              variant="warning"
-            />
+            <Alert variant="warning" className="w-fit max-w-xl">
+              <TriangleAlertIcon />
+              <AlertTitle>Could not export the model</AlertTitle>
+              <AlertDescription>{`${parseError}`}</AlertDescription>
+            </Alert>
           )}
           {!parseError && <ExportModelButton name={model.name} attributes={attributes} />}
         </section>
@@ -91,9 +100,9 @@ const ModelDetailsPage = async ({ params }) => {
           <p className="text-xs mb-2">
             These settings may have significant and irreversible changes to your space
           </p>
-          <Button variant="primary" className="bg-red-500 border-red-500" modalId="deleteModel">
+          <OpenModalButton variant="destructive" modalId="deleteModel">
             <span>Delete model</span>
-          </Button>
+          </OpenModalButton>
         </section>
       </Container>
     </>

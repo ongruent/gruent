@@ -1,8 +1,10 @@
 import gruentClient from '@gruent/hub/lib/gruent'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
 import ChannelExecutionsTable from '@gruent/hub/components/organisms/ChannelExecutionsTable'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
-import Callout from '@gruent/libs/frontend/components/molecules/Callout'
+import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
+import { CircleXIcon, TriangleAlertIcon } from 'lucide-react'
+import Link from 'next/link'
+import { Button } from '@gruent/libs/frontend/components/core/button'
 export const metadata = {
   title: 'Channel details | GRUENT',
 }
@@ -22,12 +24,11 @@ const ChannelDetailsPage = async ({ params, searchParams }) => {
   if (getChannelErrors && getChannelErrors.length > 0)
     return (
       <div className="mt-4 px-8 py-2 max-w-full mb-10">
-        <Callout
-          className="max-w-xl"
-          title="Could not retrieve the channel"
-          description={`${getChannelErrors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not retrieve the channel</AlertTitle>
+          <AlertDescription>{`${getChannelErrors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
 
@@ -44,12 +45,11 @@ const ChannelDetailsPage = async ({ params, searchParams }) => {
   if (getChannelExecutionsErrors && getChannelExecutionsErrors.length > 0)
     return (
       <div className="mt-4 px-8 py-2 max-w-full mb-10">
-        <Callout
-          className="max-w-xl"
-          title="Could not retrieve the channel executions"
-          description={`${getChannelExecutionsErrors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not retrieve the channel executions</AlertTitle>
+          <AlertDescription>{`${getChannelExecutionsErrors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
 
@@ -60,12 +60,11 @@ const ChannelDetailsPage = async ({ params, searchParams }) => {
   if (!channel)
     return (
       <div className="mt-4 px-8 py-2 max-w-full mb-10">
-        <Callout
-          className="max-w-xl"
-          title="Invalid channel"
-          description={`This channel does not exist. Try logging out and logging back in.`}
-          variant="warning"
-        />
+        <Alert variant="warning" className="w-fit max-w-xl">
+          <TriangleAlertIcon />
+          <AlertTitle>Invalid channel</AlertTitle>
+          <AlertDescription>{`This channel does not exist. Try logging out and logging back in.`}</AlertDescription>
+        </Alert>
       </div>
     )
 
@@ -75,11 +74,11 @@ const ChannelDetailsPage = async ({ params, searchParams }) => {
       <p>
         <small>Monitor and edit channels</small>
       </p>
-      <Button
-        className="mt-2"
-        href={`/organizations/${orgId}/spaces/${spaceId}/channels/${channelId}/edit`}
-        text="Edit"
-      />
+      <Button className="mt-2" asChild>
+        <Link href={`/organizations/${orgId}/spaces/${spaceId}/channels/${channelId}/edit`}>
+          Edit
+        </Link>
+      </Button>
       <h2 className="mt-8">Channel Execution Logs</h2>
       {channelStatus?.status === 'PUBLISHED' && channel.publishedAt && (
         <p>

@@ -1,4 +1,4 @@
-$vertical-word-count: 8;
+@reference '../../../../libs/frontend/src/styles.css';
 
 #header {
   @apply pb-20;
@@ -17,7 +17,7 @@ $vertical-word-count: 8;
   
   ul {
     padding: 0;
-    animation: wordVerticalScroll #{$vertical-word-count * 2.5}s infinite;
+    animation: wordVerticalScroll 20s infinite;
     animation-delay: 2s;
 
     li {
@@ -171,16 +171,33 @@ $vertical-word-count: 8;
   animation-duration: 90s;
 }
 
-// scrollUp
+/* scrollUp */
+/* 8 words: one step every 12.5% */
 @keyframes wordVerticalScroll {
-  @for $i from 1 to ($vertical-word-count) {
-    #{(100% / $vertical-word-count) * $i} {
-      transform: translateY((-100% / $vertical-word-count) * $i);
-    }
+  12.5% {
+    transform: translateY(-12.5%);
+  }
+  25% {
+    transform: translateY(-25%);
+  }
+  37.5% {
+    transform: translateY(-37.5%);
+  }
+  50% {
+    transform: translateY(-50%);
+  }
+  62.5% {
+    transform: translateY(-62.5%);
+  }
+  75% {
+    transform: translateY(-75%);
+  }
+  87.5% {
+    transform: translateY(-87.5%);
   }
 }
 
-// logoTicker
+/* logoTicker */
 @keyframes logoTickerHorizontalScroll {
   0% {
     transform: translateX(0%);

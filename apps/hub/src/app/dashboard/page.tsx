@@ -1,10 +1,10 @@
 import CreateOrganizationModal from '@gruent/hub/components/modals/CreateOrganizationModal'
-import { ArrowRightIcon, CirclePlusIcon } from 'lucide-react'
+import { ArrowRightIcon, CirclePlusIcon, CircleXIcon } from 'lucide-react'
 import Link from 'next/link'
 import gruentClient from '@gruent/hub/lib/gruent'
 import getAccessToken, { getSession } from '@gruent/hub/util/getAccessToken'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
-import Callout from '@gruent/libs/frontend/components/molecules/Callout'
+import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
+import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 export const metadata = {
   title: 'Dashboard | GRUENT',
 }
@@ -20,12 +20,11 @@ const DashboardPage = async () => {
   if (errors && errors.length > 0) {
     return (
       <div>
-        <Callout
-          className="max-w-xl"
-          title="Could not retrieve the user details"
-          description={`${errors[0]}`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>Could not retrieve the user details</AlertTitle>
+          <AlertDescription>{`${errors[0]}`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -33,12 +32,11 @@ const DashboardPage = async () => {
   if (!user) {
     return (
       <div>
-        <Callout
-          className="max-w-xl"
-          title="User not found"
-          description={`This user does not exist. Try logging out and logging back in.`}
-          variant="error"
-        />
+        <Alert variant="destructive" className="w-fit max-w-xl">
+          <CircleXIcon />
+          <AlertTitle>User not found</AlertTitle>
+          <AlertDescription>{`This user does not exist. Try logging out and logging back in.`}</AlertDescription>
+        </Alert>
       </div>
     )
   }
@@ -56,10 +54,10 @@ const DashboardPage = async () => {
             </p>
           </div>
           <div className="grow" />
-          <Button variant="transparent" className="text-sm" modalId="createOrganization">
-            <CirclePlusIcon size="1em" className="mr-1" />
+          <OpenModalButton variant="outline" modalId="createOrganization">
+            <CirclePlusIcon />
             <span>Create</span>
-          </Button>
+          </OpenModalButton>
         </div>
         {user.organizations && user.organizations.length > 0 && (
           <div className="grid grid-cols-3 gap-8">

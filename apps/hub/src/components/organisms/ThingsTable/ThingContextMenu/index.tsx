@@ -2,9 +2,15 @@
 
 import { FC } from 'react'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
-import ContextMenu from '@gruent/hub/components/atoms/ContextMenu'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@gruent/libs/frontend/components/core/dropdown-menu'
 import { handleDeleteThing } from '@gruent/hub/actions/things'
-import { Trash2Icon } from 'lucide-react'
+import { EllipsisVerticalIcon, Trash2Icon } from 'lucide-react'
 type Props = {
   thingId: string
   spaceId: string
@@ -12,33 +18,38 @@ type Props = {
 }
 
 const ThingContextMenu: FC<Props> = ({ thingId, spaceId }) => {
-  const contextMenuButtons = [
-    {
-      icon: Trash2Icon,
-      title: 'Delete',
-      onClick: async () => {
-        const { error } = await handleDeleteThing(spaceId, thingId)
-        if (error) {
-          addToast({
-            title: 'Could not delete the thing',
-            body: `The thing that you selected could not be deleted: ${error}`,
-            level: 'error',
-          })
-        } else {
-          addToast({
-            title: 'Successfully deleted thing',
-            body: 'Successfully deleted thing from your space.',
-            level: 'success',
-          })
-        }
-      },
-    },
-  ]
+  const handleDelete = async () => {
+    const { error } = await handleDeleteThing(spaceId, thingId)
+    if (error) {
+      addToast({
+        title: 'Could not delete the thing',
+        body: `The thing that you selected could not be deleted: ${error}`,
+        level: 'error',
+      })
+    } else {
+      addToast({
+        title: 'Successfully deleted thing',
+        body: 'Successfully deleted thing from your space.',
+        level: 'success',
+      })
+    }
+  }
 
   return (
-    <>
-      <ContextMenu contextMenuButtons={contextMenuButtons} />
-    </>
+    <div className="flex justify-end">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon-sm" aria-label="Open actions menu">
+            <EllipsisVerticalIcon />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-44">
+          <DropdownMenuItem variant="destructive" onSelect={handleDelete}>
+            <Trash2Icon /> Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   )
 }
 

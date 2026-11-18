@@ -2,8 +2,9 @@
 
 import Image from 'next/image'
 import { FC, FormEventHandler, useEffect, useState } from 'react'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 import Link from 'next/link'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { useRouter } from 'next/navigation'
@@ -124,28 +125,38 @@ const SignUpForm: FC<Props> = ({ invitation, inviteToken, inviteTokenError }) =>
           </>
         )} */}
         <form onSubmit={handleSignupFormSubmit}>
-          <FormFieldText
-            name="email"
-            label="Email"
-            inputType="email"
-            backgroundColor="bg-gray-50"
-            defaultValue={intialEmail}
-          />
-          <div className="relative flex items-center">
-            <FormFieldText
-              name="password"
-              label="Password"
-              inputType={showPassword ? 'text' : 'password'}
-              backgroundColor="bg-gray-50"
-              className="w-full"
+          <Field className="my-3">
+            <FieldLabel htmlFor="email">Email</FieldLabel>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              defaultValue={intialEmail}
+              autoComplete="off"
+              spellCheck={false}
             />
-            <EyeIcon
-              size="1em"
-              className="absolute right-3 transition text-gray-500 hover:text-gray-600 cursor-pointer"
-              onClick={() => setShowPassword((current) => !current)}
-            />
-          </div>
-          <Button id="submit" className="w-full" type="submit" text="Sign up" />
+          </Field>
+          <Field className="my-3 w-full">
+            <FieldLabel htmlFor="password">Password</FieldLabel>
+            <div className="relative flex items-center">
+              <Input
+                id="password"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                className="pr-9"
+                autoComplete="off"
+                spellCheck={false}
+              />
+              <EyeIcon
+                size="1em"
+                className="absolute right-3 transition text-gray-500 hover:text-gray-600 cursor-pointer"
+                onClick={() => setShowPassword((current) => !current)}
+              />
+            </div>
+          </Field>
+          <Button id="submit" className="w-full" type="submit">
+            Sign up
+          </Button>
         </form>
         <p className="text-sm mt-6">
           Already have an account?{' '}

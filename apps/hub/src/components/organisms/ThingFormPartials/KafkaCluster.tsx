@@ -1,8 +1,9 @@
 'use client'
 
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 import { Dispatch, FC, useEffect, useMemo, useState } from 'react'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
 import { XIcon } from 'lucide-react'
 import { Thing } from '@prisma/client'
 
@@ -39,19 +40,25 @@ const KafkaCluster: FC<Props> = ({ setFormData, initial }) => {
       {bootstrapServers.map((bootstrapServer, i) => {
         return (
           <div key={`bootstrapServer-${i}`} className="flex mt-4 mb-2 items-center">
-            <FormFieldText
-              name={`bootstrapServer-${i}`}
-              label={`Bootstrap Server ${i + 1}`}
-              className="grow"
-              value={bootstrapServer}
-              onChange={(e) =>
-                setBootstrapServers((current) => {
-                  const n = [...current]
-                  n[i] = e.target.value
-                  return n
-                })
-              }
-            />
+            <Field className="my-3 grow">
+              <FieldLabel
+                htmlFor={`bootstrapServer-${i}`}
+              >{`Bootstrap Server ${i + 1}`}</FieldLabel>
+              <Input
+                id={`bootstrapServer-${i}`}
+                name={`bootstrapServer-${i}`}
+                value={bootstrapServer}
+                onChange={(e) =>
+                  setBootstrapServers((current) => {
+                    const n = [...current]
+                    n[i] = e.target.value
+                    return n
+                  })
+                }
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </Field>
             <XIcon
               size="1em"
               className="-mr-4 text-gray-500 hover:text-red-500 transition cursor-pointer"
@@ -63,28 +70,30 @@ const KafkaCluster: FC<Props> = ({ setFormData, initial }) => {
         )
       })}
       <div className="flex">
-        <Button
-          text="Add Bootstrap Server"
-          className="mb-4"
-          onClick={() => setBootstrapServers((current) => [...current, ''])}
-        />
+        <Button className="mb-4" onClick={() => setBootstrapServers((current) => [...current, ''])}>
+          Add Bootstrap Server
+        </Button>
       </div>
       {topics.map((topic, i) => {
         return (
           <div key={`topic-${i}`} className="flex mt-4 mb-2 items-center">
-            <FormFieldText
-              name={`topic-${i}`}
-              label={`Path ${i + 1}`}
-              className="grow"
-              value={topic}
-              onChange={(e) =>
-                setTopics((current) => {
-                  const n = [...current]
-                  n[i] = e.target.value
-                  return n
-                })
-              }
-            />
+            <Field className="my-3 grow">
+              <FieldLabel htmlFor={`topic-${i}`}>{`Path ${i + 1}`}</FieldLabel>
+              <Input
+                id={`topic-${i}`}
+                name={`topic-${i}`}
+                value={topic}
+                onChange={(e) =>
+                  setTopics((current) => {
+                    const n = [...current]
+                    n[i] = e.target.value
+                    return n
+                  })
+                }
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </Field>
             <XIcon
               size="1em"
               className="-mr-4 text-gray-500 hover:text-red-500 transition cursor-pointer"
@@ -96,11 +105,9 @@ const KafkaCluster: FC<Props> = ({ setFormData, initial }) => {
         )
       })}
       <div className="flex">
-        <Button
-          text="Add Topic"
-          className="mb-4"
-          onClick={() => setTopics((current) => [...current, ''])}
-        />
+        <Button className="mb-4" onClick={() => setTopics((current) => [...current, ''])}>
+          Add Topic
+        </Button>
       </div>
     </>
   )

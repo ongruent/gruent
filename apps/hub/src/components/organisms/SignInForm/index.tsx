@@ -2,15 +2,16 @@
 
 import Image from 'next/image'
 import { FormEventHandler, useState } from 'react'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
 import Link from 'next/link'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { useRouter } from 'next/navigation'
 import { EyeIcon, EyeOffIcon } from 'lucide-react'
 // import { signIn } from 'next-auth/react'
 import { signInWithCredentials, signInWithMagicLink } from '@gruent/hub/actions/auth'
-import Modal from '@gruent/libs/frontend/components/organisms/Modal'
+import Modal from '@gruent/libs/frontend/components/Modal'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 
 type Props = {
@@ -100,7 +101,7 @@ const SignInForm = ({ allowPassword = true, initialEmail }: Props) => {
   return (
     <div className="flex flex-col w-full">
       <div className="min-w-[400px] bg-gray-50 rounded-xl py-8 px-9 shadow-xl">
-        <Modal id="forgot-password" showAccept={false}>
+        <Modal id="forgot-password" title="Forgot password" showAccept={false}>
           <h2>Forgot password</h2>
           <p className="w-96">
             If you have forgotten your password, you can use magic link authentication or a
@@ -137,43 +138,48 @@ const SignInForm = ({ allowPassword = true, initialEmail }: Props) => {
           </>
         )} */}
         <form onSubmit={handleLoginFormSubmit}>
-          <FormFieldText
-            name="email"
-            label="Email"
-            inputType="email"
-            backgroundColor="bg-gray-50"
-            defaultValue={initialEmail}
-          />
+          <Field className="my-3">
+            <FieldLabel htmlFor="email">Email</FieldLabel>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              defaultValue={initialEmail}
+              autoComplete="off"
+              spellCheck={false}
+            />
+          </Field>
           {passwordEnabled && (
-            <div className="relative flex items-center">
-              <FormFieldText
-                name="password"
-                label="Password"
-                inputType={showPassword ? 'text' : 'password'}
-                backgroundColor="bg-gray-50"
-                className="w-full"
-              />
-              {showPassword ? (
-                <EyeOffIcon
-                  size="1em"
-                  className="absolute right-3 transition text-gray-500 hover:text-gray-600 cursor-pointer"
-                  onClick={() => setShowPassword((current) => !current)}
+            <Field className="my-3 w-full">
+              <FieldLabel htmlFor="password">Password</FieldLabel>
+              <div className="relative flex items-center">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  className="pr-9"
+                  autoComplete="off"
+                  spellCheck={false}
                 />
-              ) : (
-                <EyeIcon
-                  size="1em"
-                  className="absolute right-3 transition text-gray-500 hover:text-gray-600 cursor-pointer"
-                  onClick={() => setShowPassword((current) => !current)}
-                />
-              )}
-            </div>
+                {showPassword ? (
+                  <EyeOffIcon
+                    size="1em"
+                    className="absolute right-3 transition text-gray-500 hover:text-gray-600 cursor-pointer"
+                    onClick={() => setShowPassword((current) => !current)}
+                  />
+                ) : (
+                  <EyeIcon
+                    size="1em"
+                    className="absolute right-3 transition text-gray-500 hover:text-gray-600 cursor-pointer"
+                    onClick={() => setShowPassword((current) => !current)}
+                  />
+                )}
+              </div>
+            </Field>
           )}
-          <Button
-            id="submit"
-            className="w-full"
-            type="submit"
-            text={passwordEnabled ? 'Continue' : 'Receive magic link'}
-          />
+          <Button id="submit" className="w-full" type="submit">
+            {passwordEnabled ? 'Continue' : 'Receive magic link'}
+          </Button>
         </form>
         <p className="text-sm mt-6">
           No account?{' '}

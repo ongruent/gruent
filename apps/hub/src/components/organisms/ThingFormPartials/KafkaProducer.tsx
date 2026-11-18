@@ -1,9 +1,16 @@
 'use client'
 
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 import useAuth from '@gruent/hub/hooks/useAuth'
 import gruentClient from '@gruent/hub/lib/gruent'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import { Thing } from '@prisma/client'
 import { useQuery } from '@tanstack/react-query'
@@ -75,7 +82,7 @@ const KafkaProducer: FC<Props> = ({ setFormData, spaceId, initial }) => {
     return (
       <p>
         No Kafka clusters were found in this space. You'll have to&nbsp;
-        <Button variant="underline" onClick={() => openModal('createThing')}>
+        <Button variant="link" onClick={() => openModal('createThing')}>
           create a Kafka cluster
         </Button>
         &nbsp;in this space before creating an Kafka producer.
@@ -85,14 +92,21 @@ const KafkaProducer: FC<Props> = ({ setFormData, spaceId, initial }) => {
 
   return (
     <>
-      <FormFieldSelect
-        name="cluster"
-        label="Cluster"
-        className="mt-4 mb-2"
-        options={kafkaClusterOptions}
-        value={cluster}
-        onChange={(e) => setCluster(e.target.value)}
-      />
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="cluster">Cluster</FieldLabel>
+        <Select name="cluster" value={cluster ?? ''} onValueChange={(value) => setCluster(value)}>
+          <SelectTrigger id="cluster" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            {kafkaClusterOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
     </>
   )
 }

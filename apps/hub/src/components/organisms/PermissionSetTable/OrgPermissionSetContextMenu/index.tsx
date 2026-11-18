@@ -7,9 +7,15 @@ import gruentClient from '@gruent/hub/lib/gruent'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import UpdateOrgPermissionSetModal from '@gruent/hub/components/modals/UpdateOrgPermissionSetModal'
 import { PermissionSet } from '@prisma/client'
-import ContextMenu from '@gruent/hub/components/atoms/ContextMenu'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@gruent/libs/frontend/components/core/dropdown-menu'
 import { handleRemovePermissionSet } from '@gruent/hub/actions/permissionSets'
-import { PencilLineIcon, Trash2Icon } from 'lucide-react'
+import { EllipsisVerticalIcon, PencilLineIcon, Trash2Icon } from 'lucide-react'
 import useAuth from '@gruent/hub/hooks/useAuth'
 
 type Props = {
@@ -53,36 +59,27 @@ const OrgPermissionSetContextMenu: FC<Props> = ({ permissionSetId, orgId }) => {
     },
   })
 
-  const contextMenuButtons = [
-    {
-      icon: PencilLineIcon,
-      title: 'Edit',
-      onClick: () => {
-        handleEditPermissionSet.mutate()
-        setShowModal(true)
-      },
-    },
-    {
-      icon: Trash2Icon,
-      title: 'Delete',
-      onClick: async () => {
-        const { error } = await handleRemovePermissionSet(orgId, permissionSetId)
-        if (error) {
-          addToast({
-            title: 'Could not delete the permission set',
-            body: `The permission set that you selected could not be deleted: ${error}`,
-            level: 'error',
-          })
-        } else {
-          addToast({
-            title: 'Successfully deleted permission set',
-            body: 'Successfully deleted the permission set from your space.',
-            level: 'success',
-          })
-        }
-      },
-    },
-  ]
+  const handleEdit = () => {
+    handleEditPermissionSet.mutate()
+    setShowModal(true)
+  }
+
+  const handleDelete = async () => {
+    const { error } = await handleRemovePermissionSet(orgId, permissionSetId)
+    if (error) {
+      addToast({
+        title: 'Could not delete the permission set',
+        body: `The permission set that you selected could not be deleted: ${error}`,
+        level: 'error',
+      })
+    } else {
+      addToast({
+        title: 'Successfully deleted permission set',
+        body: 'Successfully deleted the permission set from your space.',
+        level: 'success',
+      })
+    }
+  }
 
   return (
     <>
@@ -92,7 +89,23 @@ const OrgPermissionSetContextMenu: FC<Props> = ({ permissionSetId, orgId }) => {
         initialPermissionSet={currentPermissionSet}
         onClose={() => setShowModal(false)}
       />
-      <ContextMenu contextMenuButtons={contextMenuButtons} />
+      <div className="flex justify-end">
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon-sm" aria-label="Open actions menu">
+              <EllipsisVerticalIcon />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-44">
+            <DropdownMenuItem onSelect={handleEdit}>
+              <PencilLineIcon /> Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem variant="destructive" onSelect={handleDelete}>
+              <Trash2Icon /> Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </>
   )
 }

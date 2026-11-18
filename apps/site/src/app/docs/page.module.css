@@ -1,3 +1,5 @@
+@reference '../../../../../libs/frontend/src/styles.css';
+
 .dotGrid {
   background: url('/img/dot-grid.webp') repeat;
   background-size: 250px;

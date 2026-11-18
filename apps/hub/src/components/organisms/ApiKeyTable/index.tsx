@@ -15,7 +15,6 @@ import { ClipboardIcon, InfoIcon, KeyIcon, ListChecksIcon } from 'lucide-react'
 import copyToClipboard from '@gruent/libs/frontend/util/copyToClipboard'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { useRouter } from 'next/navigation'
-// import IndeterminateCheckbox from "../../atoms/IndeterminateCheckbox"
 
 type Props = {
   apiKeys: ApiKey[]
@@ -47,13 +46,11 @@ const ApiKeysTable: FC<Props> = ({
     // {
     //   id: 'select',
     //   cell: ({ row }) => (
-    //     <IndeterminateCheckbox
-    //       {...{
-    //         checked: row.getIsSelected(),
-    //         disabled: !row.getCanSelect(),
-    //         indeterminate: row.getIsSomeSelected(),
-    //         onChange: row.getToggleSelectedHandler(),
-    //       }}
+    //     <Checkbox
+    //       aria-label="Select row"
+    //       checked={row.getIsSelected()}
+    //       disabled={!row.getCanSelect()}
+    //       onCheckedChange={(checked) => row.toggleSelected(checked === true)}
     //     />
     //   ),
     // },

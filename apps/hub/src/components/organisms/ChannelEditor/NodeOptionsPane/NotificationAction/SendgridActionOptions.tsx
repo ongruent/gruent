@@ -1,13 +1,21 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import { SendgridActionSubnodeConfig } from '@gruent/libs/engine/nodes/v1/src/action/notification/lib/sendgrid'
 import { Thing, Model } from '@prisma/client'
 import { FC, useEffect, useMemo, useState } from 'react'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import { Textarea } from '@gruent/libs/frontend/components/core/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 
 type Props = {
   things: Thing[]
@@ -237,7 +245,7 @@ const SendgridActionOptions: FC<Props> = ({ things, models, selectedNotification
   if (!sendgridClients || sendgridClients.length <= 0)
     return (
       <p>
-        <Button variant="underline" onClick={() => openModal('createThing')}>
+        <Button variant="link" onClick={() => openModal('createThing')}>
           Add a Sendgrid client
         </Button>{' '}
         to your space before using this node.
@@ -247,61 +255,102 @@ const SendgridActionOptions: FC<Props> = ({ things, models, selectedNotification
   // Render form fields for the Sendgrid node configuration
   return (
     <>
-      <FormFieldText
-        name="sender"
-        label="Sender"
-        value={sender || ''}
-        onChange={(e) => setSender(e.target.value)}
-      />
-      <FormFieldText
-        name="sendAs"
-        label="Send As (optional)"
-        value={sendAs || ''}
-        onChange={(e) => setSendAs(e.target.value)}
-      />
-      <FormFieldText
-        name="receiver"
-        label="Receiver"
-        value={receiver || ''}
-        onChange={(e) => setReceiver(e.target.value)}
-      />
-      <FormFieldText
-        name="subject"
-        label="Subject"
-        value={subject || ''}
-        onChange={(e) => setSubject(e.target.value)}
-      />
-      <label>Template Message</label>
-      <textarea
-        className="w-full min-h-36 p-2"
-        name="templateMessage"
-        value={templateMessage || ''}
-        onChange={(e) => setTemplateMessage(e.target.value)}
-      />
+      <Field className="my-3">
+        <FieldLabel htmlFor="sender">Sender</FieldLabel>
+        <Input
+          id="sender"
+          name="sender"
+          value={sender || ''}
+          onChange={(e) => setSender(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+      <Field className="my-3">
+        <FieldLabel htmlFor="sendAs">Send As (optional)</FieldLabel>
+        <Input
+          id="sendAs"
+          name="sendAs"
+          value={sendAs || ''}
+          onChange={(e) => setSendAs(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+      <Field className="my-3">
+        <FieldLabel htmlFor="receiver">Receiver</FieldLabel>
+        <Input
+          id="receiver"
+          name="receiver"
+          value={receiver || ''}
+          onChange={(e) => setReceiver(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+      <Field className="my-3">
+        <FieldLabel htmlFor="subject">Subject</FieldLabel>
+        <Input
+          id="subject"
+          name="subject"
+          value={subject || ''}
+          onChange={(e) => setSubject(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+      <Field className="my-3">
+        <FieldLabel htmlFor="templateMessage">Template Message</FieldLabel>
+        <Textarea
+          id="templateMessage"
+          className="min-h-36"
+          name="templateMessage"
+          value={templateMessage || ''}
+          onChange={(e) => setTemplateMessage(e.target.value)}
+        />
+      </Field>
       {selectedNotificationThing && models && (
         <>
           {/* Add model dropdown after selecting SES or SNS */}
-          <FormFieldSelect
-            name="templateModel"
-            label="Template model (optional)"
-            options={modelOptions} // Populate the model dropdown
-            value={selectedTemplateModel?.id || '__GRUENT_IGNORE__'}
-            onChange={(e) => setSelectedTemplateModel(models.find((m) => m.id === e.target.value))}
-          />
+          <Field className="my-3">
+            <FieldLabel htmlFor="templateModel">Template model (optional)</FieldLabel>
+            <Select
+              name="templateModel"
+              value={selectedTemplateModel?.id || ''}
+              onValueChange={(value) =>
+                setSelectedTemplateModel(models.find((m) => m.id === value))
+              }
+            >
+              <SelectTrigger id="templateModel" className="w-full">
+                <SelectValue placeholder="Select an option" />
+              </SelectTrigger>
+              <SelectContent>
+                {modelOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
         </>
       )}
       {selectedTemplateModel && templateVariables && templateVariables.length > 0 && (
         <>
           <h3>Message Template Variables</h3>
           {templateVariables.map((field) => (
-            <FormFieldText
-              name={field}
-              key={field}
-              label={field}
-              placeholder={`Default value for ${field} (optional)`}
-              value={defaultValues[field] || ''}
-              onChange={(e) => handleDefaultValueChange(field, e.target.value)}
-            />
+            <Field key={field} className="my-3">
+              <FieldLabel htmlFor={field}>{field}</FieldLabel>
+              <Input
+                id={field}
+                name={field}
+                placeholder={`Default value for ${field} (optional)`}
+                value={defaultValues[field] || ''}
+                onChange={(e) => handleDefaultValueChange(field, e.target.value)}
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </Field>
           ))}
         </>
       )}

@@ -1,8 +1,15 @@
 'use client'
 
-import Button from '@gruent/libs/frontend/components/atoms/Button'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 import { XIcon } from 'lucide-react'
 import { Thing } from '@prisma/client'
 import { Dispatch, FC, useEffect, useMemo, useState } from 'react'
@@ -50,74 +57,112 @@ const MongoDbServer: FC<Props> = ({ setFormData, secretOptions, initial }) => {
 
   return (
     <>
-      <FormFieldSelect
-        name="protocol"
-        label="Protocol"
-        options={[
-          {
-            label: 'mongodb',
-            value: 'mongodb',
-          },
-          {
-            label: 'mongodb+srv',
-            value: 'mongodb+srv',
-          },
-        ]}
-        className="mt-4 mb-2"
-        value={protocol}
-        onChange={(e) => setProtocol(e.target.value as 'mongodb' | 'mongodb+srv')}
-      />
-      <FormFieldText
-        name="host"
-        label="Host"
-        className="mt-4 mb-2"
-        value={host}
-        onChange={(e) => setHost(e.target.value)}
-      />
-      {protocol === 'mongodb' && (
-        <FormFieldText
-          name="port"
-          inputType="number"
-          min="1"
-          max="65535"
-          label="Port"
-          className="mt-4 mb-2"
-          value={port.toString()}
-          onChange={(e) => setPort(parseInt(e.target.value))}
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="protocol">Protocol</FieldLabel>
+        <Select
+          name="protocol"
+          value={protocol ?? ''}
+          onValueChange={(value) => setProtocol(value as 'mongodb' | 'mongodb+srv')}
+        >
+          <SelectTrigger id="protocol" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            {[
+              {
+                label: 'mongodb',
+                value: 'mongodb',
+              },
+              {
+                label: 'mongodb+srv',
+                value: 'mongodb+srv',
+              },
+            ].map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="host">Host</FieldLabel>
+        <Input
+          id="host"
+          name="host"
+          value={host}
+          onChange={(e) => setHost(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
         />
+      </Field>
+      {protocol === 'mongodb' && (
+        <Field className="mt-4 mb-2">
+          <FieldLabel htmlFor="port">Port</FieldLabel>
+          <Input
+            id="port"
+            name="port"
+            type="number"
+            min="1"
+            max="65535"
+            value={port.toString()}
+            onChange={(e) => setPort(parseInt(e.target.value))}
+            autoComplete="off"
+            spellCheck={false}
+          />
+        </Field>
       )}
-      <FormFieldText
-        name="username"
-        label="Username"
-        className="mt-4 mb-2"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-      />
-      <FormFieldSelect
-        name="password"
-        label="Password"
-        className="mt-4 mb-2"
-        value={password}
-        options={secretOptions}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="username">Username</FieldLabel>
+        <Input
+          id="username"
+          name="username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="password">Password</FieldLabel>
+        <Select
+          name="password"
+          value={password ?? ''}
+          onValueChange={(value) => setPassword(value)}
+        >
+          <SelectTrigger id="password" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            {secretOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
       {databases.map((database, i) => {
         return (
           <div key={`database-${i}`}>
             <div className="flex mt-4 items-center">
-              <FormFieldText
-                name={`database-${i}`}
-                label={`Database ${i + 1}`}
-                className="grow"
-                value={database}
-                onChange={(e) =>
-                  setDatabases((current) => {
-                    const updated = [...current]
-                    updated[i] = e.target.value
-                    return updated
-                  })
-                }
-              />
+              <Field className="my-3 grow">
+                <FieldLabel htmlFor={`database-${i}`}>{`Database ${i + 1}`}</FieldLabel>
+                <Input
+                  id={`database-${i}`}
+                  name={`database-${i}`}
+                  value={database}
+                  onChange={(e) =>
+                    setDatabases((current) => {
+                      const updated = [...current]
+                      updated[i] = e.target.value
+                      return updated
+                    })
+                  }
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+              </Field>
               <XIcon
                 size="1em"
                 className="-mr-4 text-gray-500 hover:text-red-500 transition cursor-pointer"
@@ -135,19 +180,23 @@ const MongoDbServer: FC<Props> = ({ setFormData, secretOptions, initial }) => {
               collections[database].map((collection, j) => {
                 return (
                   <div key={`collection-${j}`} className="flex mt-0 mb-0 ml-4 items-center">
-                    <FormFieldText
-                      name={`collection-${j}`}
-                      label={`Collection ${j + 1}`}
-                      className="grow"
-                      value={collection}
-                      onChange={(e) =>
-                        setCollections((current) => {
-                          const updated = structuredClone(current)
-                          if (updated[database]) updated[database][j] = e.target.value
-                          return updated
-                        })
-                      }
-                    />
+                    <Field className="my-3 grow">
+                      <FieldLabel htmlFor={`collection-${j}`}>{`Collection ${j + 1}`}</FieldLabel>
+                      <Input
+                        id={`collection-${j}`}
+                        name={`collection-${j}`}
+                        value={collection}
+                        onChange={(e) =>
+                          setCollections((current) => {
+                            const updated = structuredClone(current)
+                            if (updated[database]) updated[database][j] = e.target.value
+                            return updated
+                          })
+                        }
+                        autoComplete="off"
+                        spellCheck={false}
+                      />
+                    </Field>
                     <XIcon
                       size="1em"
                       className="-mr-4 text-gray-500 hover:text-red-500 transition cursor-pointer"
@@ -163,7 +212,6 @@ const MongoDbServer: FC<Props> = ({ setFormData, secretOptions, initial }) => {
                 )
               })}
             <Button
-              text="Add Collection"
               className="mb-1 ml-4"
               onClick={() =>
                 setCollections((current) => {
@@ -177,16 +225,19 @@ const MongoDbServer: FC<Props> = ({ setFormData, secretOptions, initial }) => {
                   return updated
                 })
               }
-            />
+            >
+              Add Collection
+            </Button>
           </div>
         )
       })}
       <div className="flex">
         <Button
-          text="Add Database"
           className="mt-2 mb-4"
           onClick={() => setDatabases((current) => [...current, `database${databases.length + 1}`])}
-        />
+        >
+          Add Database
+        </Button>
       </div>
     </>
   )

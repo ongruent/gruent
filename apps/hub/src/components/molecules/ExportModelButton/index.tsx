@@ -1,7 +1,7 @@
 'use client'
 
 import { ModelAttributes } from '@gruent/libs/engine/dependencies/models'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
+import { Button } from '@gruent/libs/frontend/components/core/button'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import copyToClipboard from '@gruent/libs/frontend/util/copyToClipboard'
 import { FC, useCallback } from 'react'
@@ -35,7 +35,7 @@ const ExportModelButton: FC<Props> = ({ name, attributes }) => {
     }
   }, [name, attributes])
 
-  return <Button variant="primary" onClick={handleExport} text="Export model" />
+  return <Button onClick={handleExport}>Export model</Button>
 }
 
 export default ExportModelButton

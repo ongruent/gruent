@@ -1,6 +1,13 @@
 'use client'
 
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 import { Thing } from '@prisma/client'
 import { Dispatch, FC, useEffect, useMemo, useState } from 'react'
 
@@ -36,14 +43,25 @@ const SendgridClient: FC<Props> = ({ setFormData, secretOptions, initial }) => {
 
   return (
     <>
-      <FormFieldSelect
-        name="apiKey"
-        label="Sendgrid API Key"
-        className="mt-4 mb-2"
-        value={sendgridApiKey}
-        options={secretOptions}
-        onChange={(e) => setSendgridApiKey(e.target.value)}
-      />
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="apiKey">Sendgrid API Key</FieldLabel>
+        <Select
+          name="apiKey"
+          value={sendgridApiKey ?? ''}
+          onValueChange={(value) => setSendgridApiKey(value)}
+        >
+          <SelectTrigger id="apiKey" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            {secretOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
     </>
   )
 }

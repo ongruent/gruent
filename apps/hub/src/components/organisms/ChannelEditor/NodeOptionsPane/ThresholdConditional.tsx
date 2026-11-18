@@ -1,8 +1,5 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
-import Modal from '@gruent/libs/frontend/components/organisms/Modal'
+import Modal from '@gruent/libs/frontend/components/Modal'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import { ChannelNode, ThresholdConditionalNodeConfig } from '@gruent/libs/legacy/engine/nodes/v1'
 import { Condition, Operator } from '@gruent/libs/legacy/engine/nodes/v1/src/conditional/threshold'
@@ -19,6 +16,16 @@ import {
 } from 'react'
 import { ModelAttributes } from '@gruent/libs/engine/dependencies/models'
 import { Model } from '@prisma/client'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 
 type Props = {
   models: Model[]
@@ -89,7 +96,7 @@ const ThresholdConditionalOptions: FC<Props> = ({ models, orgId, spaceId }) => {
   if (!models || models.length < 1)
     return (
       <p className="mb-2">
-        <Button variant="underline" onClick={() => openModal('createModel')}>
+        <Button variant="link" onClick={() => openModal('createModel')}>
           Add at least one model
         </Button>{' '}
         to your space before using this node.
@@ -105,40 +112,54 @@ const ThresholdConditionalOptions: FC<Props> = ({ models, orgId, spaceId }) => {
         spaceId={spaceId}
         setConditions={setConditions}
       />
-      <div className="flex flex-row gap-2">
-        <FormFieldSelect
-          name="model"
-          label="Model"
-          className="grow"
-          options={modelOptions}
-          value={model ? model.id : '__GRUENT_IGNORE__'}
-          onChange={(e) => setModel(models.find((m) => m.id === e.target.value))}
-        />
-        <Button className="my-3" onClick={() => openModal('createModel')}>
-          <PlusIcon size="1em" />
+      <div className="flex flex-row items-end gap-2">
+        <Field className="my-3 grow">
+          <FieldLabel htmlFor="model">Model</FieldLabel>
+          <Select
+            name="model"
+            value={model ? model.id : ''}
+            onValueChange={(value) => setModel(models.find((m) => m.id === value))}
+          >
+            <SelectTrigger id="model" className="w-full">
+              <SelectValue placeholder="Select an option" />
+            </SelectTrigger>
+            <SelectContent>
+              {modelOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Button
+          size="icon"
+          aria-label="Create model"
+          className="my-3"
+          onClick={() => openModal('createModel')}
+        >
+          <PlusIcon />
         </Button>
       </div>
-      <FormFieldSelect
-        name="logicalOperator"
-        label="Logical Operator"
-        options={[
-          {
-            label: 'OR',
-            value: 'OR',
-          },
-          {
-            label: 'AND',
-            value: 'AND',
-          },
-        ]}
-        value={logicalOperator}
-        onChange={(e) => setLogicalOperator(e.target.value as 'AND' | 'OR')}
-      />
-      <Button
-        text="Edit conditions"
-        className="w-full mb-2"
-        onClick={() => openModal('threshold')}
-      />
+      <Field className="my-3">
+        <FieldLabel htmlFor="logicalOperator">Logical Operator</FieldLabel>
+        <Select
+          name="logicalOperator"
+          value={logicalOperator}
+          onValueChange={(value) => setLogicalOperator(value as 'AND' | 'OR')}
+        >
+          <SelectTrigger id="logicalOperator" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="OR">OR</SelectItem>
+            <SelectItem value="AND">AND</SelectItem>
+          </SelectContent>
+        </Select>
+      </Field>
+      <Button className="w-full mb-2" onClick={() => openModal('threshold')}>
+        Edit conditions
+      </Button>
     </>
   )
 }
@@ -229,11 +250,8 @@ const ThresholdNodeModal: FC<ThresholdModalProps> = ({
     setConditions(updatedConditions)
   }
 
-  const handleConditionFieldChange = (
-    e: ChangeEvent<HTMLSelectElement>,
-    conditionIndex: number,
-  ) => {
-    const attributeId = e.target.value
+  const handleConditionFieldChange = (selectedValue: string, conditionIndex: number) => {
+    const attributeId = selectedValue
 
     const updatedConditions = [...conditions]
     updatedConditions[conditionIndex] = {
@@ -244,11 +262,8 @@ const ThresholdNodeModal: FC<ThresholdModalProps> = ({
     setConditions(updatedConditions)
   }
 
-  const handleConditionOperatorChange = (
-    e: ChangeEvent<HTMLSelectElement>,
-    conditionIndex: number,
-  ) => {
-    const operator = e.target.value
+  const handleConditionOperatorChange = (selectedValue: string, conditionIndex: number) => {
+    const operator = selectedValue
 
     const updatedConditions = [...conditions]
 
@@ -275,14 +290,14 @@ const ThresholdNodeModal: FC<ThresholdModalProps> = ({
 
   if (!model) {
     return (
-      <Modal id="threshold" showAccept={false}>
+      <Modal id="threshold" title="Threshold conditions" showAccept={false}>
         Missing model. Make sure you set a model before trying to apply a threshold.
       </Modal>
     )
   }
 
   return (
-    <Modal id="threshold" showAccept={false}>
+    <Modal id="threshold" title="Threshold conditions" showAccept={false}>
       <div className="overflow-scroll">
         {availableAttributes.length <= 0 && (
           <p>
@@ -318,34 +333,57 @@ const ThresholdNodeModal: FC<ThresholdModalProps> = ({
                   />
                   <h2 className="text-xs mb-1 mt-2">Condition {index + 1}</h2>
                   <div className="border border-green-500 rounded-sm px-6 py-3">
-                    <FormFieldSelect
-                      name={`condition${index}.field`}
-                      label="Field"
-                      options={availableAttributes}
-                      value={condition.attributeId}
-                      onChange={(e) => handleConditionFieldChange(e, index)}
-                    />
-                    <FormFieldSelect
-                      name={`condition${index}.operator`}
-                      label="Operator"
-                      options={[
-                        { label: '==', value: Operator.EqualTo },
-                        { label: '!=', value: Operator.NotEqualTo },
-                        { label: '>', value: Operator.GreaterThan },
-                        { label: '<', value: Operator.LessThan },
-                        { label: '>=', value: Operator.GreaterThanEqualTo },
-                        { label: '<=', value: Operator.LessThanEqualTo },
-                      ]}
-                      value={condition.operator}
-                      onChange={(e) => handleConditionOperatorChange(e, index)}
-                    />
-                    <FormFieldText
-                      name={`condition${index}.value`}
-                      inputType="number"
-                      label="Value"
-                      value={condition.value.toString()}
-                      onChange={(e) => handleConditionValueChange(e, index)}
-                    />
+                    <Field className="my-3">
+                      <FieldLabel htmlFor={`condition${index}.field`}>Field</FieldLabel>
+                      <Select
+                        name={`condition${index}.field`}
+                        value={condition.attributeId}
+                        onValueChange={(value) => handleConditionFieldChange(value, index)}
+                      >
+                        <SelectTrigger id={`condition${index}.field`} className="w-full">
+                          <SelectValue placeholder="Select an option" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableAttributes.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                    <Field className="my-3">
+                      <FieldLabel htmlFor={`condition${index}.operator`}>Operator</FieldLabel>
+                      <Select
+                        name={`condition${index}.operator`}
+                        value={condition.operator}
+                        onValueChange={(value) => handleConditionOperatorChange(value, index)}
+                      >
+                        <SelectTrigger id={`condition${index}.operator`} className="w-full">
+                          <SelectValue placeholder="Select an option" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={Operator.EqualTo}>{'=='}</SelectItem>
+                          <SelectItem value={Operator.NotEqualTo}>{'!='}</SelectItem>
+                          <SelectItem value={Operator.GreaterThan}>{'>'}</SelectItem>
+                          <SelectItem value={Operator.LessThan}>{'<'}</SelectItem>
+                          <SelectItem value={Operator.GreaterThanEqualTo}>{'>='}</SelectItem>
+                          <SelectItem value={Operator.LessThanEqualTo}>{'<='}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                    <Field className="my-3">
+                      <FieldLabel htmlFor={`condition${index}.value`}>Value</FieldLabel>
+                      <Input
+                        id={`condition${index}.value`}
+                        name={`condition${index}.value`}
+                        type="number"
+                        value={condition.value.toString()}
+                        onChange={(e) => handleConditionValueChange(e, index)}
+                        autoComplete="off"
+                        spellCheck={false}
+                      />
+                    </Field>
                   </div>
                 </div>
               )
@@ -354,11 +392,12 @@ const ThresholdNodeModal: FC<ThresholdModalProps> = ({
         )}
       </div>
       <Button
-        text="Add condition"
         onClick={handleAddCondition}
         className="mb-2 w-full"
         disabled={availableAttributes.length === 0}
-      />
+      >
+        Add condition
+      </Button>
     </Modal>
   )
 }

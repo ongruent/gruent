@@ -1,14 +1,21 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
 import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import { MessageQueueSourceNodeConfig } from '@gruent/libs/engine/nodes/v1/src/source/messageQueue'
 import { Thing } from '@prisma/client'
 import { FC, useEffect, useMemo, useState } from 'react'
 import KafkaActionOptions from './KafkaSourceOptions'
 import NatsSourceOptions from './NatsSourceOptions'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import { PlusIcon } from 'lucide-react'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 
 type Props = {
   things: Thing[]
@@ -122,7 +129,7 @@ const MessageQueueSourceOptions: FC<Props> = ({ things, orgId, spaceId }) => {
   if (!messageQueueClients || messageQueueClients.length <= 0)
     return (
       <p className="mb-2">
-        <Button variant="underline" onClick={() => openModal('createThing')}>
+        <Button variant="link" onClick={() => openModal('createThing')}>
           Add a message queue client
         </Button>{' '}
         to your space before using this node.
@@ -131,24 +138,40 @@ const MessageQueueSourceOptions: FC<Props> = ({ things, orgId, spaceId }) => {
 
   return (
     <>
-      <div className="flex flex-row gap-2">
-        <FormFieldSelect
-          name="messageQueueClient"
-          label="Message Queue Client"
-          className="grow"
-          options={messageQueueClientOptions}
-          value={selectedMessageQueueClient?.id ?? '__GRUENT_IGNORE__'}
-          onChange={(e) =>
-            setSelectedMessageQueueClient(
-              messageQueueClients.find((s) => {
-                if (s.id === e.target.value) return true
-                return false
-              }),
-            )
-          }
-        />
-        <Button className="my-3" onClick={() => openModal('createThing')}>
-          <PlusIcon size="1em" />
+      <div className="flex flex-row items-end gap-2">
+        <Field className="my-3 grow">
+          <FieldLabel htmlFor="messageQueueClient">Message Queue Client</FieldLabel>
+          <Select
+            name="messageQueueClient"
+            value={selectedMessageQueueClient?.id ?? ''}
+            onValueChange={(value) =>
+              setSelectedMessageQueueClient(
+                messageQueueClients.find((s) => {
+                  if (s.id === value) return true
+                  return false
+                }),
+              )
+            }
+          >
+            <SelectTrigger id="messageQueueClient" className="w-full">
+              <SelectValue placeholder="Select an option" />
+            </SelectTrigger>
+            <SelectContent>
+              {messageQueueClientOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Button
+          size="icon"
+          aria-label="Create thing"
+          className="my-3"
+          onClick={() => openModal('createThing')}
+        >
+          <PlusIcon />
         </Button>
       </div>
       {selectedSubnodeOptions}

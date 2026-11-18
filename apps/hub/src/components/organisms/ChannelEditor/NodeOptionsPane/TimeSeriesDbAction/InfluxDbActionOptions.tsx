@@ -3,9 +3,16 @@ import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import { TimeSeriesDbNodeConfig } from '@gruent/libs/engine/nodes/v1/src/action/timeSeriesDb'
 import { Thing } from '@prisma/client'
 import { FC, useEffect, useMemo, useState } from 'react'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 
 type Props = {
   things: Thing[]
@@ -90,7 +97,7 @@ const InfluxDbActionOptions: FC<Props> = ({
   if (!timeSeriesDatabaseOptions || timeSeriesDatabaseOptions.length <= 0)
     return (
       <p>
-        <Button variant="underline" onClick={() => openModal('createThing')}>
+        <Button variant="link" onClick={() => openModal('createThing')}>
           Add a time series database
         </Button>{' '}
         to your space before using this node.
@@ -111,13 +118,21 @@ const InfluxDbActionOptions: FC<Props> = ({
         </p>
       )}
       {bucketOptions.length > 0 && (
-        <FormFieldSelect
-          options={bucketOptions}
-          name="bucket"
-          label="Bucket"
-          value={bucket}
-          onChange={(e) => setBucket(e.target.value)}
-        />
+        <Field className="my-3">
+          <FieldLabel htmlFor="bucket">Bucket</FieldLabel>
+          <Select name="bucket" value={bucket} onValueChange={(value) => setBucket(value)}>
+            <SelectTrigger id="bucket" className="w-full">
+              <SelectValue placeholder="Select an option" />
+            </SelectTrigger>
+            <SelectContent>
+              {bucketOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
       )}
     </>
   )

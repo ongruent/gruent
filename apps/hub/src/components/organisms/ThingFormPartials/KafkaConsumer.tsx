@@ -1,9 +1,16 @@
 'use client'
 
+import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@gruent/libs/frontend/components/core/select'
 import useAuth from '@gruent/hub/hooks/useAuth'
 import gruentClient from '@gruent/hub/lib/gruent'
-import FormFieldSelect from '@gruent/libs/frontend/components/atoms/FormFieldSelect'
-import FormFieldText from '@gruent/libs/frontend/components/atoms/FormFieldText'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import { Thing } from '@prisma/client'
 import { useQuery } from '@tanstack/react-query'
@@ -90,42 +97,68 @@ const KafkaConsumer: FC<Props> = ({ setFormData, spaceId, initial }) => {
 
   return (
     <>
-      <FormFieldSelect
-        name="cluster"
-        label="Cluster"
-        className="mt-4 mb-2"
-        options={kafkaClusterOptions}
-        value={clusterId}
-        onChange={(e) => setClusterId(e.target.value)}
-      />
-      <FormFieldText
-        name="groupId"
-        label="Group ID"
-        className="mt-4 mb-2"
-        value={groupId}
-        onChange={(e) => setGroupId(e.target.value)}
-      />
-      <FormFieldSelect
-        name="autoOffsetReset"
-        label="Auto Offset Reset"
-        className="mt-4 mb-2"
-        options={[
-          {
-            label: 'latest',
-            value: 'latest',
-          },
-          {
-            label: 'earliest',
-            value: 'earliest',
-          },
-          {
-            label: 'none',
-            value: 'none',
-          },
-        ]}
-        value={autoOffsetReset}
-        onChange={(e) => setAutoOffsetReset(e.target.value as 'latest' | 'earliest' | 'none')}
-      />
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="cluster">Cluster</FieldLabel>
+        <Select
+          name="cluster"
+          value={clusterId ?? ''}
+          onValueChange={(value) => setClusterId(value)}
+        >
+          <SelectTrigger id="cluster" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            {kafkaClusterOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="groupId">Group ID</FieldLabel>
+        <Input
+          id="groupId"
+          name="groupId"
+          value={groupId}
+          onChange={(e) => setGroupId(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </Field>
+      <Field className="mt-4 mb-2">
+        <FieldLabel htmlFor="autoOffsetReset">Auto Offset Reset</FieldLabel>
+        <Select
+          name="autoOffsetReset"
+          value={autoOffsetReset ?? ''}
+          onValueChange={(value) => setAutoOffsetReset(value as 'latest' | 'earliest' | 'none')}
+        >
+          <SelectTrigger id="autoOffsetReset" className="w-full">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            {[
+              {
+                label: 'latest',
+                value: 'latest',
+              },
+              {
+                label: 'earliest',
+                value: 'earliest',
+              },
+              {
+                label: 'none',
+                value: 'none',
+              },
+            ].map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
     </>
   )
 }

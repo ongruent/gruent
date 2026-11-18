@@ -2,7 +2,15 @@
 
 import { FC, PropsWithChildren, useMemo } from 'react'
 import { Table, flexRender } from '@tanstack/react-table'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import {
+  Table as TableRoot,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@gruent/libs/frontend/components/core/table'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -78,10 +86,10 @@ const ListTable: FC<PropsWithChildren<Props>> = ({
       </div>
       {headerContent && <div className="mb-2">{headerContent}</div>}
       <div className="bg-gray-100 dark:bg-gray-800 p-[2px] rounded-md">
-        <table className="w-full">
-          <thead>
+        <TableRoot className="w-full">
+          <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className="border-0 hover:bg-transparent">
                 {headerGroup.headers.map((header) => {
                   const meta = header.column.columnDef.meta as TableColumnMeta | undefined
 
@@ -97,25 +105,25 @@ const ListTable: FC<PropsWithChildren<Props>> = ({
                   })()
 
                   return (
-                    <th
+                    <TableHead
                       key={header.id}
                       colSpan={header.colSpan}
-                      className={`py-2 px-6 font-normal text-sm text-gray-500 bg-white dark:bg-gray-900 first:rounded-tl last:rounded-tr ${alignClass}`}
+                      className={`h-auto py-2 px-6 font-normal text-sm text-gray-500 bg-white dark:bg-gray-900 first:rounded-tl last:rounded-tr ${alignClass}`}
                       style={{
                         width: header.column.getIndex() === 0 ? 'auto' : header.column.getSize(),
                       }}
                     >
                       {!header.isPlaceholder &&
                         flexRender(header.column.columnDef.header, header.getContext())}
-                    </th>
+                    </TableHead>
                   )
                 })}
-              </tr>
+              </TableRow>
             ))}
-          </thead>
-          <tbody>
+          </TableHeader>
+          <TableBody>
             {table.getRowModel().rows.map((row, rowIndex) => (
-              <tr key={row.id} className="group">
+              <TableRow key={row.id} className="group border-0 hover:bg-transparent">
                 {row.getVisibleCells().map((cell) => {
                   const meta = cell.column.columnDef.meta as TableColumnMeta | undefined
 
@@ -131,9 +139,9 @@ const ListTable: FC<PropsWithChildren<Props>> = ({
                   })()
 
                   return (
-                    <td
+                    <TableCell
                       key={cell.id}
-                      className={`h-12 px-0 first:pl-0 last:pr-0 ${rowIndex === 0 ? 'pt-[2px]' : ''} ${alignClass}`}
+                      className={`h-12 p-0 first:pl-0 last:pr-0 ${rowIndex === 0 ? 'pt-[2px]' : ''} ${alignClass}`}
                       style={{
                         width: cell.column.getIndex() === 0 ? 'auto' : cell.column.getSize(),
                       }}
@@ -141,10 +149,10 @@ const ListTable: FC<PropsWithChildren<Props>> = ({
                       <div className="h-full w-full flex items-center transition py-1 px-6 bg-white dark:bg-gray-900 text-gray-700 hover:text-gray-800 dark:text-gray-200 dark:hover:text-gray-100 group-hover:bg-gray-50 dark:group-hover:bg-gray-800">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </div>
-                    </td>
+                    </TableCell>
                   )
                 })}
-              </tr>
+              </TableRow>
             ))}
             {/* Add empty rows if there are less than 10 rows and page > 1 */}
             {page &&
@@ -153,11 +161,11 @@ const ListTable: FC<PropsWithChildren<Props>> = ({
               Array(10 - table.getRowModel().rows.length)
                 .fill(0)
                 .map((_, index) => (
-                  <tr key={`empty-${index}`} className="group">
+                  <TableRow key={`empty-${index}`} className="group border-0 hover:bg-transparent">
                     {table.getHeaderGroups()[0].headers.map((header) => (
-                      <td
+                      <TableCell
                         key={`empty-${index}-${header.id}`}
-                        className="h-12 px-0 first:pl-0 last:pr-0"
+                        className="h-12 p-0 first:pl-0 last:pr-0"
                         style={{
                           width: header.column.getIndex() === 0 ? 'auto' : header.column.getSize(),
                         }}
@@ -165,12 +173,12 @@ const ListTable: FC<PropsWithChildren<Props>> = ({
                         <div className="h-full w-full flex items-center transition py-1 px-6 bg-gray-100 group-hover:bg-gray-100">
                           &nbsp;
                         </div>
-                      </td>
+                      </TableCell>
                     ))}
-                  </tr>
+                  </TableRow>
                 ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </TableRoot>
         <div className="mt-px bg-white dark:bg-gray-900 rounded-b px-6 py-2 [&_small]:text-gray-500">
           {children}
         </div>
@@ -179,13 +187,21 @@ const ListTable: FC<PropsWithChildren<Props>> = ({
         <div className="flex gap-2 mt-2">
           {Number(totalPages) > 1 && (
             <div className="flex gap-2">
-              <Button onClick={() => handlePageChange(1)} disabled={page <= 1} variant="underline">
+              <Button
+                onClick={() => handlePageChange(1)}
+                disabled={page <= 1}
+                variant="ghost"
+                size="icon-sm"
+                aria-label="First page"
+              >
                 <ChevronsLeftIcon size="1em" />
               </Button>
               <Button
                 onClick={() => handlePageChange(page - 1)}
                 disabled={page <= 1}
-                variant="underline"
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Previous page"
               >
                 <ChevronLeftIcon size="1em" />
               </Button>
@@ -194,8 +210,9 @@ const ListTable: FC<PropsWithChildren<Props>> = ({
                   key={p}
                   onClick={() => handlePageChange(p)}
                   disabled={p === page}
-                  variant="underline"
-                  className={p === page ? 'text-gray-900!' : ''}
+                  variant="ghost"
+                  size="icon-sm"
+                  className={p === page ? 'text-gray-900! font-bold' : ''}
                 >
                   {p}
                 </Button>
@@ -203,21 +220,31 @@ const ListTable: FC<PropsWithChildren<Props>> = ({
               <Button
                 onClick={() => handlePageChange(page + 1)}
                 disabled={page >= Number(totalPages)}
-                variant="underline"
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Next page"
               >
                 <ChevronRightIcon size="1em" />
               </Button>
               <Button
                 onClick={() => handlePageChange(Number(totalPages))}
                 disabled={page >= Number(totalPages)}
-                variant="underline"
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Last page"
               >
                 <ChevronsRightIcon size="1em" />
               </Button>
             </div>
           )}
           <div className="grow" />
-          <Button onClick={() => handlePageChange(page)} variant="underline" disabled={isLoading}>
+          <Button
+            onClick={() => handlePageChange(page)}
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Refresh"
+            disabled={isLoading}
+          >
             {isLoading ? (
               <LoaderCircleIcon size="1em" className="animate-spin dark:text-gray-200" />
             ) : (

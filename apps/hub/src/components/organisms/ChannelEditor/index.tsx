@@ -7,7 +7,6 @@ import useSettingsStore from '@gruent/hub/stores/settingsStore'
 import { generateEdgeId, generateNodeId, generateNoteId } from '@gruent/hub/util/idGenerator'
 import type { ChannelNote } from '@gruent/libs/engine/channels/channels'
 import type { ChannelNode } from '@gruent/libs/engine/nodes/v1'
-import Button from '@gruent/libs/frontend/components/atoms/Button'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { CircleAlertIcon, LocateFixedIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react'
@@ -30,6 +29,7 @@ import ChannelNodeView from './flow/ChannelNodeView'
 import ChannelNoteView from './flow/ChannelNoteView'
 import { GRID_SIZE, snapToGrid, toFlowEdges, toFlowNodes, validateConnection } from './flow/convert'
 import type { ChannelFlowElement } from './flow/types'
+import { Button } from '@gruent/libs/frontend/components/core/button'
 
 const MIN_ZOOM = 0.5
 const MAX_ZOOM = 1.5
@@ -265,25 +265,31 @@ const ChannelEditorCanvas: FC<Props> = ({ hooks }) => {
       <div className="absolute left-8 bottom-6 flex flex-col gap-1 z-10">
         <div className="flex gap-2">
           <Button
-            variant="transparent"
+            variant="outline"
+            size="icon"
+            aria-label="Zoom in"
             className={controlButtonClassName}
             onClick={() => zoomIn({ duration: 150 })}
           >
-            <ZoomInIcon size="1em" />
+            <ZoomInIcon />
           </Button>
           <Button
-            variant="transparent"
+            variant="outline"
+            size="icon"
+            aria-label="Zoom out"
             className={controlButtonClassName}
             onClick={() => zoomOut({ duration: 150 })}
           >
-            <ZoomOutIcon size="1em" />
+            <ZoomOutIcon />
           </Button>
           <Button
-            variant="transparent"
+            variant="outline"
+            size="icon"
+            aria-label="Reset view"
             className={controlButtonClassName}
             onClick={() => setViewport(DEFAULT_VIEWPORT, { duration: 150 })}
           >
-            <LocateFixedIcon size="1em" />
+            <LocateFixedIcon />
           </Button>
         </div>
       </div>

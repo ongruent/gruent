@@ -1,3 +1,5 @@
+@reference '../../../../../../libs/frontend/src/styles.css';
+
 #article {
   h1 {
     @apply text-4xl mb-4;
