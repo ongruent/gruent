@@ -82,7 +82,7 @@ const ModelDetailsPage = async ({ params }) => {
           <hr className="my-6" />
           <h2 className="mb-2">Export</h2>
           {parseError && (
-            <Alert variant="warning" className="w-fit max-w-xl">
+            <Alert className="w-fit max-w-xl">
               <TriangleAlertIcon />
               <AlertTitle>Could not export the model</AlertTitle>
               <AlertDescription>{`${parseError}`}</AlertDescription>

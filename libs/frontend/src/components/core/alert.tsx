@@ -10,10 +10,6 @@ const alertVariants = cva(
         default: 'bg-card text-card-foreground',
         destructive:
           'bg-card text-destructive *:data-[slot=alert-description]:text-destructive/90 [&>svg]:text-current',
-        // Gruent additions (replace the former `Callout` info/warning variants)
-        info: 'border-blue-500 bg-blue-100 text-blue-700 *:data-[slot=alert-description]:text-blue-700 [&>svg]:text-blue-500 dark:bg-blue-950 dark:text-blue-200 dark:*:data-[slot=alert-description]:text-blue-200',
-        warning:
-          'border-yellow-500 bg-yellow-100 text-yellow-700 *:data-[slot=alert-description]:text-yellow-700 [&>svg]:text-yellow-500 dark:bg-yellow-950 dark:text-yellow-200 dark:*:data-[slot=alert-description]:text-yellow-200',
       },
     },
     defaultVariants: {

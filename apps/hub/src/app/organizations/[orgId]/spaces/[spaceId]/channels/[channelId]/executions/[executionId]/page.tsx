@@ -33,7 +33,7 @@ const ChannelExecutionByIdPage = async ({ params }) => {
   if (!channelExecution)
     return (
       <div className="mt-4 px-8 py-2 max-w-full mb-10">
-        <Alert variant="warning" className="w-fit max-w-xl">
+        <Alert className="w-fit max-w-xl">
           <TriangleAlertIcon />
           <AlertTitle>Invalid channel execution</AlertTitle>
           <AlertDescription>{`This channel execution does not exist. Try logging out and logging back in.`}</AlertDescription>

@@ -81,7 +81,7 @@ const NotionBlockRenderer = async ({
             )
           case 'callout':
             return (
-              <Alert variant="warning" key={block.id} className="rounded-none px-6 py-4">
+              <Alert key={block.id} className="rounded-none px-6 py-4">
                 <LightbulbIcon />
                 <AlertDescription className="text-gray-800">
                   <div>
