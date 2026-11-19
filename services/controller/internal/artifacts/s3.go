@@ -73,6 +73,11 @@ func (s *S3Store) Put(ctx context.Context, key string, data []byte, contentType 
 	return err
 }
 
+// Delete implements Store. S3 treats deleting a missing object as success.
+func (s *S3Store) Delete(ctx context.Context, key string) error {
+	return s.client.RemoveObject(ctx, s.bucket, key, minio.RemoveObjectOptions{})
+}
+
 // PresignGet implements Presigner.
 func (s *S3Store) PresignGet(ctx context.Context, key string, ttl time.Duration) (string, error) {
 	u, err := s.client.PresignedGetObject(ctx, s.bucket, key, ttl, nil)

@@ -1,0 +1,92 @@
+{
+  "contractVersion": 1,
+  "pluginType": "http-source",
+  "pluginVersion": 1,
+  "displayName": "HTTP",
+  "description": "Start the channel for every HTTP request to the channel's trigger URL (/v1/trigger/http/<channel ID>). Optionally waits for the channel's response.",
+  "category": "source",
+  "configSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["method", "responseMode", "responseTimeout"],
+    "x-ui": {
+      "groups": [
+        { "id": "request", "title": "Request" },
+        {
+          "id": "response",
+          "title": "Response",
+          "description": "In synchronous mode the caller waits for the channel's response. In asynchronous mode the caller gets 202 Accepted as soon as the channel accepts the request."
+        }
+      ]
+    },
+    "properties": {
+      "method": {
+        "type": "string",
+        "title": "Method",
+        "description": "HTTP method the trigger URL accepts. Other methods get 405 Method Not Allowed.",
+        "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"],
+        "default": "POST",
+        "x-ui": {
+          "control": "select",
+          "order": 1,
+          "group": "request",
+          "options": {
+            "static": [
+              { "value": "GET", "label": "GET" },
+              { "value": "POST", "label": "POST" },
+              { "value": "PUT", "label": "PUT" },
+              { "value": "PATCH", "label": "PATCH" },
+              { "value": "DELETE", "label": "DELETE" },
+              { "value": "HEAD", "label": "HEAD" }
+            ]
+          }
+        }
+      },
+      "modelId": {
+        "type": "string",
+        "title": "Request model",
+        "description": "Model of the JSON request body. Without a model, the body is passed on as raw bytes.",
+        "minLength": 1,
+        "x-ui": {
+          "control": "select",
+          "order": 2,
+          "group": "request",
+          "options": { "named": { "name": "models" } }
+        }
+      },
+      "responseMode": {
+        "type": "string",
+        "title": "Response mode",
+        "enum": ["sync", "async"],
+        "default": "sync",
+        "x-ui": {
+          "control": "select",
+          "order": 3,
+          "group": "response",
+          "options": {
+            "static": [
+              { "value": "sync", "label": "Wait for the channel's response" },
+              { "value": "async", "label": "Respond 202 Accepted immediately" }
+            ]
+          }
+        }
+      },
+      "responseTimeout": {
+        "type": "integer",
+        "title": "Response timeout (seconds)",
+        "description": "How long the caller waits for the channel's response before getting 504 Gateway Timeout.",
+        "minimum": 1,
+        "maximum": 30,
+        "default": 10,
+        "x-ui": {
+          "control": "number",
+          "order": 4,
+          "group": "response",
+          "step": 1,
+          "visibleWhen": { "field": "/responseMode", "equals": "sync" }
+        }
+      }
+    }
+  }
+}

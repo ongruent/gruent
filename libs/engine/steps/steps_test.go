@@ -271,3 +271,15 @@ func TestEnvelopeSchemaIsEmbedded(t *testing.T) {
 		t.Fatal("embedded schema differs")
 	}
 }
+
+func TestEmbeddedLibraryMatchesManifest(t *testing.T) {
+	registry, err := EmbeddedLibrary()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, id := range []Identity{{"hello-world", 1}, {"http-source", 1}, {"timer-source", 1}, {"message-queue-source", 1}} {
+		if _, err := registry.Resolve(id); err != nil {
+			t.Errorf("%s: %v", id, err)
+		}
+	}
+}

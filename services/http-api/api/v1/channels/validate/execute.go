@@ -3,6 +3,7 @@ package channelsValidate
 import (
 	"fmt"
 
+	"github.com/ongruent/gruent/libs/engine/steps"
 	gruenthttp "github.com/ongruent/gruent/libs/http"
 	"github.com/ongruent/gruent/libs/legacy/engine/channels"
 	resolveModels "github.com/ongruent/gruent/libs/legacy/engine/dependencies/models/resolve"
@@ -54,6 +55,13 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 		validationErrors.ChannelErrors = append(validationErrors.ChannelErrors, ve.ChannelErrors...)
 		validationErrors.NodeErrors = mergeStepErrors(validationErrors.NodeErrors, ve.NodeErrors)
 	}
+
+	// Validate the configuration of steps from the step library
+	library, err := steps.EmbeddedLibrary()
+	if err != nil {
+		return nil, fmt.Errorf("load step library: %w", err)
+	}
+	validationErrors.NodeErrors = mergeStepErrors(validationErrors.NodeErrors, libraryStepErrors(library, request.Input.Config.Nodes))
 
 	output := &Output{
 		ChannelErrors: validationErrors.ChannelErrors,

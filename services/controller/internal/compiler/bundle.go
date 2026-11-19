@@ -19,6 +19,8 @@ var connectionFields = map[string]struct {
 }{
 	"HTTP_SERVER":         {},
 	"MQTT_BROKER":         {}, // caCertificate is a public CA certificate
+	"NATS_CLIENT":         {}, // server host, port and topics
+	"KAFKA_CONSUMER":      {}, // cluster bootstrap servers, group ID and offset reset
 	"MQTT_CLIENT":         {secrets: []string{"password"}, certificates: []string{"certificateId"}, stripped: []string{"keypair"}},
 	"MONGODB_SERVER":      {secrets: []string{"password"}},
 	"S3_BUCKET":           {secrets: []string{"AwsSecretAccessKey"}},

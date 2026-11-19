@@ -52,6 +52,8 @@ var resolver = fakeResolver{
 		"t1": {ID: "t1", Name: "Mailer", Category: "SENDGRID_CLIENT", Revision: "sha256:t1", Attributes: []byte(`{"apiKey": "SENDGRID_KEY", "fromEmail": "alerts@example.com"}`)},
 		"t2": {ID: "t2", Name: "Broker", Category: "MQTT_CLIENT", Revision: "sha256:t2", Attributes: []byte(`{"clientId": "c", "password": "MQTT_PASSWORD", "certificateId": "cert1", "keypair": {"clientCertKey": "PRIVATE"}}`)},
 		"t3": {ID: "t3", Name: "Kafka", Category: "KAFKA_PRODUCER", Revision: "sha256:t3", Attributes: []byte(`{"saslPassword": "inline"}`)},
+		"t4": {ID: "t4", Name: "NATS", Category: "NATS_CLIENT", Revision: "sha256:t4", Attributes: []byte(`{"server": {"host": "nats", "port": 4222}}`)},
+		"t5": {ID: "t5", Name: "Kafka consumer", Category: "KAFKA_CONSUMER", Revision: "sha256:t5", Attributes: []byte(`{"cluster": "k", "groupId": "g", "autoOffsetReset": "latest"}`)},
 	},
 }
 
@@ -181,7 +183,8 @@ func TestCompile(t *testing.T) {
 		t.Fatalf("unexpected bindings: %+v", p.Bindings)
 	}
 	http := p.Bindings.HTTP[0]
-	if http.BindingID != "bind_n_http" || http.Method != "POST" || http.TimeoutMs != 3000 || http.Path != "/v1/spaces/s1/channels/c1" {
+	if http.BindingID != "bind_n_http" || http.Method != "POST" || http.TimeoutMs != 3000 || http.Path != "/v1/trigger/http/c1" ||
+		http.ResponseMode != "sync" || http.Subject != "gruent.v1.invocations.c1" {
 		t.Fatalf("unexpected HTTP binding: %+v", http)
 	}
 	if http.Overflow != (plan.Overflow{Action: plan.OverflowReject, HTTPStatus: 429}) {

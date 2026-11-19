@@ -1,0 +1,4 @@
+{
+  "description": "NATS subscription with a model.",
+  "config": { "broker": "NATS_CLIENT", "connectionId": "con_123", "topic": "sensors.>", "modelId": "mdl_123" }
+}

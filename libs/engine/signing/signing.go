@@ -1,4 +1,4 @@
-// Package signing signs artifacts and defines how consumers verify them.
+// Package signing signs artifacts and defines how consumers (runtimes and source services) verify them.
 //
 // # Contract
 //
@@ -23,12 +23,18 @@ package signing
 
 import (
 	"crypto/ed25519"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
-
-	"github.com/ongruent/gruent/services/controller/internal/plan"
 )
+
+// Digest returns the version of an artifact: "sha256:" followed by the hex SHA-256 digest of its bytes.
+func Digest(data []byte) string {
+	sum := sha256.Sum256(data)
+	return "sha256:" + hex.EncodeToString(sum[:])
+}
 
 // Format identifies version 1 of the signature contract.
 const Format = "gruent.artifact-signature/v1"
@@ -115,7 +121,7 @@ func NewKeyring(publicKeys map[string]string) (Keyring, error) {
 // Verify verifies an artifact against the version the consumer expects, following the contract in the
 // package documentation.
 func (k Keyring) Verify(kind, expectedVersion string, data []byte, envelope Envelope) error {
-	if version := plan.Digest(data); version != expectedVersion {
+	if version := Digest(data); version != expectedVersion {
 		return fmt.Errorf("artifact digest %s does not match the expected version %s", version, expectedVersion)
 	}
 	if envelope.Format != Format || envelope.Algorithm != Algorithm {

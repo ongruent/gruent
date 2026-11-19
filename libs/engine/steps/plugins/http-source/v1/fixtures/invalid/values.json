@@ -1,0 +1,13 @@
+{
+  "description": "Unknown method and response mode; timeout above the 30 second maximum.",
+  "config": {
+    "method": "TRACE",
+    "responseMode": "stream",
+    "responseTimeout": 31
+  },
+  "errors": [
+    "/method",
+    "/responseMode",
+    "/responseTimeout"
+  ]
+}

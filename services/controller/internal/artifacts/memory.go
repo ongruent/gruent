@@ -42,3 +42,14 @@ func (s *MemoryStore) Put(_ context.Context, key string, data []byte, _ string) 
 	s.Puts++
 	return nil
 }
+
+// Delete implements Store.
+func (s *MemoryStore) Delete(_ context.Context, key string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.Err != nil {
+		return s.Err
+	}
+	delete(s.Objects, key)
+	return nil
+}

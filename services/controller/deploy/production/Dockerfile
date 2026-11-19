@@ -88,8 +88,7 @@ WORKDIR /gruent
 RUN go mod download
 
 # Copy the rest of the project
-COPY ./libs/engine/dependencies ./libs/engine/dependencies
-COPY ./libs/engine/channels ./libs/engine/channels
+COPY ./libs/engine ./libs/engine
 COPY ./libs/protocols ./libs/protocols
 COPY ./libs/http ./libs/http
 COPY ./libs/val ./libs/val

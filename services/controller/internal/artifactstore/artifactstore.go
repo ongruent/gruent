@@ -3,8 +3,8 @@
 package artifactstore
 
 import (
+	"github.com/ongruent/gruent/libs/engine/signing"
 	"github.com/ongruent/gruent/services/controller/internal/artifacts"
-	"github.com/ongruent/gruent/services/controller/internal/signing"
 )
 
 // Store is the S3-compatible store that artifacts are uploaded to.

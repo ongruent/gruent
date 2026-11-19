@@ -3,7 +3,8 @@
 // The package ends where deployment execution begins. Publishing a channel compiles it, uploads its
 // artifacts, and records the resulting version as desired. It never deploys anything, so the observed
 // state of a channel stays unknown until a runtime acknowledges a version through RecordObserved.
-// Delivering desired state to runtimes and source services is future runtime integration.
+// Publishing also updates the channel's routing table entry, which source services reconcile from file
+// storage (see libs/engine/routing). Delivering desired state to runtimes is future runtime integration.
 package deployments
 
 import "time"

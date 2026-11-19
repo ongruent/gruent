@@ -46,6 +46,8 @@ type Step struct {
 	// DeclaredModels are the config field names of every model dependency, including ones that could not
 	// be resolved, so that a missing model is not reported twice.
 	DeclaredModels []string
+	// EmitsSignal marks sources that trigger without data, e.g. timers.
+	EmitsSignal bool
 	// InputDataTypes are the data type categories each input port accepts ("json", "bytes", "signal").
 	// Ports without categories accept anything.
 	InputDataTypes map[string][]string
@@ -86,7 +88,7 @@ func ResolveStep(step Step, input *Type) (*Type, []Diagnostic) {
 	}
 
 	if step.Category == "source" {
-		if step.Label == "timer" {
+		if step.EmitsSignal {
 			return &Signal, nil
 		}
 		names := make([]string, 0, len(step.Models))
