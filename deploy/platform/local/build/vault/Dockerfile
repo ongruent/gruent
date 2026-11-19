@@ -10,7 +10,7 @@ RUN apk add jq
 WORKDIR /vault
 
 # Copy the configuration files and scripts
-COPY ./deploy/backend/local/build/vault/config ./config
+COPY ./deploy/platform/local/build/vault/config ./config
 
 # Ensure scripts are executable
 RUN chmod +x ./config/*.sh

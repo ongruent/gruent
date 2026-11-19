@@ -13,7 +13,7 @@
       },
       "outputs": ["{projectRoot}/build"]
     },
-    "serve": {
+    "start": {
       "executor": "nx:run-commands",
       "options": {
         "cwd": "{workspaceRoot}/services/runtime/build/install/runtime",
@@ -21,27 +21,6 @@
         "envFile": ".env"
       },
       "dependsOn": ["build"]
-    },
-    "start": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "{workspaceRoot}",
-        "command": "services/runtime/deploy/local/ctl.sh up"
-      }
-    },
-    "stop": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "{workspaceRoot}",
-        "command": "services/runtime/deploy/local/ctl.sh down"
-      }
-    },
-    "check": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "{workspaceRoot}",
-        "command": "services/runtime/deploy/local/ctl.sh check"
-      }
     },
     "test": {
       "executor": "nx:run-commands",

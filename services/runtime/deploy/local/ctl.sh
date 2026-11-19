@@ -1,12 +1,13 @@
 #!/bin/bash
 
-# Manages the local kind cluster that hosts runtime workers.
+# Manages the local kind cluster that hosts runtime workers. Called by
+# deploy/platform/local/ctl.sh (`pnpm nx start|stop|check platform`).
 #
 #   ctl.sh up      create (or resume) the cluster, attach it to the Docker
 #                  Compose network, and provision controller credentials
 #   ctl.sh down    delete the cluster
 #   ctl.sh check   verify the networking between the cluster and the backend
-#                  stack (requires `pnpm nx start backend`)
+#                  services
 #
 # Requires docker and kind (https://kind.sigs.k8s.io/docs/user/quick-start/#installation).
 # kubectl isn't required on the host; commands run with the kubectl that ships
@@ -187,9 +188,9 @@ down() {
 #   2. API container -> runtime pod IP and ClusterIP (inbound proxy path)
 #   3. runtime pod -> supporting services in Docker Compose (outbound)
 check() {
-    cluster_exists || fail "cluster $CLUSTER_NAME does not exist; run \`pnpm nx start runtime\`"
+    cluster_exists || fail "cluster $CLUSTER_NAME does not exist; run \`pnpm nx start platform --profile=backend\`"
     [ "$(docker inspect --format '{{.State.Running}}' http-api 2>/dev/null)" = "true" ] ||
-        fail "the http-api container is not running; run \`pnpm nx start backend\`"
+        fail "the http-api container is not running; run \`pnpm nx start platform --profile=backend\`"
 
     local failed=0
 

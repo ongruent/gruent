@@ -7,7 +7,7 @@
 #
 # The container needs the NET_ADMIN capability and the `ip` command. Missing
 # routes are not fatal: if the cluster isn't running yet, `pnpm nx start
-# runtime` runs this script in the API container once the cluster is ready.
+# platform` runs this script in the API container once the cluster is ready.
 #
 # Usage:
 #   route-to-runtime.sh                 add the routes
@@ -22,7 +22,7 @@ CIDRS="${RUNTIME_CLUSTER_CIDRS:-10.244.0.0/16 10.96.0.0/16}"
 add_routes() {
     node_ip="$(getent ahostsv4 "$NODE" 2>/dev/null | awk 'NR == 1 { print $1 }')"
     if [ -z "$node_ip" ]; then
-        echo "route-to-runtime: $NODE is not reachable; skipping runtime routes (run \`pnpm nx start runtime\`)" >&2
+        echo "route-to-runtime: $NODE is not reachable; skipping runtime routes (run \`pnpm nx start platform\`)" >&2
         return 1
     fi
 

@@ -1,5 +1,5 @@
 # Local kind cluster that hosts runtime workers. Created by
-# `pnpm nx start runtime` (see ./ctl.sh).
+# `pnpm nx start platform` (see ./ctl.sh).
 #
 # The pod and service subnets are pinned because containers in the backend
 # Docker Compose stack route to them through the control plane node (see

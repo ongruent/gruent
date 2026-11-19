@@ -25,24 +25,23 @@ and voila! - you are up and running with one of the various projects that make u
 
 ## Local development stack
 
-The full platform runs locally in containers. Runtime workers run in a local [kind](https://kind.sigs.k8s.io/) Kubernetes cluster, and everything else runs in Docker Compose. You need Docker and kind installed. Kubernetes is the only supported runtime deployment target; Compose only provides the supporting development stack.
+The full platform runs locally in containers. Runtime workers run in a local [kind](https://kind.sigs.k8s.io/) Kubernetes cluster, and everything else runs in the `platform` Docker Compose project, grouped into `backend` and `frontend` profiles. You need Docker and kind installed. Kubernetes is the only supported runtime deployment target; Compose only provides the supporting development stack.
 
 | Command | Starts |
 | --- | --- |
-| `pnpm nx start runtime` | The `gruent` kind cluster that hosts runtime workers |
-| `pnpm nx start backend` | The API, controller, Postgres, Redis, NATS, Vault, and observability services |
-| `pnpm nx start frontend` | The hub (http://localhost:4200) and site (http://localhost:8001) dev servers |
-| `pnpm nx start all` | The runtime cluster, then the backend, then the frontend |
+| `pnpm nx start platform` | The runtime cluster, then the backend, then the frontend |
+| `pnpm nx start platform --profile=backend` | The runtime cluster, then the API, controller, Postgres, Redis, NATS, Vault, and observability services |
+| `pnpm nx start platform --profile=frontend` | The hub (http://localhost:4200) and site (http://localhost:8001) dev servers |
 
-Each command waits until its services are ready, and creates any missing local env files from their `.env*.example` files. Use `pnpm nx stop <project>` with the same project names to tear a stack down.
+Each stage waits until its services are ready before the next one starts, and creates any missing local env files from their `.env*.example` files. `pnpm nx stop platform` stops the whole stack and deletes the kind cluster; Docker volumes are kept. It also accepts `--profile`.
 
 The kind node is attached to the `gruent_network` Docker network shared with the Compose services, which provides these connections:
 
-- **Controller to Kubernetes API**: `pnpm nx start runtime` creates a `controller` service account and writes a kubeconfig for it to `services/runtime/deploy/local/.generated/controller.kubeconfig`. The controller container uses it through `KUBECONFIG` to reach `https://gruent-control-plane:6443` with certificate verification.
+- **Controller to Kubernetes API**: starting the runtime cluster creates a `controller` service account and writes a kubeconfig for it to `services/runtime/deploy/local/.generated/controller.kubeconfig`. The controller container uses it through `KUBECONFIG` to reach `https://gruent-control-plane:6443` with certificate verification.
 - **API to runtime workers**: the API container routes the cluster's pod (`10.244.0.0/16`) and service (`10.96.0.0/16`) networks through the kind node, so it can proxy inbound requests to runtime workers by pod IP or ClusterIP. Cluster DNS is available at `10.96.0.10`.
 - **Runtime workers to supporting services**: pods resolve Compose services by name, e.g. `nats:4222`, `redis:6379`, or `postgres:5432`.
 
-Run `pnpm nx check runtime` with the runtime and backend started to verify all three connections.
+Run `pnpm nx check platform` with the backend profile started to verify all three connections.
 
 ## Wiki & documentation
 
