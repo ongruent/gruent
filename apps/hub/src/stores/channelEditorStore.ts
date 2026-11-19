@@ -4,7 +4,6 @@ import {
   ChannelRuntime,
 } from '@gruent/libs/legacy/engine/channels/channels'
 import { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
-import { Model, Connection } from '@prisma/client'
 import { create } from 'zustand'
 
 type State = {
@@ -21,14 +20,13 @@ type State = {
     stepErrors: Record<string, string[]> | null
   } | null
   status?: 'PUBLISHED' | 'UNPUBLISHED' | 'INITIALIZING'
-  models: Model[]
-  connections: Connection[]
 }
 
 type Action = {
   reset: () => void
   upsertStep: (stepId: string, step: ChannelNode) => void
   moveStep: (stepId: string, coordinates: { x: number; y: number }) => void
+  setStepConfig: (stepId: string, config: Record<string, unknown>) => void
   removeStep: (stepId: string) => void
   upsertEdge: (edgeId: string, edge: ChannelEdge) => void
   removeEdge: (edgeId: string) => void
@@ -47,8 +45,6 @@ type Action = {
     } | null,
   ) => void
   setStatus: (status: 'PUBLISHED' | 'UNPUBLISHED' | 'INITIALIZING') => void
-  setModels: (models: Model[]) => void
-  setConnections: (connections: Connection[]) => void
 }
 
 const initialState: State = {
@@ -63,8 +59,6 @@ const initialState: State = {
     size: 'small',
   },
   validationErrors: null,
-  models: [],
-  connections: [],
 }
 
 const useChannelEditorStore = create<State & Action>((set, get) => ({
@@ -85,6 +79,21 @@ const useChannelEditorStore = create<State & Action>((set, get) => ({
     const updatedSteps = new Map(steps)
     updatedSteps.set(stepId, updatedStep)
     // Keep the selected copy in sync so option panes don't write stale coordinates back
+    set({
+      steps: updatedSteps,
+      ...(currentStep?.id === stepId ? { currentStep: updatedStep } : {}),
+    })
+  },
+  setStepConfig: (stepId, config) => {
+    const { steps, currentStep } = get()
+    const step = steps.get(stepId)
+    if (!step) return
+    const updatedStep = {
+      ...step,
+      metadata: { ...step.metadata, config: config as ChannelNode['metadata']['config'] },
+    }
+    const updatedSteps = new Map(steps)
+    updatedSteps.set(stepId, updatedStep)
     set({
       steps: updatedSteps,
       ...(currentStep?.id === stepId ? { currentStep: updatedStep } : {}),
@@ -147,8 +156,6 @@ const useChannelEditorStore = create<State & Action>((set, get) => ({
   setRuntime: (runtime) => set({ runtime }),
   setValidationErrors: (validationErrors) => set({ validationErrors }),
   setStatus: (status) => set({ status }),
-  setModels: (models) => set({ models }),
-  setConnections: (connections) => set({ connections }),
 }))
 
 export default useChannelEditorStore

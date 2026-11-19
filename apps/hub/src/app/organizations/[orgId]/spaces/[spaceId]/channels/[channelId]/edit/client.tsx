@@ -3,7 +3,7 @@
 import { FC, useCallback, useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ChannelEditor from '@gruent/hub/components/organisms/ChannelEditor'
-import type { ChannelConfig } from '@gruent/libs/engine/channels/index'
+import type { ChannelConfig } from '@gruent/libs/legacy/engine/channels/index'
 import { useQuery } from '@tanstack/react-query'
 import gruentClient from '@gruent/hub/lib/gruent'
 import {
@@ -43,8 +43,6 @@ import { Space } from '@prisma/client'
 import { Organization } from '@prisma/client'
 import { handleDeleteChannel } from '@gruent/hub/actions/channels'
 import { useRouter } from 'next/navigation'
-import CreateModelModal from '@gruent/hub/components/modals/CreateModelModal'
-import CreateConnectionModal from '@gruent/hub/components/modals/CreateConnectionModal'
 import useAuth from '@gruent/hub/hooks/useAuth'
 import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 import { Button } from '@gruent/libs/frontend/components/core/button'
@@ -114,8 +112,6 @@ const ChannelByIdEditClientPage: FC<Props> = ({
   const setCurrentEdge = useChannelEditorStore((state) => state.setCurrentEdge)
   const setCurrentNote = useChannelEditorStore((state) => state.setCurrentNote)
   const setValidationErrors = useChannelEditorStore((state) => state.setValidationErrors)
-  const setModels = useChannelEditorStore((state) => state.setModels)
-  const setConnections = useChannelEditorStore((state) => state.setConnections)
 
   const channelConfig = useChannelConfig(channelId, channelName, runtime, steps, edges, notes)
 
@@ -239,73 +235,6 @@ const ChannelByIdEditClientPage: FC<Props> = ({
     return <></>
   }, [currentExecution, isCurrentExecutionLoading, getCurrentExecutionError])
 
-  const { error: listConnectionsError, refetch: refetchConnections } = useQuery({
-    queryKey: ['connections', spaceId],
-    queryFn: async () => {
-      if (!accessToken) throw new Error('Invalid auth session.')
-
-      const { data: connections, errors } = await gruentClient(accessToken).connections.list(
-        spaceId,
-        {
-          resultsPerPage: 100,
-        },
-      )
-
-      if (errors && errors.length > 0) throw new Error(errors[0])
-
-      if (connections) setConnections(connections)
-
-      return connections
-    },
-  })
-
-  // Add models and  in the space
-  const { error: listModelsError, refetch: refetchModels } = useQuery({
-    queryKey: ['models', spaceId],
-    queryFn: async () => {
-      if (!accessToken) throw new Error('Invalid auth session.')
-
-      const { data: models, errors } = await gruentClient(accessToken).models.list(spaceId)
-
-      if (errors && errors.length > 0) throw new Error(errors[0])
-
-      if (models) setModels(models)
-
-      return models
-    },
-  })
-
-  useEffect(() => {
-    if (listConnectionsError) {
-      addToast({
-        title: 'Could not retrieve connections',
-        body: listConnectionsError.message,
-        level: 'error',
-      })
-    }
-
-    if (listModelsError) {
-      addToast({
-        title: 'Could not retrieve models',
-        body: listModelsError.message,
-        level: 'error',
-      })
-    }
-  }, [listConnectionsError, listModelsError])
-
-  const onConnectionModalSubmit = useCallback(async () => {
-    // Ensure enough time has passed for the connection to be created
-    setTimeout(() => {
-      refetchConnections()
-    }, 1000)
-  }, [refetchConnections])
-
-  const onModelModalSubmit = useCallback(async () => {
-    // Ensure enough time has passed for the model to be created
-    setTimeout(() => {
-      refetchModels()
-    }, 1000)
-  }, [refetchModels])
 
   // Reset the channel editor store on initial load
   useEffect(() => {
@@ -899,13 +828,6 @@ const ChannelByIdEditClientPage: FC<Props> = ({
           )}
         </AnimatePresence>
 
-        <CreateModelModal spaceId={spaceId} onSubmit={() => onModelModalSubmit()} />
-        <CreateConnectionModal
-          spaceId={spaceId}
-          orgId={orgId}
-          onSubmit={() => onConnectionModalSubmit()}
-        />
-
         <ChannelEditor
           hooks={{
             onSave: handleSave,
@@ -918,7 +840,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
           className="border-l border-gray-200 dark:border-gray-800 flex flex-col overflow-y-scroll"
           style={{ width: '35%', minWidth: 350 }}
         >
-          {currentStep && <StepOptionsPane spaceId={spaceId} orgId={orgId} channelId={channelId} />}
+          {currentStep && <StepOptionsPane spaceId={spaceId} />}
           {currentNote && <NoteOptionsPane />}
           {(currentStep || currentNote) && <hr className="border-gray-200 dark:border-gray-800" />}
           <ChannelOptionsPane spaceId={spaceId} channel={channel} />

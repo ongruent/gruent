@@ -1,5 +1,5 @@
-import type { ChannelEdge, ChannelNote } from '@gruent/libs/engine/channels/channels'
-import type { ChannelNode } from '@gruent/libs/engine/nodes/v1'
+import type { ChannelEdge, ChannelNote } from '@gruent/libs/legacy/engine/channels/channels'
+import type { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import { type Connection, MarkerType } from '@xyflow/react'
 import type {
   ChannelFlowEdge,

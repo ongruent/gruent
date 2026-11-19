@@ -15,7 +15,7 @@ libs/engine/steps/
   generated/manifest.json                    GENERATED: identity -> definition + digest + Kotlin type
   generated/kotlin/                          GENERATED: Kotlin configuration types
   *.go                                       Go consumer: ingestion, validation, registry
-  ts/                                        TypeScript consumer: ingestion, validation, form model
+  ts/                                        TypeScript consumer: ingestion, validation, resolver, form model
   kotlin/                                    Kotlin support library + tests for generated types
 ```
 
@@ -134,15 +134,76 @@ double precision are outside the tested range.
   `Definition.References` (named-select values minus static values, with resolved params), `Registry`
   (exact identity, immutable digests), and `LoadLibrary` (from the manifest, with digest checks).
 - **TypeScript** (`@gruent/libs/engine/steps/ts`): `Definition.parse`, `DefinitionRegistry`, `validateConfig`,
-  `createConfig`, and a headless `<StepConfig />` model in `form.ts`: `describeForm`, `isVisible`,
-  `optionsEvent` (the `{path, name, query, params}` payload for `onOptionsSearch`/`onOptionsLoadMore`),
-  `visibleOptions` and `selectedOptions` (unknown saved values keep an "(unavailable)" label). The parent
-  owns fetching, auth, pagination, caching and stale-response handling. Only secret identifiers and labels
-  cross this boundary, never secret values.
+  `createConfig`, `DefinitionResolver` (runtime resolution, see below), and a headless form model in `form.ts`:
+  `describeForm`, `isVisible`/`isFieldVisible`, `fieldIssues`, `withField`, `optionsEvent` (the
+  `{path, name, query, params}` payload for `onOptionsSearch`/`onOptionsLoadMore`), `visibleOptions` and
+  `selectedOptions` (unknown saved values keep an "(unavailable)" label). The parent owns fetching, auth,
+  pagination, caching and stale-response handling. Only secret identifiers and labels cross this boundary,
+  never secret values.
 - **Kotlin** (`:libs:engine:steps:kotlin`): `com.gruent.steps.plugins.<type>.v<N>.<Type>Config` with a
   `Definition` companion (`pluginType`, `pluginVersion`, `definitionDigest`, `validate`, `decode`,
   `encode`). Each version has its own package, so several versions coexist on one classpath. Rendering
   annotations never become members.
+
+## Rendering configuration (`<NodeConfig />`)
+
+`<NodeConfig />` (`libs/frontend/src/components/NodeConfig`) is the only configuration editor. It has no
+per-plugin code, widgets or overrides: every field is rendered from the original `configSchema` and its `x-ui`
+annotations.
+
+```tsx
+<NodeDefinitionsProvider source={resolver}>
+  <NodeConfig
+    pluginType="hello-world"
+    pluginVersion={1}
+    value={config}
+    namedOptions={namedOptions}       // NamedOptions from this library, keyed by field JSON Pointer
+    onChange={setConfig}
+    onOptionsSearch={search}          // ({ path, name, query, params }) => void
+    onOptionsLoadMore={loadMore}      // same payload; pagination cursors stay in the parent
+  />
+</NodeDefinitionsProvider>
+```
+
+- **Resolution.** `DefinitionResolver` takes a loader for the manifest and for original definition bytes. It
+  resolves only the exact `(pluginType, pluginVersion)` listed in the manifest, checks the bytes against the
+  manifest digest, validates the definition against the contract (Ajv) and caches it by identity. A missing
+  version or a failed check throws `UnsupportedDefinitionError`, and `<NodeConfig />` shows that error
+  instead of a form. In the hub, `/api/node-definitions` serves `generated/manifest.json` and
+  `/api/node-definitions/<type>/<version>` serves the original `step.json`. Both read the library from disk on
+  every request (`GRUENT_NODE_LIBRARY_DIR`, which defaults to `libs/engine/steps`), so a published definition
+  appears without rebuilding the hub.
+- **Fields.** Labels come from `title`, help text from `description` and required markers from `required`.
+  Groups render as fieldsets, and `visibleWhen` hides fields or groups. Validation messages come from the
+  definition's Ajv validator. Messages for hidden fields, unknown keys and the root are listed in a summary,
+  because hidden values are kept and still validated. The server stays authoritative.
+- **Values.** The editor never writes on mount and never applies defaults. Defaults are applied only by
+  `createConfig()` when a step is created from the library. Each edit changes one key and keeps every other
+  key, including hidden and unknown ones. Clearing an input removes its key. Saved values of the wrong type
+  are shown verbatim rather than dropped.
+- **Selects.** Static-only selects need no parent data and emit no events. Named and mixed selects emit
+  `onOptionsSearch` when they appear, when their query changes and when their `paramsFromFields` values
+  change. The parent then resets items for the new query or parameters, but saved values stay. Static entries
+  are listed first, are filtered locally, and stay visible while named data loads or fails. Saved values are
+  labelled from static options, then `selectedItems`, then `items`. Anything else is shown as
+  "(unavailable)" and is only removed by the user.
+- **Field identity in repeated arrays.** The option-state key and event `path` is the field's JSON Pointer. A
+  `multiselect` is a single field keyed by its array pointer (`/connectionIds`), and its item errors are reported at
+  `/connectionIds/<index>`. `list` items are primitive values without options. Contract v1 rejects selectors
+  inside array items (`items` cannot carry `x-ui`), so the renderer has no per-item option keys. Supporting
+  them requires a contract change that defines item addressing first.
+
+### Channel editor integration (hub)
+
+- Steps created from the library persist `metadata.pluginType` and `metadata.pluginVersion` next to
+  `metadata.config`. The editor resolves exactly that pair. Steps without them (created before the step
+  library) are kept unchanged and reported as unsupported instead of being matched by name.
+- Definitions declare no ports, so the canvas gives every library step generic handles: sources have one
+  output, all other categories one input and one output.
+- The step options pane is the `<NodeConfig />` parent. It fetches `models`, `connections` and `secrets` with the
+  user's credentials through the API client, with per-field search, pagination, react-query caching,
+  stale-response tokens and lookup of saved identifiers. Secrets expose only their names. Unknown collection
+  names show an error on the field.
 
 ## Publishing, versioning and ownership
 
@@ -169,6 +230,7 @@ double precision are outside the tested range.
 - **Connection rules and ports.** v1 definitions declare no I/O constraints, and edges connect steps, not
   named ports. Conditional plugins with distinct pass/fail outputs need a port model before they can be
   expressed.
-- **Integration.** The API endpoints, definition storage and the React `<StepConfig />` component that uses
-  `form.ts` are follow-up work. Plugin runtime artifacts (WASM) and custom/third-party step packages are out
-  of scope: definitions carry no artifact fields.
+- **Integration.** The hub serves definitions from the library directory and edits configuration with
+  `<NodeConfig />` (see above). Backend storage of definitions, Go validation of saved channels and
+  publishing library steps to the runtime are follow-up work. Plugin runtime artifacts (WASM) and
+  custom/third-party step packages are out of scope: definitions carry no artifact fields.
