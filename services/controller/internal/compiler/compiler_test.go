@@ -12,36 +12,46 @@ import (
 )
 
 type fakeResolver struct {
-	models      map[string]plan.Model
-	connections map[string]plan.Connection
+	models      map[string]ModelRecord
+	connections map[string]ConnectionRecord
 	err         error
 }
 
-func (f fakeResolver) Model(_ context.Context, _ string, id string) (plan.Model, error) {
+func (f fakeResolver) Model(_ context.Context, _ string, id string) (ModelRecord, error) {
 	if f.err != nil {
-		return plan.Model{}, f.err
+		return ModelRecord{}, f.err
 	}
 	model, ok := f.models[id]
 	if !ok {
-		return plan.Model{}, ErrNotFound
+		return ModelRecord{}, ErrNotFound
 	}
 	return model, nil
 }
 
-func (f fakeResolver) Connection(_ context.Context, _ string, id string) (plan.Connection, error) {
+func (f fakeResolver) Connection(_ context.Context, _ string, id string) (ConnectionRecord, error) {
 	connection, ok := f.connections[id]
 	if !ok {
-		return plan.Connection{}, ErrNotFound
+		return ConnectionRecord{}, ErrNotFound
 	}
 	return connection, nil
 }
 
+const telemetryAttributes = `{
+	"a1": {"id": "a1", "key": "temperatureC", "type": "number", "required": true},
+	"a2": {"id": "a2", "key": "deviceId", "type": "string", "required": true},
+	"a3": {"id": "a3", "key": "location", "type": "object"},
+	"a4": {"id": "a4", "key": "lat", "type": "number", "parentId": "a3"}
+}`
+
 var resolver = fakeResolver{
-	models: map[string]plan.Model{
-		"m1": {ID: "m1", Name: "Telemetry", Revision: "sha256:m1", Attributes: plan.RawJSON(`{"temperatureC":"number"}`)},
+	models: map[string]ModelRecord{
+		"m1": {ID: "m1", Name: "Telemetry", Attributes: []byte(telemetryAttributes)},
+		"m2": {ID: "m2", Name: "Alert", Attributes: []byte(`{"b1": {"id": "b1", "key": "message", "type": "string", "required": true}}`)},
 	},
-	connections: map[string]plan.Connection{
-		"t1": {ID: "t1", Name: "Mailer", Category: "notification", Revision: "sha256:t1"},
+	connections: map[string]ConnectionRecord{
+		"t1": {ID: "t1", Name: "Mailer", Category: "SENDGRID_CLIENT", Revision: "sha256:t1", Attributes: []byte(`{"apiKey": "SENDGRID_KEY", "fromEmail": "alerts@example.com"}`)},
+		"t2": {ID: "t2", Name: "Broker", Category: "MQTT_CLIENT", Revision: "sha256:t2", Attributes: []byte(`{"clientId": "c", "password": "MQTT_PASSWORD", "certificateId": "cert1", "keypair": {"clientCertKey": "PRIVATE"}}`)},
+		"t3": {ID: "t3", Name: "Kafka", Category: "KAFKA_PRODUCER", Revision: "sha256:t3", Attributes: []byte(`{"saslPassword": "inline"}`)},
 	},
 }
 
@@ -115,17 +125,28 @@ func compile(t *testing.T, config []byte) *Result {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if result.HasErrors() || result.Artifacts == nil {
+		t.Fatalf("unexpected diagnostics: %+v", result.Diagnostics)
+	}
 	return result
 }
 
 func problems(t *testing.T, config []byte) []string {
 	t.Helper()
-	_, err := Compile(context.Background(), input(config), resolver)
-	var compileErr *Error
-	if !errors.As(err, &compileErr) {
-		t.Fatalf("expected a compile error, got %v", err)
+	result, err := Compile(context.Background(), input(config), resolver)
+	if err != nil {
+		t.Fatal(err)
 	}
-	return compileErr.Problems
+	if !result.HasErrors() || result.Artifacts != nil {
+		t.Fatalf("expected errors and no artifacts, got %+v", result.Diagnostics)
+	}
+	var messages []string
+	for _, diagnostic := range result.Diagnostics {
+		if diagnostic.Severity == "error" {
+			messages = append(messages, diagnostic.Code+": "+diagnostic.Message)
+		}
+	}
+	return messages
 }
 
 func requireProblem(t *testing.T, problems []string, substring string) {
@@ -137,9 +158,9 @@ func requireProblem(t *testing.T, problems []string, substring string) {
 
 func TestCompile(t *testing.T) {
 	result := compile(t, channel(nil))
-	p := result.Plan
+	p := result.Artifacts.Plan
 
-	if p.APIVersion != plan.APIVersion || p.Kind != plan.KindExecutionPlan || p.OrgID != "o1" || p.Channel.Name != "Thermostat Alerts" {
+	if p.APIVersion != plan.APIVersion || p.Kind != plan.KindPlan || p.Metadata.OrgID != "o1" || p.Channel.Name != "Thermostat Alerts" {
 		t.Fatalf("unexpected plan header: %+v", p)
 	}
 	var stepIDs []string
@@ -170,8 +191,15 @@ func TestCompile(t *testing.T) {
 		t.Fatalf("input models = %v", http.InputModelRefs)
 	}
 
-	if len(p.Dependencies.Models) != 1 || len(p.Dependencies.Connections) != 1 {
-		t.Fatalf("unexpected dependencies: %+v", p.Dependencies)
+	if p.PublishStrategy.Mode != plan.PublishStrategyReplace {
+		t.Fatalf("publish strategy = %+v", p.PublishStrategy)
+	}
+	bundle := result.Artifacts.Bundle
+	if p.Dependencies.Version != result.Artifacts.EncodedBundle.Version || p.Dependencies.Kind != plan.ArtifactDependencyBundle {
+		t.Fatalf("plan does not pin its dependency bundle: %+v", p.Dependencies)
+	}
+	if len(bundle.Models) != 1 || len(bundle.Connections) != 1 {
+		t.Fatalf("unexpected dependencies: %+v", bundle)
 	}
 
 	resources := p.Policies.Deployment.Resources
@@ -182,18 +210,18 @@ func TestCompile(t *testing.T) {
 		t.Fatalf("concurrency = %+v", p.Policies.Runtime.Concurrency)
 	}
 
-	routing := result.Routing
-	if routing.PlanVersion != result.EncodedPlan.Version {
-		t.Fatalf("routing references plan %s, want %s", routing.PlanVersion, result.EncodedPlan.Version)
+	routing := result.Artifacts.Routing
+	if routing.PlanVersion != result.Artifacts.EncodedPlan.Version {
+		t.Fatalf("routing references plan %s, want %s", routing.PlanVersion, result.Artifacts.EncodedPlan.Version)
 	}
-	if !slices.Equal(routing.InputModels, []plan.ModelReference{{ID: "m1", Revision: "sha256:m1"}}) {
+	if !slices.Equal(routing.InputModels, []plan.ModelReference{{ID: "m1", Revision: bundle.Models[0].Revision}}) {
 		t.Fatalf("routing input models = %v", routing.InputModels)
 	}
 	if routing.Concurrency != p.Policies.Runtime.Concurrency {
 		t.Fatalf("routing concurrency = %+v", routing.Concurrency)
 	}
-	if !strings.Contains(string(result.EncodedPlan.Data), `"expression":"input.temperatureC != null && input.deviceId != null"`) {
-		t.Fatalf("plan does not contain the canonical step config: %s", result.EncodedPlan.Data)
+	if !strings.Contains(string(result.Artifacts.EncodedPlan.Data), `"expression":"input.temperatureC != null && input.deviceId != null"`) {
+		t.Fatalf("plan does not contain the canonical step config: %s", result.Artifacts.EncodedPlan.Data)
 	}
 }
 
@@ -207,10 +235,10 @@ func TestVersionIgnoresLayoutAndOrder(t *testing.T) {
 		}
 		slices.Reverse(config["edges"].([]any))
 	}))
-	if base.EncodedPlan.Version != reordered.EncodedPlan.Version {
+	if base.Artifacts.EncodedPlan.Version != reordered.Artifacts.EncodedPlan.Version {
 		t.Fatal("reordering steps and moving them in the editor changed the plan version")
 	}
-	if base.EncodedRouting.Version != reordered.EncodedRouting.Version {
+	if base.Artifacts.EncodedRouting.Version != reordered.Artifacts.EncodedRouting.Version {
 		t.Fatal("reordering steps changed the routing version")
 	}
 }
@@ -229,7 +257,7 @@ func TestVersionIncludesResourcesAndConcurrency(t *testing.T) {
 					config["runtime"].(map[string]any)[key] = value
 				}
 			}))
-			if changed.EncodedPlan.Version == base.EncodedPlan.Version {
+			if changed.Artifacts.EncodedPlan.Version == base.Artifacts.EncodedPlan.Version {
 				t.Fatal("plan version did not change")
 			}
 		})
@@ -259,7 +287,7 @@ func TestTimerSource(t *testing.T) {
 		source["label"] = "timer"
 		source["config"] = map[string]any{"cronExpression": "*/5 * * * * *"}
 	}))
-	timers := result.Plan.Bindings.Timer
+	timers := result.Artifacts.Plan.Bindings.Timer
 	if len(timers) != 1 || timers[0].CronExpression != "*/5 * * * * *" || timers[0].Overflow.Action != plan.OverflowSkip {
 		t.Fatalf("unexpected timer bindings: %+v", timers)
 	}
@@ -323,11 +351,9 @@ func TestGraphProblems(t *testing.T) {
 	}
 }
 
-func TestResolverErrorsAreNotCompileErrors(t *testing.T) {
+func TestResolverErrorsAreNotDiagnostics(t *testing.T) {
 	failing := fakeResolver{err: errors.New("database unavailable")}
-	_, err := Compile(context.Background(), input(channel(nil)), failing)
-	var compileErr *Error
-	if err == nil || errors.As(err, &compileErr) {
-		t.Fatalf("expected a resolver error, got %v", err)
+	if _, err := Compile(context.Background(), input(channel(nil)), failing); err == nil {
+		t.Fatal("expected a resolver error")
 	}
 }

@@ -10,7 +10,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	sqlcdb "github.com/ongruent/gruent/db/sqlc"
-	"github.com/ongruent/gruent/services/controller/internal/artifacts"
 	"github.com/ongruent/gruent/services/controller/internal/compiler"
 	"github.com/ongruent/gruent/services/controller/internal/plan"
 )
@@ -29,26 +28,42 @@ func (s *PostgresStore) RecordPrepared(ctx context.Context, prepared Prepared) (
 	defer tx.Rollback(ctx) //nolint:errcheck // no-op after commit
 	queries := sqlcdb.New(tx)
 
-	for _, reference := range []artifacts.Reference{prepared.Plan, prepared.Routing} {
-		err := queries.UpsertChannelArtifact(ctx, prepared.ChannelID, string(reference.Kind), reference.Version, reference.Key, reference.SizeBytes)
+	for _, reference := range prepared.Artifacts {
+		err := queries.UpsertChannelArtifact(ctx, sqlcdb.UpsertChannelArtifactParams{
+			ChannelID:    prepared.ChannelID,
+			Kind:         reference.Kind,
+			Version:      reference.Version,
+			StorageKey:   reference.Key,
+			SignatureKey: reference.SignatureKey,
+			SigningKeyID: reference.SigningKeyID,
+			SizeBytes:    reference.SizeBytes,
+		})
 		if err != nil {
 			return State{}, fmt.Errorf("record artifact %s: %w", reference.Key, err)
 		}
 	}
+	planRef := prepared.artifact(plan.ArtifactPlan)
+	bundle := prepared.artifact(plan.ArtifactDependencyBundle)
+	schema := prepared.artifact(plan.ArtifactPayloadSchema)
+	routing := prepared.artifact(plan.ArtifactRouting)
 
 	resources := prepared.Policies.Deployment.Resources
 	concurrency := prepared.Policies.Runtime.Concurrency
 	row, err := queries.RecordChannelDeploymentPrepared(ctx, sqlcdb.RecordChannelDeploymentPreparedParams{
-		ChannelID:               prepared.ChannelID,
-		SpaceID:                 prepared.SpaceID,
-		DesiredVersion:          &prepared.Plan.Version,
-		PlanStorageKey:          &prepared.Plan.Key,
-		RoutingVersion:          &prepared.Routing.Version,
-		RoutingStorageKey:       &prepared.Routing.Key,
-		MemoryMib:               int32Ptr(resources.MemoryMiB),
-		MemoryReservationMib:    int32Ptr(resources.MemoryReservationMiB),
-		MaxConcurrentExecutions: int32Ptr(concurrency.MaxConcurrentExecutions),
-		MaxQueuedExecutions:     int32Ptr(concurrency.MaxQueuedExecutions),
+		ChannelID:                  prepared.ChannelID,
+		SpaceID:                    prepared.SpaceID,
+		DesiredVersion:             &planRef.Version,
+		PlanStorageKey:             &planRef.Key,
+		DependencyBundleVersion:    &bundle.Version,
+		DependencyBundleStorageKey: &bundle.Key,
+		PayloadSchemaVersion:       &schema.Version,
+		PayloadSchemaStorageKey:    &schema.Key,
+		RoutingVersion:             &routing.Version,
+		RoutingStorageKey:          &routing.Key,
+		MemoryMib:                  int32Ptr(resources.MemoryMiB),
+		MemoryReservationMib:       int32Ptr(resources.MemoryReservationMiB),
+		MaxConcurrentExecutions:    int32Ptr(concurrency.MaxConcurrentExecutions),
+		MaxQueuedExecutions:        int32Ptr(concurrency.MaxQueuedExecutions),
 	})
 	if err != nil {
 		return State{}, fmt.Errorf("record desired state: %w", err)
@@ -81,8 +96,8 @@ func (s *PostgresStore) Get(ctx context.Context, channelID string) (State, error
 }
 
 // ArtifactExists implements Store.
-func (s *PostgresStore) ArtifactExists(ctx context.Context, channelID string, kind artifacts.Kind, version string) (bool, error) {
-	return sqlcdb.New(s.Pool).ChannelArtifactExists(ctx, channelID, string(kind), version)
+func (s *PostgresStore) ArtifactExists(ctx context.Context, channelID, kind, version string) (bool, error) {
+	return sqlcdb.New(s.Pool).ChannelArtifactExists(ctx, channelID, kind, version)
 }
 
 // RecordObserved implements Store.
@@ -120,13 +135,18 @@ func stateFromRow(row sqlcdb.AppChannelDeployment) State {
 		ObservedAt:              timeValue(row.ObservedAt),
 		UpdatedAt:               row.UpdatedAt,
 	}
-	if row.DesiredVersion != nil && row.PlanStorageKey != nil {
-		state.Plan = &ArtifactRef{Version: *row.DesiredVersion, StorageKey: *row.PlanStorageKey}
-	}
-	if row.RoutingVersion != nil && row.RoutingStorageKey != nil {
-		state.Routing = &ArtifactRef{Version: *row.RoutingVersion, StorageKey: *row.RoutingStorageKey}
-	}
+	state.Plan = artifactRef(row.DesiredVersion, row.PlanStorageKey)
+	state.DependencyBundle = artifactRef(row.DependencyBundleVersion, row.DependencyBundleStorageKey)
+	state.PayloadSchema = artifactRef(row.PayloadSchemaVersion, row.PayloadSchemaStorageKey)
+	state.Routing = artifactRef(row.RoutingVersion, row.RoutingStorageKey)
 	return state
+}
+
+func artifactRef(version, key *string) *ArtifactRef {
+	if version == nil || key == nil {
+		return nil
+	}
+	return &ArtifactRef{Version: *version, StorageKey: *key}
 }
 
 // PostgresChannels loads channels and resolves their dependencies from the app schema.
@@ -157,43 +177,35 @@ func (p *PostgresChannels) Channel(ctx context.Context, channelID string) (compi
 }
 
 // Model implements compiler.Resolver.
-func (p *PostgresChannels) Model(ctx context.Context, spaceID, modelID string) (plan.Model, error) {
+func (p *PostgresChannels) Model(ctx context.Context, spaceID, modelID string) (compiler.ModelRecord, error) {
 	model, err := p.Queries.GetModel(ctx, modelID)
 	if errors.Is(err, pgx.ErrNoRows) || (err == nil && model.SpaceID != spaceID) {
-		return plan.Model{}, compiler.ErrNotFound
+		return compiler.ModelRecord{}, compiler.ErrNotFound
 	}
 	if err != nil {
-		return plan.Model{}, err
+		return compiler.ModelRecord{}, err
 	}
-	attributes, err := plan.Canonicalize(model.Attributes)
-	if err != nil {
-		return plan.Model{}, fmt.Errorf("model %s attributes: %w", modelID, err)
-	}
-	return plan.Model{
-		ID:         model.ID,
-		Name:       model.Name,
-		Revision:   plan.Digest(attributes),
-		Attributes: attributes,
-	}, nil
+	return compiler.ModelRecord{ID: model.ID, Name: model.Name, Attributes: model.Attributes}, nil
 }
 
 // Connection implements compiler.Resolver.
-func (p *PostgresChannels) Connection(ctx context.Context, spaceID, connectionID string) (plan.Connection, error) {
+func (p *PostgresChannels) Connection(ctx context.Context, spaceID, connectionID string) (compiler.ConnectionRecord, error) {
 	connection, err := p.Queries.GetConnection(ctx, connectionID)
 	if errors.Is(err, pgx.ErrNoRows) || (err == nil && connection.SpaceID != spaceID) {
-		return plan.Connection{}, compiler.ErrNotFound
+		return compiler.ConnectionRecord{}, compiler.ErrNotFound
 	}
 	if err != nil {
-		return plan.Connection{}, err
+		return compiler.ConnectionRecord{}, err
 	}
 	// The revision is derived from the last update rather than the attributes, which can hold
 	// credentials.
 	revision := connection.ID + "\x00" + connection.UpdatedAt.UTC().Format(time.RFC3339Nano)
-	return plan.Connection{
-		ID:       connection.ID,
-		Name:     connection.Name,
-		Category: connection.ConnectionCategory,
-		Revision: plan.Digest([]byte(revision)),
+	return compiler.ConnectionRecord{
+		ID:         connection.ID,
+		Name:       connection.Name,
+		Category:   connection.ConnectionCategory,
+		Revision:   plan.Digest([]byte(revision)),
+		Attributes: connection.Attributes,
 	}, nil
 }
 

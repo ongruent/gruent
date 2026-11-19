@@ -52,10 +52,12 @@ type State struct {
 	SpaceID   string
 
 	DesiredState string
-	// Plan and Routing are the artifacts of the desired version. They are nil until a version has been
-	// prepared successfully.
-	Plan    *ArtifactRef
-	Routing *ArtifactRef
+	// The artifacts of the desired version. They are nil until a version has been prepared
+	// successfully. Plan is the desired version; it pins the dependency bundle and payload schema.
+	Plan             *ArtifactRef
+	DependencyBundle *ArtifactRef
+	PayloadSchema    *ArtifactRef
+	Routing          *ArtifactRef
 
 	// The static resource and concurrency contract of the desired version, copied from the plan.
 	MemoryMiB               int

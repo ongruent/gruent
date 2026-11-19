@@ -2,11 +2,13 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 
 	pb "github.com/ongruent/gruent/libs/protocols/controller"
 	"github.com/ongruent/gruent/services/controller/internal/compiler"
 	"github.com/ongruent/gruent/services/controller/internal/deployments"
+	"github.com/ongruent/gruent/services/controller/internal/types"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -17,6 +19,8 @@ type Deployments interface {
 	Publish(ctx context.Context, channelID string) (deployments.State, error)
 	Unpublish(ctx context.Context, channelID string) (deployments.State, error)
 	Status(ctx context.Context, channelID string) (deployments.State, error)
+	CompileDraft(ctx context.Context, request deployments.DraftRequest) (*compiler.Result, error)
+	CompileStep(ctx context.Context, spaceID string, step []byte, upstream *types.Type) (*compiler.StepResult, error)
 }
 
 type controllerGRPC struct {
@@ -66,6 +70,64 @@ func (c *controllerGRPC) Status(ctx context.Context, request *pb.StatusRequest) 
 		return nil, grpcError(request.GetChannelId(), err)
 	}
 	return &pb.StatusResponse{Status: channelStatus(state), Deployment: toProto(state)}, nil
+}
+
+func (c *controllerGRPC) Compile(ctx context.Context, request *pb.CompileRequest) (*pb.CompileResponse, error) {
+	if request.GetSpaceId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "spaceId is required")
+	}
+
+	if len(request.GetStepConfig()) > 0 {
+		upstream, err := compiler.ParseType(request.GetUpstreamType())
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		}
+		result, err := c.deployments.CompileStep(ctx, request.GetSpaceId(), request.GetStepConfig(), upstream)
+		if err != nil {
+			return nil, grpcError(request.GetChannelId(), err)
+		}
+		return compileResponse(result.Diagnostics, []types.Resolved{result.Types}, nil)
+	}
+
+	if request.GetChannelId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "channelId or stepConfig is required")
+	}
+	draft := deployments.DraftRequest{SpaceID: request.GetSpaceId(), ChannelID: request.GetChannelId()}
+	if len(request.GetChannelConfig()) > 0 {
+		draft.Config = request.GetChannelConfig()
+	}
+	result, err := c.deployments.CompileDraft(ctx, draft)
+	if err != nil {
+		return nil, grpcError(request.GetChannelId(), err)
+	}
+	return compileResponse(result.Diagnostics, result.Types, result.Artifacts)
+}
+
+func compileResponse(diagnostics []compiler.Diagnostic, resolved []types.Resolved, artifacts *compiler.Artifacts) (*pb.CompileResponse, error) {
+	encodedTypes, err := json.Marshal(resolved)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "encode resolved types")
+	}
+	response := &pb.CompileResponse{Valid: true, ResolvedTypes: encodedTypes}
+	for _, diagnostic := range diagnostics {
+		if diagnostic.Severity == types.SeverityError {
+			response.Valid = false
+		}
+		response.Diagnostics = append(response.Diagnostics, &pb.Diagnostic{
+			Severity: diagnostic.Severity,
+			Code:     diagnostic.Code,
+			Message:  diagnostic.Message,
+			StepId:   diagnostic.StepID,
+			Path:     diagnostic.Path,
+		})
+	}
+	if artifacts != nil {
+		response.PlanVersion = artifacts.EncodedPlan.Version
+		response.DependencyBundleVersion = artifacts.EncodedBundle.Version
+		response.PayloadSchemaVersion = artifacts.EncodedSchema.Version
+		response.RoutingVersion = artifacts.EncodedRouting.Version
+	}
+	return response, nil
 }
 
 // channelStatus summarizes a deployment state. Desired state alone never makes a channel PUBLISHED:
@@ -122,11 +184,16 @@ func toProto(state deployments.State) *pb.Deployment {
 		ObservedVersion:         state.ObservedVersion,
 		ObservedMessage:         state.ObservedMessage,
 	}
-	if state.Plan != nil {
-		deployment.Plan = &pb.ArtifactRef{Version: state.Plan.Version, StorageKey: state.Plan.StorageKey}
-	}
-	if state.Routing != nil {
-		deployment.Routing = &pb.ArtifactRef{Version: state.Routing.Version, StorageKey: state.Routing.StorageKey}
-	}
+	deployment.Plan = artifactRef(state.Plan)
+	deployment.DependencyBundle = artifactRef(state.DependencyBundle)
+	deployment.PayloadSchema = artifactRef(state.PayloadSchema)
+	deployment.Routing = artifactRef(state.Routing)
 	return deployment
+}
+
+func artifactRef(ref *deployments.ArtifactRef) *pb.ArtifactRef {
+	if ref == nil {
+		return nil
+	}
+	return &pb.ArtifactRef{Version: ref.Version, StorageKey: ref.StorageKey}
 }

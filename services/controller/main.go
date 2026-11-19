@@ -12,6 +12,7 @@ import (
 	"github.com/ongruent/gruent/services/controller/config"
 	"github.com/ongruent/gruent/services/controller/internal/artifacts"
 	"github.com/ongruent/gruent/services/controller/internal/deployments"
+	"github.com/ongruent/gruent/services/controller/internal/signing"
 	sqlcService "github.com/ongruent/gruent/services/controller/internal/sqlc"
 )
 
@@ -40,11 +41,18 @@ func main() {
 		panic(fmt.Errorf("failed to set up artifact storage: %v", err))
 	}
 
+	signer, err := signing.NewSigner(config.VaultConf.ArtifactSigningKeyID, config.VaultConf.ArtifactSigningPrivateKey)
+	if err != nil {
+		panic(fmt.Errorf("failed to set up artifact signing: %v", err))
+	}
+	fmt.Printf("Signing artifacts with key %s (public key %s)\n", signer.KeyID(), signer.PublicKey())
+
 	channels := &deployments.PostgresChannels{Queries: sqlcService.Queries}
 	service := &deployments.Service{
 		Channels:  channels,
 		Resolver:  channels,
 		Artifacts: artifactStore,
+		Signer:    signer,
 		Store:     &deployments.PostgresStore{Pool: sqlcService.Pool},
 	}
 

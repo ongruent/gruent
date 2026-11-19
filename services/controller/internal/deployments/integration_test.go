@@ -61,13 +61,13 @@ func TestIntegration(t *testing.T) {
 	}
 
 	channels := &PostgresChannels{Queries: queries}
-	service := &Service{Channels: channels, Resolver: channels, Artifacts: store, Store: &PostgresStore{Pool: pool}}
+	service := &Service{Channels: channels, Resolver: channels, Artifacts: store, Signer: testSigner(), Store: &PostgresStore{Pool: pool}}
 
 	state, err := service.Publish(ctx, channelID)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if state.Plan == nil || state.MemoryReservationMiB != 256 || state.ObservedStatus != ObservedUnknown {
+	if state.Plan == nil || state.DependencyBundle == nil || state.PayloadSchema == nil || state.MemoryReservationMiB != 256 || state.ObservedStatus != ObservedUnknown {
 		t.Fatalf("unexpected state: %+v", state)
 	}
 	if exists, err := store.Exists(ctx, state.Plan.StorageKey); err != nil || !exists {

@@ -9,6 +9,7 @@ import (
 	"github.com/ongruent/gruent/services/controller/internal/artifacts"
 	"github.com/ongruent/gruent/services/controller/internal/compiler"
 	"github.com/ongruent/gruent/services/controller/internal/plan"
+	"github.com/ongruent/gruent/services/controller/internal/signing"
 )
 
 // memoryStore implements Store in memory, with the same semantics as the Postgres queries.
@@ -30,12 +31,19 @@ func (m *memoryStore) state(channelID, spaceID string) State {
 }
 
 func (m *memoryStore) RecordPrepared(_ context.Context, p Prepared) (State, error) {
-	m.artifacts[p.ChannelID+string(p.Plan.Kind)+p.Plan.Version] = true
-	m.artifacts[p.ChannelID+string(p.Routing.Kind)+p.Routing.Version] = true
+	for _, reference := range p.Artifacts {
+		m.artifacts[p.ChannelID+reference.Kind+reference.Version] = true
+	}
+	ref := func(kind string) *ArtifactRef {
+		reference := p.artifact(kind)
+		return &ArtifactRef{Version: reference.Version, StorageKey: reference.Key}
+	}
 	state := m.state(p.ChannelID, p.SpaceID)
 	state.DesiredState = DesiredPublished
-	state.Plan = &ArtifactRef{Version: p.Plan.Version, StorageKey: p.Plan.Key}
-	state.Routing = &ArtifactRef{Version: p.Routing.Version, StorageKey: p.Routing.Key}
+	state.Plan = ref(plan.ArtifactPlan)
+	state.DependencyBundle = ref(plan.ArtifactDependencyBundle)
+	state.PayloadSchema = ref(plan.ArtifactPayloadSchema)
+	state.Routing = ref(plan.ArtifactRouting)
 	state.MemoryMiB = p.Policies.Deployment.Resources.MemoryMiB
 	state.MemoryReservationMiB = p.Policies.Deployment.Resources.MemoryReservationMiB
 	state.MaxConcurrentExecutions = p.Policies.Runtime.Concurrency.MaxConcurrentExecutions
@@ -71,8 +79,8 @@ func (m *memoryStore) Get(_ context.Context, channelID string) (State, error) {
 	return state, nil
 }
 
-func (m *memoryStore) ArtifactExists(_ context.Context, channelID string, kind artifacts.Kind, version string) (bool, error) {
-	return m.artifacts[channelID+string(kind)+version], nil
+func (m *memoryStore) ArtifactExists(_ context.Context, channelID, kind, version string) (bool, error) {
+	return m.artifacts[channelID+kind+version], nil
 }
 
 func (m *memoryStore) RecordObserved(_ context.Context, o Observation) (State, error) {
@@ -97,12 +105,22 @@ func (c channels) Channel(_ context.Context, channelID string) (compiler.Input, 
 
 type noDependencies struct{}
 
-func (noDependencies) Model(context.Context, string, string) (plan.Model, error) {
-	return plan.Model{}, compiler.ErrNotFound
+func (noDependencies) Model(context.Context, string, string) (compiler.ModelRecord, error) {
+	return compiler.ModelRecord{}, compiler.ErrNotFound
 }
 
-func (noDependencies) Connection(context.Context, string, string) (plan.Connection, error) {
-	return plan.Connection{}, compiler.ErrNotFound
+func (noDependencies) Connection(context.Context, string, string) (compiler.ConnectionRecord, error) {
+	return compiler.ConnectionRecord{}, compiler.ErrNotFound
+}
+
+const testSeed = "gn4yyRDEl9VZSnQMZDkd8Uz3KjkDDKZ3v181dnFB7ok="
+
+func testSigner() *signing.Signer {
+	signer, err := signing.NewSigner("test", testSeed)
+	if err != nil {
+		panic(err)
+	}
+	return signer
 }
 
 func timerChannel(memoryMiB int) []byte {
@@ -122,7 +140,7 @@ func newService(config []byte) (*Service, *artifacts.MemoryStore, *memoryStore, 
 	files := artifacts.NewMemoryStore()
 	store := newMemoryStore()
 	source := channels{"c1": config}
-	return &Service{Channels: source, Resolver: noDependencies{}, Artifacts: files, Store: store}, files, store, source
+	return &Service{Channels: source, Resolver: noDependencies{}, Artifacts: files, Signer: testSigner(), Store: store}, files, store, source
 }
 
 func TestPublishRecordsDesiredStateWithoutObservingIt(t *testing.T) {
@@ -135,7 +153,7 @@ func TestPublishRecordsDesiredStateWithoutObservingIt(t *testing.T) {
 	if state.DesiredState != DesiredPublished || state.PreparationStatus != PreparationReady {
 		t.Fatalf("unexpected state: %+v", state)
 	}
-	if state.Plan == nil || state.Routing == nil {
+	if state.Plan == nil || state.DependencyBundle == nil || state.PayloadSchema == nil || state.Routing == nil {
 		t.Fatal("artifact references were not recorded")
 	}
 	if state.MemoryMiB != 256 || state.MemoryReservationMiB != 256 || state.MaxConcurrentExecutions != 4 {
@@ -149,8 +167,31 @@ func TestPublishRecordsDesiredStateWithoutObservingIt(t *testing.T) {
 	if !ok {
 		t.Fatalf("plan %s was not uploaded", state.Plan.StorageKey)
 	}
-	if plan.Digest(planData) != state.Plan.Version {
-		t.Fatal("plan version is not the digest of the uploaded plan")
+	// Consumers can verify every uploaded artifact against the signer's public key.
+	keyring, err := signing.NewKeyring(map[string]string{"test": testSigner().PublicKey()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for kind, ref := range map[string]*ArtifactRef{
+		plan.ArtifactPlan:             state.Plan,
+		plan.ArtifactDependencyBundle: state.DependencyBundle,
+		plan.ArtifactPayloadSchema:    state.PayloadSchema,
+		plan.ArtifactRouting:          state.Routing,
+	} {
+		var envelope signing.Envelope
+		if err := json.Unmarshal(files.Objects[artifacts.SignatureKey(ref.StorageKey)], &envelope); err != nil {
+			t.Fatalf("%s signature: %v", kind, err)
+		}
+		if err := keyring.Verify(kind, ref.Version, files.Objects[ref.StorageKey], envelope); err != nil {
+			t.Fatalf("%s does not verify: %v", kind, err)
+		}
+	}
+	var published plan.Plan
+	if err := json.Unmarshal(planData, &published); err != nil {
+		t.Fatal(err)
+	}
+	if published.Dependencies.Version != state.DependencyBundle.Version || published.Payloads.Schema.Version != state.PayloadSchema.Version {
+		t.Fatal("the plan does not pin the recorded dependency bundle and payload schema")
 	}
 	var routing plan.RoutingArtifact
 	if err := json.Unmarshal(files.Objects[state.Routing.StorageKey], &routing); err != nil {
@@ -245,5 +286,38 @@ func TestRecordObserved(t *testing.T) {
 	}
 	if unpublished.DesiredState != DesiredUnpublished || unpublished.Converged() {
 		t.Fatalf("unexpected state after unpublishing: %+v", unpublished)
+	}
+}
+
+func TestCompileDraftDoesNotPublish(t *testing.T) {
+	service, files, store, _ := newService(timerChannel(256))
+
+	result, err := service.CompileDraft(context.Background(), DraftRequest{SpaceID: "s1", ChannelID: "c1", Config: timerChannel(512)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.HasErrors() || result.Artifacts == nil {
+		t.Fatalf("unexpected diagnostics: %+v", result.Diagnostics)
+	}
+	if files.Puts != 0 || len(store.states) != 0 {
+		t.Fatal("soft compilation uploaded artifacts or recorded state")
+	}
+
+	// The draft compiles to the version Publish produces for the same configuration.
+	published, _, _, _ := newService(timerChannel(512))
+	state, err := published.Publish(context.Background(), "c1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if state.DesiredVersion() != result.Artifacts.EncodedPlan.Version {
+		t.Fatal("soft compilation and publication disagree")
+	}
+
+	invalid, err := service.CompileDraft(context.Background(), DraftRequest{SpaceID: "s1", ChannelID: "c1", Config: timerChannel(1)})
+	if err != nil || !invalid.HasErrors() {
+		t.Fatalf("expected diagnostics for an invalid draft, got %+v (%v)", invalid, err)
+	}
+	if _, err := service.CompileDraft(context.Background(), DraftRequest{SpaceID: "other", ChannelID: "c1"}); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("expected a channel in another space to be hidden, got %v", err)
 	}
 }

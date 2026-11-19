@@ -1,8 +1,8 @@
 -- name: UpsertChannelArtifact :exec
 INSERT INTO app.channel_artifacts (
-  channel_id, kind, version, storage_key, size_bytes
+  channel_id, kind, version, storage_key, signature_key, signing_key_id, size_bytes
 ) VALUES (
-  $1, $2, $3, $4, $5
+  $1, $2, $3, $4, $5, $6, $7
 )
 ON CONFLICT (channel_id, kind, version) DO NOTHING;
 
@@ -18,12 +18,15 @@ WHERE channel_id = $1;
 
 -- name: RecordChannelDeploymentPrepared :one
 INSERT INTO app.channel_deployments (
-  channel_id, space_id, desired_state, desired_version, plan_storage_key, routing_version,
+  channel_id, space_id, desired_state, desired_version, plan_storage_key, dependency_bundle_version,
+  dependency_bundle_storage_key, payload_schema_version, payload_schema_storage_key, routing_version,
   routing_storage_key, memory_mib, memory_reservation_mib, max_concurrent_executions,
   max_queued_executions, preparation_status, prepared_at
 ) VALUES (
   sqlc.arg(channel_id), sqlc.arg(space_id), 'published', sqlc.arg(desired_version),
-  sqlc.arg(plan_storage_key), sqlc.arg(routing_version), sqlc.arg(routing_storage_key),
+  sqlc.arg(plan_storage_key), sqlc.arg(dependency_bundle_version),
+  sqlc.arg(dependency_bundle_storage_key), sqlc.arg(payload_schema_version),
+  sqlc.arg(payload_schema_storage_key), sqlc.arg(routing_version), sqlc.arg(routing_storage_key),
   sqlc.arg(memory_mib), sqlc.arg(memory_reservation_mib), sqlc.arg(max_concurrent_executions),
   sqlc.arg(max_queued_executions), 'ready', NOW()
 )
@@ -31,6 +34,10 @@ ON CONFLICT (channel_id) DO UPDATE
 SET desired_state = 'published',
     desired_version = EXCLUDED.desired_version,
     plan_storage_key = EXCLUDED.plan_storage_key,
+    dependency_bundle_version = EXCLUDED.dependency_bundle_version,
+    dependency_bundle_storage_key = EXCLUDED.dependency_bundle_storage_key,
+    payload_schema_version = EXCLUDED.payload_schema_version,
+    payload_schema_storage_key = EXCLUDED.payload_schema_storage_key,
     routing_version = EXCLUDED.routing_version,
     routing_storage_key = EXCLUDED.routing_storage_key,
     memory_mib = EXCLUDED.memory_mib,

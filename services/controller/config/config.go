@@ -58,6 +58,10 @@ type VaultConfig struct {
 	ArtifactStorageRegion          string `mapstructure:"ARTIFACT_STORAGE_REGION"`
 	ArtifactStorageUseSSL          bool   `mapstructure:"ARTIFACT_STORAGE_USE_SSL"`
 
+	// Artifact signing: an Ed25519 seed (base64) and the ID consumers know its public key by
+	ArtifactSigningKeyID      string `mapstructure:"ARTIFACT_SIGNING_KEY_ID"`
+	ArtifactSigningPrivateKey string `mapstructure:"ARTIFACT_SIGNING_PRIVATE_KEY"`
+
 	// Redis
 	RedisHost     string `mapstructure:"REDIS_HOST"`
 	RedisPort     int    `mapstructure:"REDIS_PORT"`
@@ -163,6 +167,8 @@ func loadVaultSecrets() (*VaultConfig, error) {
 		ArtifactStorageBucket:          SecretsClient.GetStringFromMap(secrets, "ARTIFACT_STORAGE_BUCKET"),
 		ArtifactStorageRegion:          SecretsClient.GetStringFromMap(secrets, "ARTIFACT_STORAGE_REGION"),
 		ArtifactStorageUseSSL:          SecretsClient.GetBoolFromMap(secrets, "ARTIFACT_STORAGE_USE_SSL"),
+		ArtifactSigningKeyID:           SecretsClient.GetStringFromMap(secrets, "ARTIFACT_SIGNING_KEY_ID"),
+		ArtifactSigningPrivateKey:      SecretsClient.GetStringFromMap(secrets, "ARTIFACT_SIGNING_PRIVATE_KEY"),
 		RedisHost:             SecretsClient.GetStringFromMap(secrets, "REDIS_HOST"),
 		RedisPort:             SecretsClient.GetIntFromMap(secrets, "REDIS_PORT"),
 		RedisUsername:         SecretsClient.GetStringFromMap(secrets, "REDIS_USERNAME"),

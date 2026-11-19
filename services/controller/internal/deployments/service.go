@@ -9,6 +9,8 @@ import (
 	"github.com/ongruent/gruent/services/controller/internal/artifacts"
 	"github.com/ongruent/gruent/services/controller/internal/compiler"
 	"github.com/ongruent/gruent/services/controller/internal/plan"
+	"github.com/ongruent/gruent/services/controller/internal/signing"
+	"github.com/ongruent/gruent/services/controller/internal/types"
 )
 
 // ErrNotFound is returned when a channel or its deployment state does not exist.
@@ -24,9 +26,17 @@ type ChannelSource interface {
 type Prepared struct {
 	ChannelID string
 	SpaceID   string
-	Plan      artifacts.Reference
-	Routing   artifacts.Reference
+	// Artifacts holds the plan, dependency bundle, payload schema and routing artifact.
+	Artifacts []artifacts.Reference
 	Policies  plan.Policies
+}
+
+func (p Prepared) artifact(kind string) artifacts.Reference {
+	index := slices.IndexFunc(p.Artifacts, func(r artifacts.Reference) bool { return r.Kind == kind })
+	if index < 0 {
+		return artifacts.Reference{}
+	}
+	return p.Artifacts[index]
 }
 
 // Failure is a failed preparation of a channel.
@@ -56,7 +66,7 @@ type Store interface {
 	// Get returns the deployment state, or ErrNotFound.
 	Get(ctx context.Context, channelID string) (State, error)
 	// ArtifactExists reports whether a version of an artifact was prepared for the channel.
-	ArtifactExists(ctx context.Context, channelID string, kind artifacts.Kind, version string) (bool, error)
+	ArtifactExists(ctx context.Context, channelID, kind, version string) (bool, error)
 	// RecordObserved records a runtime's report, or returns ErrNotFound.
 	RecordObserved(ctx context.Context, observation Observation) (State, error)
 }
@@ -90,12 +100,14 @@ type Service struct {
 	Channels  ChannelSource
 	Resolver  compiler.Resolver
 	Artifacts artifacts.Store
+	Signer    *signing.Signer
 	Store     Store
 }
 
-// Publish compiles the channel, uploads its artifacts, and records the plan as the desired version.
-// If any stage fails, the failure is recorded and a *PreparationError is returned. Publishing does not
-// change the observed state.
+// Publish compiles the channel, signs and uploads its artifacts, and records the plan as the desired
+// version. If any stage fails, the failure is recorded and a *PreparationError is returned; a channel
+// that does not compile wraps a *compiler.Error with its diagnostics. Publishing does not change the
+// observed state.
 func (s *Service) Publish(ctx context.Context, channelID string) (State, error) {
 	input, err := s.Channels.Channel(ctx, channelID)
 	if err != nil {
@@ -123,25 +135,58 @@ func (s *Service) Publish(ctx context.Context, channelID string) (State, error) 
 	if err != nil {
 		return fail(StageCompile, err)
 	}
-
-	// Upload the plan before the routing artifact, so that a routing artifact never references a plan
-	// that is not in storage.
-	planRef, err := artifacts.Upload(ctx, s.Artifacts, input.OrgID, input.SpaceID, input.ChannelID, artifacts.KindExecutionPlan, result.EncodedPlan)
-	if err != nil {
-		return fail(StageUpload, err)
+	if result.HasErrors() {
+		return fail(StageCompile, &compiler.Error{Diagnostics: result.Diagnostics})
 	}
-	routingRef, err := artifacts.Upload(ctx, s.Artifacts, input.OrgID, input.SpaceID, input.ChannelID, artifacts.KindRouting, result.EncodedRouting)
-	if err != nil {
-		return fail(StageUpload, err)
+
+	// Artifacts are uploaded after the artifacts they reference, so a reference never points to a
+	// missing artifact.
+	var references []artifacts.Reference
+	for _, artifact := range result.Artifacts.Refs() {
+		reference, err := artifacts.Upload(ctx, s.Artifacts, s.Signer, artifact.Ref, artifact.Data)
+		if err != nil {
+			return fail(StageUpload, err)
+		}
+		references = append(references, reference)
 	}
 
 	return s.Store.RecordPrepared(ctx, Prepared{
 		ChannelID: input.ChannelID,
 		SpaceID:   input.SpaceID,
-		Plan:      planRef,
-		Routing:   routingRef,
-		Policies:  result.Plan.Policies,
+		Artifacts: references,
+		Policies:  result.Artifacts.Plan.Policies,
 	})
+}
+
+// DraftRequest is a soft compilation request for a whole channel.
+type DraftRequest struct {
+	SpaceID   string
+	ChannelID string
+	// Config is a draft configuration to compile instead of the saved one, or nil.
+	Config []byte
+}
+
+// CompileDraft soft-compiles a channel: it runs the same validation and type resolution as Publish
+// and compiles the plan and dependency bundle, but uploads nothing, records nothing, and needs no
+// runtime. The versions in the result are what Publish would produce for the same configuration and
+// dependencies.
+func (s *Service) CompileDraft(ctx context.Context, request DraftRequest) (*compiler.Result, error) {
+	input, err := s.Channels.Channel(ctx, request.ChannelID)
+	if err != nil {
+		return nil, err
+	}
+	if input.SpaceID != request.SpaceID {
+		return nil, ErrNotFound
+	}
+	if request.Config != nil {
+		input.Config = request.Config
+	}
+	return compiler.Compile(ctx, input, s.Resolver)
+}
+
+// CompileStep soft-compiles a single step with the given upstream type context.
+func (s *Service) CompileStep(ctx context.Context, spaceID string, step []byte, upstream *types.Type) (*compiler.StepResult, error) {
+	return compiler.CompileStep(ctx, compiler.StepInput{SpaceID: spaceID, Step: step, UpstreamType: upstream}, s.Resolver)
 }
 
 // Unpublish sets the desired state to unpublished. Artifacts are kept, so that the observed version
@@ -157,8 +202,8 @@ func (s *Service) Status(ctx context.Context, channelID string) (State, error) {
 
 // RecordObserved records a runtime's acknowledgement of a channel. This is the boundary through which
 // future runtime integration reports observed versions and status; it is the only way the observed
-// state leaves "unknown". Applied and failed reports must name an execution plan version that was
-// prepared for the channel.
+// state leaves "unknown". Applied and failed reports must name a plan version that was prepared for the
+// channel.
 func (s *Service) RecordObserved(ctx context.Context, observation Observation) (State, error) {
 	statuses := []string{ObservedUnknown, ObservedApplied, ObservedFailed, ObservedStopped}
 	if !slices.Contains(statuses, observation.Status) {
@@ -170,7 +215,7 @@ func (s *Service) RecordObserved(ctx context.Context, observation Observation) (
 		}
 	}
 	if observation.Version != "" {
-		exists, err := s.Store.ArtifactExists(ctx, observation.ChannelID, artifacts.KindExecutionPlan, observation.Version)
+		exists, err := s.Store.ArtifactExists(ctx, observation.ChannelID, plan.ArtifactPlan, observation.Version)
 		if err != nil {
 			return State{}, err
 		}

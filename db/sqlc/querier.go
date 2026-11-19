@@ -141,7 +141,7 @@ type Querier interface {
 	UpdateTag(ctx context.Context, iD string, name string, updatedBy string) (AppTag, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (AppUser, error)
 	UpdateUserPassword(ctx context.Context, iD string, password *string) (AppUser, error)
-	UpsertChannelArtifact(ctx context.Context, channelID string, kind string, version string, storageKey string, sizeBytes int64) error
+	UpsertChannelArtifact(ctx context.Context, arg UpsertChannelArtifactParams) error
 	VerifyUserEmail(ctx context.Context, id string) (AppUser, error)
 }
 

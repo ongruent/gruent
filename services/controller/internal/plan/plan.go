@@ -1,52 +1,97 @@
-// Package plan defines the artifacts that the controller compiles from a channel configuration: the
-// execution plan consumed by runtimes, and the routing artifact consumed by source services.
+// Package plan defines the artifacts that the controller compiles from a channel configuration:
 //
-// Both artifacts are versioned by the SHA-256 digest of their canonical JSON encoding (see Encode), so
-// any change to the graph, bindings, dependencies, or policies (including resource and concurrency
-// values) produces a new version, and an unchanged channel always compiles to the same version.
-// Artifacts therefore contain no timestamps or other per-compilation values.
+//   - Plan: the channel graph, publish strategy, policies, payload types, and metadata. Runtimes execute it.
+//   - DependencyBundle: the models, connections, secrets and certificates the plan references, so runtimes
+//     can hydrate them.
+//   - PayloadSchema: the FlatBuffers schema of the step input and output payloads.
+//   - RoutingArtifact: the source bindings and expected input models, for source services.
+//
+// Every artifact is versioned by the SHA-256 digest of its canonical encoding (see Encode), stored at a
+// content-addressed key, and signed (see package signing). Published artifacts are therefore immutable:
+// any change to the graph, dependencies or policies (including resource and concurrency values) produces
+// a new version, and an unchanged channel always compiles to the same versions. Artifacts contain no
+// timestamps or other per-compilation values.
+//
+// A Plan pins the versions of its DependencyBundle and PayloadSchema, and the RoutingArtifact pins the
+// Plan's version, so verifying a plan (see package signing) fixes the whole set.
 package plan
+
+import "github.com/ongruent/gruent/services/controller/internal/types"
 
 // APIVersion identifies the artifact schema. Breaking changes to the schema need a new version.
 const APIVersion = "gruent.com/v1"
 
-// Artifact kinds.
+// Document kinds, stored in each artifact's "kind" field.
 const (
-	KindExecutionPlan = "ExecutionPlan"
-	KindSourceRouting = "SourceRouting"
+	KindPlan             = "Plan"
+	KindDependencyBundle = "DependencyBundle"
+	KindSourceRouting    = "SourceRouting"
 )
 
-// ExecutionPlan captures a channel graph and everything a runtime needs to execute it: source
-// bindings, resolved dependencies, and the runtime and deployment policies.
-type ExecutionPlan struct {
-	APIVersion   string       `json:"apiVersion"`
-	Kind         string       `json:"kind"`
-	OrgID        string       `json:"orgId"`
-	SpaceID      string       `json:"spaceId"`
-	ChannelID    string       `json:"channelId"`
-	Channel      Channel      `json:"channel"`
-	Bindings     Bindings     `json:"bindings"`
-	Dependencies Dependencies `json:"dependencies"`
-	Policies     Policies     `json:"policies"`
+// Artifact kinds, used in artifact identities, storage keys and signatures.
+const (
+	ArtifactPlan             = "plan"
+	ArtifactDependencyBundle = "dependency_bundle"
+	ArtifactPayloadSchema    = "payload_schema"
+	ArtifactRouting          = "routing"
+)
+
+// ArtifactRef is the identity of an artifact: its kind and version. Key is the artifact's storage key
+// within the artifact bucket, derived from the identity. Identities never expire; consumers are given
+// short-lived presigned URLs to download them, which are never stored in artifacts.
+type ArtifactRef struct {
+	Kind    string `json:"kind"`
+	Version string `json:"version"`
+	Key     string `json:"key"`
+}
+
+// Metadata identifies the channel an artifact belongs to.
+type Metadata struct {
+	OrgID       string `json:"orgId"`
+	SpaceID     string `json:"spaceId"`
+	ChannelID   string `json:"channelId"`
+	ChannelName string `json:"channelName,omitempty"`
+}
+
+// Plan is everything a runtime needs to execute a channel, apart from hydrated dependencies.
+type Plan struct {
+	APIVersion      string          `json:"apiVersion"`
+	Kind            string          `json:"kind"`
+	Metadata        Metadata        `json:"metadata"`
+	PublishStrategy PublishStrategy `json:"publishStrategy"`
+	Channel         Channel         `json:"channel"`
+	Bindings        Bindings        `json:"bindings"`
+	Payloads        Payloads        `json:"payloads"`
+	// Dependencies is the DependencyBundle of this plan revision.
+	Dependencies ArtifactRef `json:"dependencies"`
+	Policies     Policies    `json:"policies"`
+}
+
+// PublishStrategyReplace is the only publish strategy: a runtime that applies a new plan version stops
+// admitting work to the previous version, lets its in-flight executions finish (bounded by
+// policies.runtime.timeouts), and then serves the new version. Versions never run side by side.
+const PublishStrategyReplace = "replace"
+
+// PublishStrategy defines how a runtime moves from one plan version of a channel to the next.
+type PublishStrategy struct {
+	Mode string `json:"mode"`
 }
 
 // RoutingArtifact captures the source bindings of a channel and the input models each source expects,
 // for the source services that accept work and hand it to a runtime. PlanVersion is the version of the
-// execution plan the bindings route to.
+// plan the bindings route to.
 type RoutingArtifact struct {
 	APIVersion  string           `json:"apiVersion"`
 	Kind        string           `json:"kind"`
-	OrgID       string           `json:"orgId"`
-	SpaceID     string           `json:"spaceId"`
-	ChannelID   string           `json:"channelId"`
+	Metadata    Metadata         `json:"metadata"`
 	PlanVersion string           `json:"planVersion"`
 	Bindings    Bindings         `json:"bindings"`
 	InputModels []ModelReference `json:"inputModels"`
 	Concurrency Concurrency      `json:"concurrency"`
 }
 
-// Channel is the channel's name and graph. Layout-only data, such as editor coordinates, is excluded
-// so that it does not change the plan version.
+// Channel is the channel's graph. Layout-only data, such as editor coordinates, is excluded so that it
+// does not change the plan version.
 type Channel struct {
 	Name  string `json:"name"`
 	Graph Graph  `json:"graph"`
@@ -62,7 +107,7 @@ type Graph struct {
 // Step is a single step of the channel graph.
 type Step struct {
 	ID string `json:"id"`
-	// Type is "<category>.<label>", e.g. "source.http" or "processing.filter".
+	// Type is "<category>.<label>", e.g. "source.http" or "processing.transform".
 	Type    string `json:"type"`
 	Version string `json:"version"`
 	Name    string `json:"name"`
@@ -70,7 +115,7 @@ type Step struct {
 	Config     RawJSON  `json:"config"`
 	BindingRef string   `json:"bindingRef,omitempty"`
 	ModelRefs  []string `json:"modelRefs"`
-	// ConnectionRefs are the IDs of the connections the step uses.
+	// ConnectionRefs are the IDs of the connections the step uses, hydrated from the DependencyBundle.
 	ConnectionRefs []string `json:"connectionRefs"`
 }
 
@@ -80,6 +125,36 @@ type Edge struct {
 	FromPort string `json:"fromPort"`
 	To       string `json:"to"`
 	ToPort   string `json:"toPort"`
+}
+
+// PayloadEncodingFlatBuffers means that step inputs and outputs are ByteArrays holding FlatBuffer data.
+const PayloadEncodingFlatBuffers = "flatbuffers"
+
+// Payloads describes the payload of every step input and output.
+type Payloads struct {
+	Encoding string `json:"encoding"`
+	// Schema is the FlatBuffers schema (.fbs) that defines every payload table.
+	Schema ArtifactRef `json:"schema"`
+	// Namespace of the payload tables in the schema.
+	Namespace string        `json:"namespace"`
+	Steps     []StepPayload `json:"steps"`
+}
+
+// StepPayload is the resolved input and output payload of a step.
+type StepPayload struct {
+	StepID string `json:"stepId"`
+	// Input is absent for source steps.
+	Input  *Payload `json:"input,omitempty"`
+	Output *Payload `json:"output,omitempty"`
+}
+
+// Payload is a payload type: the root table in the payload schema, the type's resolved shape, and the
+// model it was declared by, if any.
+type Payload struct {
+	Table    string     `json:"table"`
+	TypeID   string     `json:"typeId"`
+	ModelRef string     `json:"modelRef,omitempty"`
+	Type     types.Type `json:"type"`
 }
 
 // Bindings are the source bindings of a channel, grouped by source type.
@@ -125,34 +200,9 @@ type TimerBinding struct {
 	Overflow       Overflow `json:"overflow"`
 }
 
-// Dependencies are the models and connections the channel uses, resolved at compile time.
-type Dependencies struct {
-	Models      []Model      `json:"models"`
-	Connections []Connection `json:"connections"`
-}
-
-// Model is a data model, including its attributes so that runtimes can validate data against it.
-type Model struct {
-	ID         string  `json:"id"`
-	Name       string  `json:"name"`
-	Revision   string  `json:"revision"`
-	Attributes RawJSON `json:"attributes"`
-}
-
 // ModelReference identifies a model at a specific revision.
 type ModelReference struct {
 	ID       string `json:"id"`
-	Revision string `json:"revision"`
-}
-
-// Connection identifies a connection at a specific revision. Connection attributes can contain
-// credentials, so they are never copied into artifacts, nor is anything derived from them: Revision
-// changes whenever the connection is updated, and runtimes resolve the connection itself when they
-// apply the plan.
-type Connection struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Category string `json:"category"`
 	Revision string `json:"revision"`
 }
 

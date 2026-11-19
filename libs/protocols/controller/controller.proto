@@ -12,6 +12,47 @@ service ControllerService {
   // Unpublish sets the desired state of the channel to unpublished.
   rpc Unpublish (UnpublishRequest) returns (UnpublishResponse) {}
   rpc Status (StatusRequest) returns (StatusResponse) {}
+  // Compile soft-compiles a channel or a single step: it runs publish-time validation and type
+  // resolution and returns diagnostics and resolved types. It never uploads artifacts, records
+  // deployment state, or contacts a runtime. Returns NOT_FOUND if the channel does not exist in the
+  // space.
+  rpc Compile (CompileRequest) returns (CompileResponse) {}
+}
+
+message CompileRequest {
+  string spaceId = 1;
+  // Channel to compile. Its saved configuration is used unless channelConfig is set. Ignored for
+  // step-only requests.
+  string channelId = 2;
+  // Draft channel configuration (JSON), compiled instead of the saved one.
+  bytes channelConfig = 3;
+  // Step-only request: one step as stored in a channel's "nodes" (JSON).
+  bytes stepConfig = 4;
+  // Step-only request: the upstream step's output type (JSON, as returned in resolvedTypes). Omit for
+  // source steps.
+  bytes upstreamType = 5;
+}
+
+message Diagnostic {
+  // "error" blocks publication; "warning" doesn't.
+  string severity = 1;
+  string code = 2;
+  string message = 3;
+  string stepId = 4;
+  string path = 5;
+}
+
+message CompileResponse {
+  // True if there are no error diagnostics.
+  bool valid = 1;
+  repeated Diagnostic diagnostics = 2;
+  // JSON array of resolved step types: stepId, input, output and variables.
+  bytes resolvedTypes = 3;
+  // Versions Publish would produce. Set only for valid channel compilations.
+  string planVersion = 4;
+  string dependencyBundleVersion = 5;
+  string payloadSchemaVersion = 6;
+  string routingVersion = 7;
 }
 
 message PublishRequest {
@@ -60,9 +101,12 @@ message Deployment {
   string channelId = 1;
   // "published" or "unpublished".
   string desiredState = 2;
-  // Artifacts of the desired version. Unset until a version has been prepared.
+  // Artifacts of the desired version. Unset until a version has been prepared. The plan pins its
+  // dependency bundle and payload schema.
   ArtifactRef plan = 3;
   ArtifactRef routing = 4;
+  ArtifactRef dependencyBundle = 15;
+  ArtifactRef payloadSchema = 16;
 
   // Static resource and concurrency contract of the desired version.
   int32 memoryMiB = 5;

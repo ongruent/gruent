@@ -24,7 +24,7 @@ func (q *Queries) ChannelArtifactExists(ctx context.Context, channelID string, k
 }
 
 const getChannelDeployment = `-- name: GetChannelDeployment :one
-SELECT channel_id, space_id, desired_state, desired_version, plan_storage_key, routing_version, routing_storage_key, memory_mib, memory_reservation_mib, max_concurrent_executions, max_queued_executions, preparation_status, preparation_error_stage, preparation_error, prepared_at, observed_status, observed_version, observed_message, observed_at, created_at, updated_at FROM app.channel_deployments
+SELECT channel_id, space_id, desired_state, desired_version, plan_storage_key, dependency_bundle_version, dependency_bundle_storage_key, payload_schema_version, payload_schema_storage_key, routing_version, routing_storage_key, memory_mib, memory_reservation_mib, max_concurrent_executions, max_queued_executions, preparation_status, preparation_error_stage, preparation_error, prepared_at, observed_status, observed_version, observed_message, observed_at, created_at, updated_at FROM app.channel_deployments
 WHERE channel_id = $1
 `
 
@@ -37,6 +37,10 @@ func (q *Queries) GetChannelDeployment(ctx context.Context, channelID string) (A
 		&i.DesiredState,
 		&i.DesiredVersion,
 		&i.PlanStorageKey,
+		&i.DependencyBundleVersion,
+		&i.DependencyBundleStorageKey,
+		&i.PayloadSchemaVersion,
+		&i.PayloadSchemaStorageKey,
 		&i.RoutingVersion,
 		&i.RoutingStorageKey,
 		&i.MemoryMib,
@@ -70,7 +74,7 @@ SET desired_state = 'published',
     preparation_error_stage = EXCLUDED.preparation_error_stage,
     preparation_error = EXCLUDED.preparation_error,
     updated_at = NOW()
-RETURNING channel_id, space_id, desired_state, desired_version, plan_storage_key, routing_version, routing_storage_key, memory_mib, memory_reservation_mib, max_concurrent_executions, max_queued_executions, preparation_status, preparation_error_stage, preparation_error, prepared_at, observed_status, observed_version, observed_message, observed_at, created_at, updated_at
+RETURNING channel_id, space_id, desired_state, desired_version, plan_storage_key, dependency_bundle_version, dependency_bundle_storage_key, payload_schema_version, payload_schema_storage_key, routing_version, routing_storage_key, memory_mib, memory_reservation_mib, max_concurrent_executions, max_queued_executions, preparation_status, preparation_error_stage, preparation_error, prepared_at, observed_status, observed_version, observed_message, observed_at, created_at, updated_at
 `
 
 // Keeps the last prepared version and its artifacts as the desired version.
@@ -88,6 +92,10 @@ func (q *Queries) RecordChannelDeploymentFailed(ctx context.Context, channelID s
 		&i.DesiredState,
 		&i.DesiredVersion,
 		&i.PlanStorageKey,
+		&i.DependencyBundleVersion,
+		&i.DependencyBundleStorageKey,
+		&i.PayloadSchemaVersion,
+		&i.PayloadSchemaStorageKey,
 		&i.RoutingVersion,
 		&i.RoutingStorageKey,
 		&i.MemoryMib,
@@ -116,7 +124,7 @@ SET observed_status = $1,
     observed_at = NOW(),
     updated_at = NOW()
 WHERE channel_id = $4
-RETURNING channel_id, space_id, desired_state, desired_version, plan_storage_key, routing_version, routing_storage_key, memory_mib, memory_reservation_mib, max_concurrent_executions, max_queued_executions, preparation_status, preparation_error_stage, preparation_error, prepared_at, observed_status, observed_version, observed_message, observed_at, created_at, updated_at
+RETURNING channel_id, space_id, desired_state, desired_version, plan_storage_key, dependency_bundle_version, dependency_bundle_storage_key, payload_schema_version, payload_schema_storage_key, routing_version, routing_storage_key, memory_mib, memory_reservation_mib, max_concurrent_executions, max_queued_executions, preparation_status, preparation_error_stage, preparation_error, prepared_at, observed_status, observed_version, observed_message, observed_at, created_at, updated_at
 `
 
 func (q *Queries) RecordChannelDeploymentObserved(ctx context.Context, observedStatus string, observedVersion *string, observedMessage *string, channelID string) (AppChannelDeployment, error) {
@@ -133,6 +141,10 @@ func (q *Queries) RecordChannelDeploymentObserved(ctx context.Context, observedS
 		&i.DesiredState,
 		&i.DesiredVersion,
 		&i.PlanStorageKey,
+		&i.DependencyBundleVersion,
+		&i.DependencyBundleStorageKey,
+		&i.PayloadSchemaVersion,
+		&i.PayloadSchemaStorageKey,
 		&i.RoutingVersion,
 		&i.RoutingStorageKey,
 		&i.MemoryMib,
@@ -155,19 +167,26 @@ func (q *Queries) RecordChannelDeploymentObserved(ctx context.Context, observedS
 
 const recordChannelDeploymentPrepared = `-- name: RecordChannelDeploymentPrepared :one
 INSERT INTO app.channel_deployments (
-  channel_id, space_id, desired_state, desired_version, plan_storage_key, routing_version,
+  channel_id, space_id, desired_state, desired_version, plan_storage_key, dependency_bundle_version,
+  dependency_bundle_storage_key, payload_schema_version, payload_schema_storage_key, routing_version,
   routing_storage_key, memory_mib, memory_reservation_mib, max_concurrent_executions,
   max_queued_executions, preparation_status, prepared_at
 ) VALUES (
   $1, $2, 'published', $3,
-  $4, $5, $6,
-  $7, $8, $9,
-  $10, 'ready', NOW()
+  $4, $5,
+  $6, $7,
+  $8, $9, $10,
+  $11, $12, $13,
+  $14, 'ready', NOW()
 )
 ON CONFLICT (channel_id) DO UPDATE
 SET desired_state = 'published',
     desired_version = EXCLUDED.desired_version,
     plan_storage_key = EXCLUDED.plan_storage_key,
+    dependency_bundle_version = EXCLUDED.dependency_bundle_version,
+    dependency_bundle_storage_key = EXCLUDED.dependency_bundle_storage_key,
+    payload_schema_version = EXCLUDED.payload_schema_version,
+    payload_schema_storage_key = EXCLUDED.payload_schema_storage_key,
     routing_version = EXCLUDED.routing_version,
     routing_storage_key = EXCLUDED.routing_storage_key,
     memory_mib = EXCLUDED.memory_mib,
@@ -179,20 +198,24 @@ SET desired_state = 'published',
     preparation_error = NULL,
     prepared_at = NOW(),
     updated_at = NOW()
-RETURNING channel_id, space_id, desired_state, desired_version, plan_storage_key, routing_version, routing_storage_key, memory_mib, memory_reservation_mib, max_concurrent_executions, max_queued_executions, preparation_status, preparation_error_stage, preparation_error, prepared_at, observed_status, observed_version, observed_message, observed_at, created_at, updated_at
+RETURNING channel_id, space_id, desired_state, desired_version, plan_storage_key, dependency_bundle_version, dependency_bundle_storage_key, payload_schema_version, payload_schema_storage_key, routing_version, routing_storage_key, memory_mib, memory_reservation_mib, max_concurrent_executions, max_queued_executions, preparation_status, preparation_error_stage, preparation_error, prepared_at, observed_status, observed_version, observed_message, observed_at, created_at, updated_at
 `
 
 type RecordChannelDeploymentPreparedParams struct {
-	ChannelID               string  `json:"channel_id"`
-	SpaceID                 string  `json:"space_id"`
-	DesiredVersion          *string `json:"desired_version"`
-	PlanStorageKey          *string `json:"plan_storage_key"`
-	RoutingVersion          *string `json:"routing_version"`
-	RoutingStorageKey       *string `json:"routing_storage_key"`
-	MemoryMib               *int32  `json:"memory_mib"`
-	MemoryReservationMib    *int32  `json:"memory_reservation_mib"`
-	MaxConcurrentExecutions *int32  `json:"max_concurrent_executions"`
-	MaxQueuedExecutions     *int32  `json:"max_queued_executions"`
+	ChannelID                  string  `json:"channel_id"`
+	SpaceID                    string  `json:"space_id"`
+	DesiredVersion             *string `json:"desired_version"`
+	PlanStorageKey             *string `json:"plan_storage_key"`
+	DependencyBundleVersion    *string `json:"dependency_bundle_version"`
+	DependencyBundleStorageKey *string `json:"dependency_bundle_storage_key"`
+	PayloadSchemaVersion       *string `json:"payload_schema_version"`
+	PayloadSchemaStorageKey    *string `json:"payload_schema_storage_key"`
+	RoutingVersion             *string `json:"routing_version"`
+	RoutingStorageKey          *string `json:"routing_storage_key"`
+	MemoryMib                  *int32  `json:"memory_mib"`
+	MemoryReservationMib       *int32  `json:"memory_reservation_mib"`
+	MaxConcurrentExecutions    *int32  `json:"max_concurrent_executions"`
+	MaxQueuedExecutions        *int32  `json:"max_queued_executions"`
 }
 
 func (q *Queries) RecordChannelDeploymentPrepared(ctx context.Context, arg RecordChannelDeploymentPreparedParams) (AppChannelDeployment, error) {
@@ -201,6 +224,10 @@ func (q *Queries) RecordChannelDeploymentPrepared(ctx context.Context, arg Recor
 		arg.SpaceID,
 		arg.DesiredVersion,
 		arg.PlanStorageKey,
+		arg.DependencyBundleVersion,
+		arg.DependencyBundleStorageKey,
+		arg.PayloadSchemaVersion,
+		arg.PayloadSchemaStorageKey,
 		arg.RoutingVersion,
 		arg.RoutingStorageKey,
 		arg.MemoryMib,
@@ -215,6 +242,10 @@ func (q *Queries) RecordChannelDeploymentPrepared(ctx context.Context, arg Recor
 		&i.DesiredState,
 		&i.DesiredVersion,
 		&i.PlanStorageKey,
+		&i.DependencyBundleVersion,
+		&i.DependencyBundleStorageKey,
+		&i.PayloadSchemaVersion,
+		&i.PayloadSchemaStorageKey,
 		&i.RoutingVersion,
 		&i.RoutingStorageKey,
 		&i.MemoryMib,
@@ -240,7 +271,7 @@ UPDATE app.channel_deployments
 SET desired_state = 'unpublished',
     updated_at = NOW()
 WHERE channel_id = $1
-RETURNING channel_id, space_id, desired_state, desired_version, plan_storage_key, routing_version, routing_storage_key, memory_mib, memory_reservation_mib, max_concurrent_executions, max_queued_executions, preparation_status, preparation_error_stage, preparation_error, prepared_at, observed_status, observed_version, observed_message, observed_at, created_at, updated_at
+RETURNING channel_id, space_id, desired_state, desired_version, plan_storage_key, dependency_bundle_version, dependency_bundle_storage_key, payload_schema_version, payload_schema_storage_key, routing_version, routing_storage_key, memory_mib, memory_reservation_mib, max_concurrent_executions, max_queued_executions, preparation_status, preparation_error_stage, preparation_error, prepared_at, observed_status, observed_version, observed_message, observed_at, created_at, updated_at
 `
 
 func (q *Queries) SetChannelDeploymentUnpublished(ctx context.Context, channelID string) (AppChannelDeployment, error) {
@@ -252,6 +283,10 @@ func (q *Queries) SetChannelDeploymentUnpublished(ctx context.Context, channelID
 		&i.DesiredState,
 		&i.DesiredVersion,
 		&i.PlanStorageKey,
+		&i.DependencyBundleVersion,
+		&i.DependencyBundleStorageKey,
+		&i.PayloadSchemaVersion,
+		&i.PayloadSchemaStorageKey,
 		&i.RoutingVersion,
 		&i.RoutingStorageKey,
 		&i.MemoryMib,
@@ -274,20 +309,32 @@ func (q *Queries) SetChannelDeploymentUnpublished(ctx context.Context, channelID
 
 const upsertChannelArtifact = `-- name: UpsertChannelArtifact :exec
 INSERT INTO app.channel_artifacts (
-  channel_id, kind, version, storage_key, size_bytes
+  channel_id, kind, version, storage_key, signature_key, signing_key_id, size_bytes
 ) VALUES (
-  $1, $2, $3, $4, $5
+  $1, $2, $3, $4, $5, $6, $7
 )
 ON CONFLICT (channel_id, kind, version) DO NOTHING
 `
 
-func (q *Queries) UpsertChannelArtifact(ctx context.Context, channelID string, kind string, version string, storageKey string, sizeBytes int64) error {
+type UpsertChannelArtifactParams struct {
+	ChannelID    string `json:"channel_id"`
+	Kind         string `json:"kind"`
+	Version      string `json:"version"`
+	StorageKey   string `json:"storage_key"`
+	SignatureKey string `json:"signature_key"`
+	SigningKeyID string `json:"signing_key_id"`
+	SizeBytes    int64  `json:"size_bytes"`
+}
+
+func (q *Queries) UpsertChannelArtifact(ctx context.Context, arg UpsertChannelArtifactParams) error {
 	_, err := q.db.Exec(ctx, upsertChannelArtifact,
-		channelID,
-		kind,
-		version,
-		storageKey,
-		sizeBytes,
+		arg.ChannelID,
+		arg.Kind,
+		arg.Version,
+		arg.StorageKey,
+		arg.SignatureKey,
+		arg.SigningKeyID,
+		arg.SizeBytes,
 	)
 	return err
 }

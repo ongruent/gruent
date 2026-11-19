@@ -32,6 +32,12 @@ type nodeMetadata struct {
 	Type         string           `json:"type"`
 	Config       json.RawMessage  `json:"config"`
 	Dependencies nodeDependencies `json:"dependencies"`
+	Io           struct {
+		Inputs []struct {
+			ID       string   `json:"id"`
+			DataType []string `json:"dataType"`
+		} `json:"inputs"`
+	} `json:"io"`
 }
 
 type nodeDependencies struct {
