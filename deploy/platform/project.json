@@ -1,0 +1,30 @@
+{
+	"name": "platform",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "deploy/platform",
+	"projectType": "application",
+	"targets": {
+		"start": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "deploy/platform/local/ctl.sh up"
+			}
+		},
+		"stop": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "deploy/platform/local/ctl.sh down"
+			}
+		},
+		"check": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "deploy/platform/local/ctl.sh check"
+			}
+		}
+	},
+	"tags": []
+}

@@ -34,6 +34,6 @@ pnpm nx run db:migrate:down     # roll back the latest migration
 
 Other configurations of `db:migrate`: `redo`, `reset`, and `version`. `db:migrate-validate` checks that the migration files parse without connecting to a database.
 
-The migrate targets use `DATABASE_URL`. If it is unset, they fall back to the local Postgres from `deploy/engine/local/docker-compose.yaml` (`postgresql://gruent:gruent@localhost:5432/gruent`).
+The migrate targets use `DATABASE_URL`. If it is unset, they fall back to the local Postgres from `deploy/platform/local/docker-compose.yaml` (`postgresql://gruent:gruent@localhost:5432/gruent`).
 
 Do not edit a migration after it has been applied to a shared database. Add a new one instead.

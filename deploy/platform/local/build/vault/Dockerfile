@@ -10,10 +10,14 @@ RUN apk add jq
 WORKDIR /vault
 
 # Copy the configuration files and scripts
-COPY ./deploy/engine/local/build/vault/config ./config
+COPY ./deploy/platform/local/build/vault/config ./config
 
 # Ensure scripts are executable
 RUN chmod +x ./config/*.sh
+
+# Storage directories are mounted as named volumes, which inherit this ownership
+RUN mkdir -p /mnt/vault/storage /mnt/vault/file \
+    && chown -R vault:vault /mnt/vault
 
 # Switch back to the non-root vault user for runtime
 USER vault
