@@ -4,13 +4,17 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	sqlcdb "github.com/ongruent/gruent/db/sqlc"
 	"github.com/ongruent/gruent/libs/legacy/engine/environment"
 	"github.com/ongruent/gruent/libs/legacy/engine/observability"
 	"github.com/ongruent/gruent/libs/secrets"
+	"github.com/ongruent/gruent/services/controller/internal/artifacts"
+	"github.com/ongruent/gruent/services/controller/internal/artifactstore"
+	"github.com/ongruent/gruent/services/controller/internal/signing"
 	sqlcService "github.com/ongruent/gruent/services/controller/internal/sqlc"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
 	"github.com/spf13/viper"
 )
@@ -49,6 +53,18 @@ type VaultConfig struct {
 
 	// Observability
 	OtelCollectorEndpoint string `mapstructure:"OTEL_COLLECTOR_ENDPOINT"`
+
+	// Artifact storage (S3-compatible)
+	ArtifactStorageEndpoint        string `mapstructure:"ARTIFACT_STORAGE_ENDPOINT"`
+	ArtifactStorageAccessKeyID     string `mapstructure:"ARTIFACT_STORAGE_ACCESS_KEY_ID"`
+	ArtifactStorageSecretAccessKey string `mapstructure:"ARTIFACT_STORAGE_SECRET_ACCESS_KEY"`
+	ArtifactStorageBucket          string `mapstructure:"ARTIFACT_STORAGE_BUCKET"`
+	ArtifactStorageRegion          string `mapstructure:"ARTIFACT_STORAGE_REGION"`
+	ArtifactStorageUseSSL          bool   `mapstructure:"ARTIFACT_STORAGE_USE_SSL"`
+
+	// Artifact signing: an Ed25519 seed (base64) and the ID consumers know its public key by
+	ArtifactSigningKeyID      string `mapstructure:"ARTIFACT_SIGNING_KEY_ID"`
+	ArtifactSigningPrivateKey string `mapstructure:"ARTIFACT_SIGNING_PRIVATE_KEY"`
 
 	// Redis
 	RedisHost     string `mapstructure:"REDIS_HOST"`
@@ -130,6 +146,18 @@ func load(env environment.Env) (envConfig *EnvConfig, vaultConfig *VaultConfig) 
 		panic(fmt.Sprintf("Error initializing database client: %v", err))
 	}
 
+	// Initialize the artifact storage client
+	err = initArtifactStore(vaultConfig)
+	if err != nil {
+		panic(fmt.Sprintf("Error initializing artifact storage: %v", err))
+	}
+
+	// Initialize the artifact signer
+	err = initArtifactSigner(vaultConfig.ArtifactSigningKeyID, vaultConfig.ArtifactSigningPrivateKey)
+	if err != nil {
+		panic(fmt.Sprintf("Error initializing artifact signing: %v", err))
+	}
+
 	// Setup logging
 	zerolog.SetGlobalLevel(observability.LogLevel(vaultConfig.LogLevel).Level())
 
@@ -145,14 +173,22 @@ func loadVaultSecrets() (*VaultConfig, error) {
 
 	// Safely assign each value, with a fallback to empty string or handle nil cases
 	vaultConfig := &VaultConfig{
-		LogLevel:              SecretsClient.GetStringFromMap(secrets, "LOG_LEVEL"),
-		ControllerServerPort:  SecretsClient.GetIntFromMap(secrets, "CONTROLLER_SERVER_PORT"),
-		DatabaseUrl:           SecretsClient.GetStringFromMap(secrets, "DATABASE_URL"),
-		OtelCollectorEndpoint: SecretsClient.GetStringFromMap(secrets, "OTEL_COLLECTOR_ENDPOINT"),
-		RedisHost:             SecretsClient.GetStringFromMap(secrets, "REDIS_HOST"),
-		RedisPort:             SecretsClient.GetIntFromMap(secrets, "REDIS_PORT"),
-		RedisUsername:         SecretsClient.GetStringFromMap(secrets, "REDIS_USERNAME"),
-		RedisPassword:         SecretsClient.GetStringFromMap(secrets, "REDIS_PASSWORD"),
+		LogLevel:                       SecretsClient.GetStringFromMap(secrets, "LOG_LEVEL"),
+		ControllerServerPort:           SecretsClient.GetIntFromMap(secrets, "CONTROLLER_SERVER_PORT"),
+		DatabaseUrl:                    SecretsClient.GetStringFromMap(secrets, "DATABASE_URL"),
+		OtelCollectorEndpoint:          SecretsClient.GetStringFromMap(secrets, "OTEL_COLLECTOR_ENDPOINT"),
+		ArtifactStorageEndpoint:        SecretsClient.GetStringFromMap(secrets, "ARTIFACT_STORAGE_ENDPOINT"),
+		ArtifactStorageAccessKeyID:     SecretsClient.GetStringFromMap(secrets, "ARTIFACT_STORAGE_ACCESS_KEY_ID"),
+		ArtifactStorageSecretAccessKey: SecretsClient.GetStringFromMap(secrets, "ARTIFACT_STORAGE_SECRET_ACCESS_KEY"),
+		ArtifactStorageBucket:          SecretsClient.GetStringFromMap(secrets, "ARTIFACT_STORAGE_BUCKET"),
+		ArtifactStorageRegion:          SecretsClient.GetStringFromMap(secrets, "ARTIFACT_STORAGE_REGION"),
+		ArtifactStorageUseSSL:          SecretsClient.GetBoolFromMap(secrets, "ARTIFACT_STORAGE_USE_SSL"),
+		ArtifactSigningKeyID:           SecretsClient.GetStringFromMap(secrets, "ARTIFACT_SIGNING_KEY_ID"),
+		ArtifactSigningPrivateKey:      SecretsClient.GetStringFromMap(secrets, "ARTIFACT_SIGNING_PRIVATE_KEY"),
+		RedisHost:                      SecretsClient.GetStringFromMap(secrets, "REDIS_HOST"),
+		RedisPort:                      SecretsClient.GetIntFromMap(secrets, "REDIS_PORT"),
+		RedisUsername:                  SecretsClient.GetStringFromMap(secrets, "REDIS_USERNAME"),
+		RedisPassword:                  SecretsClient.GetStringFromMap(secrets, "REDIS_PASSWORD"),
 	}
 
 	return vaultConfig, nil
@@ -176,5 +212,36 @@ func initDbClient(databaseUrl string) error {
 
 	sqlcService.Pool = pool
 	sqlcService.Queries = sqlcdb.New(pool)
+	return nil
+}
+
+func initArtifactStore(vaultConfig *VaultConfig) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	store, err := artifacts.NewS3Store(ctx, artifacts.S3Config{
+		Endpoint:        vaultConfig.ArtifactStorageEndpoint,
+		AccessKeyID:     vaultConfig.ArtifactStorageAccessKeyID,
+		SecretAccessKey: vaultConfig.ArtifactStorageSecretAccessKey,
+		Bucket:          vaultConfig.ArtifactStorageBucket,
+		Region:          vaultConfig.ArtifactStorageRegion,
+		UseSSL:          vaultConfig.ArtifactStorageUseSSL,
+	})
+	if err != nil {
+		return err
+	}
+
+	artifactstore.Store = store
+	return nil
+}
+
+func initArtifactSigner(keyID string, privateKey string) error {
+	signer, err := signing.NewSigner(keyID, privateKey)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Signing artifacts with key %s (public key %s)\n", signer.KeyID(), signer.PublicKey())
+	artifactstore.Signer = signer
 	return nil
 }

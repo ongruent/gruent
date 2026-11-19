@@ -208,6 +208,45 @@ type AppChannel struct {
 	PublishedBy *string            `json:"published_by"`
 }
 
+type AppChannelArtifact struct {
+	ChannelID    string    `json:"channel_id"`
+	Kind         string    `json:"kind"`
+	Version      string    `json:"version"`
+	StorageKey   string    `json:"storage_key"`
+	SignatureKey string    `json:"signature_key"`
+	SigningKeyID string    `json:"signing_key_id"`
+	SizeBytes    int64     `json:"size_bytes"`
+	CreatedAt    time.Time `json:"created_at"`
+}
+
+type AppChannelDeployment struct {
+	ChannelID                  string             `json:"channel_id"`
+	SpaceID                    string             `json:"space_id"`
+	DesiredState               string             `json:"desired_state"`
+	DesiredVersion             *string            `json:"desired_version"`
+	PlanStorageKey             *string            `json:"plan_storage_key"`
+	DependencyBundleVersion    *string            `json:"dependency_bundle_version"`
+	DependencyBundleStorageKey *string            `json:"dependency_bundle_storage_key"`
+	PayloadSchemaVersion       *string            `json:"payload_schema_version"`
+	PayloadSchemaStorageKey    *string            `json:"payload_schema_storage_key"`
+	RoutingVersion             *string            `json:"routing_version"`
+	RoutingStorageKey          *string            `json:"routing_storage_key"`
+	MemoryMib                  *int32             `json:"memory_mib"`
+	MemoryReservationMib       *int32             `json:"memory_reservation_mib"`
+	MaxConcurrentExecutions    *int32             `json:"max_concurrent_executions"`
+	MaxQueuedExecutions        *int32             `json:"max_queued_executions"`
+	PreparationStatus          string             `json:"preparation_status"`
+	PreparationErrorStage      *string            `json:"preparation_error_stage"`
+	PreparationError           *string            `json:"preparation_error"`
+	PreparedAt                 pgtype.Timestamptz `json:"prepared_at"`
+	ObservedStatus             string             `json:"observed_status"`
+	ObservedVersion            *string            `json:"observed_version"`
+	ObservedMessage            *string            `json:"observed_message"`
+	ObservedAt                 pgtype.Timestamptz `json:"observed_at"`
+	CreatedAt                  time.Time          `json:"created_at"`
+	UpdatedAt                  time.Time          `json:"updated_at"`
+}
+
 type AppConnection struct {
 	ID                 string    `json:"id"`
 	Name               string    `json:"name"`

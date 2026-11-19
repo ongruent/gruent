@@ -132,6 +132,8 @@ services:
       start_period: 10m # The first start compiles the controller
       start_interval: 2s
     depends_on:
+      minio:
+        condition: service_started
       vault:
         condition: service_healthy
       otel-collector:

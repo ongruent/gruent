@@ -30,5 +30,6 @@ func TestRegister(t *testing.T) {
 		apitest.AssertRouteExists(t, routes, "PATCH", "/channels/:channelId/publish")
 		apitest.AssertRouteExists(t, routes, "PATCH", "/channels/:channelId/unpublish")
 		apitest.AssertRouteExists(t, routes, "PATCH", "/channels/:channelId/config")
+		apitest.AssertRouteExists(t, routes, "POST", "/channels/:channelId/compile")
 	})
 }

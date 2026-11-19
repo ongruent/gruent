@@ -11,6 +11,7 @@ import (
 
 type Querier interface {
 	ApplyTag(ctx context.Context, arg ApplyTagParams) (AppAppliedTag, error)
+	ChannelArtifactExists(ctx context.Context, channelID string, kind string, version string) (bool, error)
 	CountAppliedTagsByTag(ctx context.Context, tagID string) (int64, error)
 	CountChannelsFiltered(ctx context.Context, spaceID string, column2 string, column3 []string) (int64, error)
 	CountConnectionsFiltered(ctx context.Context, spaceID string, column2 string, column3 string, column4 []string) (int64, error)
@@ -72,6 +73,7 @@ type Querier interface {
 	GetCertificate(ctx context.Context, id string) (AppCertificate, error)
 	GetCertificateInSpace(ctx context.Context, iD string, spaceID string) (AppCertificate, error)
 	GetChannel(ctx context.Context, id string) (AppChannel, error)
+	GetChannelDeployment(ctx context.Context, channelID string) (AppChannelDeployment, error)
 	GetConnection(ctx context.Context, id string) (AppConnection, error)
 	GetDefaultOrganizationPermissionSet(ctx context.Context, organizationID string) (AppPermission, error)
 	GetModel(ctx context.Context, id string) (AppModel, error)
@@ -116,9 +118,14 @@ type Querier interface {
 	ListUserOrganizationMembers(ctx context.Context, userID string) ([]ListUserOrganizationMembersRow, error)
 	ListUsers(ctx context.Context) ([]AppUser, error)
 	PublishChannel(ctx context.Context, iD string, publishedBy *string) (AppChannel, error)
+	// Keeps the last prepared version and its artifacts as the desired version.
+	RecordChannelDeploymentFailed(ctx context.Context, channelID string, spaceID string, preparationErrorStage *string, preparationError *string) (AppChannelDeployment, error)
+	RecordChannelDeploymentObserved(ctx context.Context, observedStatus string, observedVersion *string, observedMessage *string, channelID string) (AppChannelDeployment, error)
+	RecordChannelDeploymentPrepared(ctx context.Context, arg RecordChannelDeploymentPreparedParams) (AppChannelDeployment, error)
 	RemoveAppliedTag(ctx context.Context, id string) error
 	RemoveAppliedTagBySubject(ctx context.Context, tagID string, connectionID *string) error
 	SearchUsers(ctx context.Context, organizationID string, query *string) ([]AppUser, error)
+	SetChannelDeploymentUnpublished(ctx context.Context, channelID string) (AppChannelDeployment, error)
 	UnpublishChannel(ctx context.Context, id string) (AppChannel, error)
 	UpdateChannel(ctx context.Context, iD string, name string, config []byte, updatedBy string) (AppChannel, error)
 	UpdateChannelConfig(ctx context.Context, iD string, config []byte, updatedBy string) (AppChannel, error)
@@ -134,6 +141,7 @@ type Querier interface {
 	UpdateTag(ctx context.Context, iD string, name string, updatedBy string) (AppTag, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (AppUser, error)
 	UpdateUserPassword(ctx context.Context, iD string, password *string) (AppUser, error)
+	UpsertChannelArtifact(ctx context.Context, arg UpsertChannelArtifactParams) error
 	VerifyUserEmail(ctx context.Context, id string) (AppUser, error)
 }
 

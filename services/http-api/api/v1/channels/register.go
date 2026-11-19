@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/ongruent/gruent/services/http-api/api/middleware"
+	channelsCompile "github.com/ongruent/gruent/services/http-api/api/v1/channels/compile"
 	channelsCreate "github.com/ongruent/gruent/services/http-api/api/v1/channels/create"
 	channelsDelete "github.com/ongruent/gruent/services/http-api/api/v1/channels/delete"
 	channelExecutions "github.com/ongruent/gruent/services/http-api/api/v1/channels/executions"
@@ -37,4 +38,5 @@ func Register(app fiber.Router) {
 	channelsById.Patch("/unpublish", channelsUnpublish.Handler)
 	channelsById.Patch("/config", channelsUpdateConfig.Handler)
 	channelsById.Get("/status", channelsStatus.Handler)
+	channelsById.Post("/compile", channelsCompile.Handler)
 }

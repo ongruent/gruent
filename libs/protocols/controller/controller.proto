@@ -4,29 +4,83 @@ package controller;
 option go_package = "https://github.com/ongruent/gruent/libs/protocols/controller";
 
 service ControllerService {
+  // Publish compiles the channel, uploads its artifacts, and records them as the desired version.
+  // It does not deploy the channel: the observed state stays unknown until a runtime acknowledges
+  // the version. Returns INVALID_ARGUMENT if the channel does not compile, and NOT_FOUND if it does
+  // not exist. Compilation and upload failures are also recorded in the deployment state.
   rpc Publish (PublishRequest) returns (PublishResponse) {}
+  // Unpublish sets the desired state of the channel to unpublished.
   rpc Unpublish (UnpublishRequest) returns (UnpublishResponse) {}
   rpc Status (StatusRequest) returns (StatusResponse) {}
+  // Compile soft-compiles a channel or a single step: it runs publish-time validation and type
+  // resolution and returns diagnostics and resolved types. It never uploads artifacts, records
+  // deployment state, or contacts a runtime. Returns NOT_FOUND if the channel does not exist in the
+  // space.
+  rpc Compile (CompileRequest) returns (CompileResponse) {}
+}
+
+message CompileRequest {
+  string spaceId = 1;
+  // Channel to compile. Its saved configuration is used unless channelConfig is set. Ignored for
+  // step-only requests.
+  string channelId = 2;
+  // Draft channel configuration (JSON), compiled instead of the saved one.
+  bytes channelConfig = 3;
+  // Step-only request: one step as stored in a channel's "nodes" (JSON).
+  bytes stepConfig = 4;
+  // Step-only request: the upstream step's output type (JSON, as returned in resolvedTypes). Omit for
+  // source steps.
+  bytes upstreamType = 5;
+}
+
+message Diagnostic {
+  // "error" blocks publication; "warning" doesn't.
+  string severity = 1;
+  string code = 2;
+  string message = 3;
+  string stepId = 4;
+  string path = 5;
+}
+
+message CompileResponse {
+  // True if there are no error diagnostics.
+  bool valid = 1;
+  repeated Diagnostic diagnostics = 2;
+  // JSON array of resolved step types: stepId, input, output and variables.
+  bytes resolvedTypes = 3;
+  // Versions Publish would produce. Set only for valid channel compilations.
+  string planVersion = 4;
+  string dependencyBundleVersion = 5;
+  string payloadSchemaVersion = 6;
+  string routingVersion = 7;
 }
 
 message PublishRequest {
   string channelId = 1;
 }
 
-message PublishResponse {}
+message PublishResponse {
+  Deployment deployment = 1;
+}
 
 message UnpublishRequest {
   string channelId = 1;
 }
 
-message UnpublishResponse {}
+message UnpublishResponse {
+  Deployment deployment = 1;
+}
 
 message StatusRequest {
   string channelId = 1;
 }
 
 message StatusResponse {
+  // PUBLISHED only once a runtime has acknowledged applying the desired version. A channel whose
+  // artifacts were uploaded but not acknowledged is UNKNOWN.
   ChannelStatus status = 1;
+  // Unset if the channel was never published.
+  Deployment deployment = 2;
 }
 
 enum ChannelStatus {
@@ -34,4 +88,40 @@ enum ChannelStatus {
   PUBLISHED = 1;
   UNPUBLISHED = 2;
   ERROR = 3;
+}
+
+message ArtifactRef {
+  // "sha256:<hex>" digest of the artifact.
+  string version = 1;
+  string storageKey = 2;
+}
+
+// Deployment is the desired and observed deployment state of a channel.
+message Deployment {
+  string channelId = 1;
+  // "published" or "unpublished".
+  string desiredState = 2;
+  // Artifacts of the desired version. Unset until a version has been prepared. The plan pins its
+  // dependency bundle and payload schema.
+  ArtifactRef plan = 3;
+  ArtifactRef routing = 4;
+  ArtifactRef dependencyBundle = 15;
+  ArtifactRef payloadSchema = 16;
+
+  // Static resource and concurrency contract of the desired version.
+  int32 memoryMiB = 5;
+  int32 memoryReservationMiB = 6;
+  int32 maxConcurrentExecutions = 7;
+  int32 maxQueuedExecutions = 8;
+
+  // "ready" or "failed", for the latest publish.
+  string preparationStatus = 9;
+  // "load", "compile" or "upload" when preparationStatus is "failed".
+  string preparationErrorStage = 10;
+  string preparationError = 11;
+
+  // "unknown", "applied", "failed" or "stopped", as reported by runtimes.
+  string observedStatus = 12;
+  string observedVersion = 13;
+  string observedMessage = 14;
 }

@@ -8,6 +8,23 @@ import type {
   ChannelRuntime,
 } from '@gruent/libs/engine/channels/index'
 
+// Temporary static resource settings until the editor lets users configure them. The controller
+// requires both to compile a channel and never chooses them itself (see services/controller/README.md).
+export const STATIC_RUNTIME_MEMORY_MIB = 512
+export const STATIC_RUNTIME_MAX_CONCURRENT_EXECUTIONS = 10
+
+const isConfigured = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isInteger(value)
+
+// Fills in the static resource settings, keeping any values the channel already has.
+export const withStaticRuntimeSettings = (runtime?: ChannelRuntime | null): ChannelRuntime => ({
+  ...(runtime ?? { size: 'small' }),
+  memoryMiB: isConfigured(runtime?.memoryMiB) ? runtime.memoryMiB : STATIC_RUNTIME_MEMORY_MIB,
+  maxConcurrentExecutions: isConfigured(runtime?.maxConcurrentExecutions)
+    ? runtime.maxConcurrentExecutions
+    : STATIC_RUNTIME_MAX_CONCURRENT_EXECUTIONS,
+})
+
 const useChannelConfig = (
   id: string,
   name: string,
@@ -24,7 +41,7 @@ const useChannelConfig = (
     return {
       id,
       name,
-      runtime,
+      runtime: withStaticRuntimeSettings(runtime),
       nodes: stepsArray,
       edges: edgesArray,
       notes: notesArray,
