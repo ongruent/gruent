@@ -11,13 +11,14 @@ func TestValidate(t *testing.T) {
 		channel := Channel{
 			Nodes: []Node{
 				{Id: "1", Metadata: NodeMetadata{Type: "source"}},
-				{Id: "2", Metadata: NodeMetadata{Type: "process"}},
+				{Id: "2", Metadata: NodeMetadata{Type: "processing"}},
 				{Id: "3", Metadata: NodeMetadata{Type: "action"}},
 			},
 			Edges: []Edge{
 				{Id: "1", From: EdgeConnection{NodeId: "1", IoId: "mqttOutput"}, To: EdgeConnection{NodeId: "2", IoId: "bytesInput"}},
 				{Id: "2", From: EdgeConnection{NodeId: "2", IoId: "bytesOutput"}, To: EdgeConnection{NodeId: "3", IoId: "bytesInput"}},
 			},
+			Runtime: Runtime{Size: "small"},
 		}
 
 		// When
@@ -106,8 +107,8 @@ func TestValidate(t *testing.T) {
 		channel := Channel{
 			Nodes: []Node{
 				{Id: "1", Metadata: NodeMetadata{Type: "source", Name: "Fake Name"}},
-				{Id: "2", Metadata: NodeMetadata{Type: "process", Name: "Fake Name"}},
-				{Id: "3", Metadata: NodeMetadata{Type: "process", Name: "Fake Name"}},
+				{Id: "2", Metadata: NodeMetadata{Type: "processing", Name: "Fake Name"}},
+				{Id: "3", Metadata: NodeMetadata{Type: "processing", Name: "Fake Name"}},
 				{Id: "4", Metadata: NodeMetadata{Type: "action", Name: "Fake Name"}},
 			},
 			Edges: []Edge{
@@ -137,9 +138,9 @@ func TestValidate(t *testing.T) {
 		channel := Channel{
 			Nodes: []Node{
 				{Id: "1", Metadata: NodeMetadata{Type: "source", Name: "Fake Name"}},
-				{Id: "2", Metadata: NodeMetadata{Type: "process", Name: "Fake Name"}},
+				{Id: "2", Metadata: NodeMetadata{Type: "processing", Name: "Fake Name"}},
 				{Id: "3", Metadata: NodeMetadata{Type: "action", Name: "Fake Name"}},
-				{Id: "4", Metadata: NodeMetadata{Type: "process", Name: "Fake Name"}},
+				{Id: "4", Metadata: NodeMetadata{Type: "processing", Name: "Fake Name"}},
 			},
 			Edges: []Edge{
 				{Id: "1", From: EdgeConnection{NodeId: "1", IoId: "mqttOutput"}, To: EdgeConnection{NodeId: "2", IoId: "bytesInput"}},
@@ -167,7 +168,7 @@ func TestValidate(t *testing.T) {
 		channel := Channel{
 			Nodes: []Node{
 				{Id: "1", Metadata: NodeMetadata{Type: "source"}},
-				{Id: "2", Metadata: NodeMetadata{Type: "process"}},
+				{Id: "2", Metadata: NodeMetadata{Type: "processing"}},
 			},
 			Edges: []Edge{
 				{Id: "1", From: EdgeConnection{NodeId: "1", IoId: "mqttOutput"}, To: EdgeConnection{NodeId: "3", IoId: "bytesInput"}},
@@ -193,7 +194,7 @@ func TestValidate(t *testing.T) {
 		channel := Channel{
 			Nodes: []Node{
 				{Id: "1", Metadata: NodeMetadata{Type: "source"}},
-				{Id: "2", Metadata: NodeMetadata{Type: "process"}},
+				{Id: "2", Metadata: NodeMetadata{Type: "processing"}},
 			},
 			Edges: []Edge{
 				{Id: "1", From: EdgeConnection{NodeId: "3", IoId: "mqttOutput"}, To: EdgeConnection{NodeId: "2", IoId: "bytesInput"}},
@@ -220,9 +221,9 @@ func TestValidate(t *testing.T) {
 		channel := Channel{
 			Nodes: []Node{
 				{Id: "1", Metadata: NodeMetadata{Type: "source", Name: "Fake Name"}},
-				{Id: "2", Metadata: NodeMetadata{Type: "process", Name: "Fake Name"}},
+				{Id: "2", Metadata: NodeMetadata{Type: "processing", Name: "Fake Name"}},
 				{Id: "3", Metadata: NodeMetadata{Type: "action", Name: "Fake Name"}},
-				{Id: "4", Metadata: NodeMetadata{Type: "process", Name: "Fake Name"}},
+				{Id: "4", Metadata: NodeMetadata{Type: "processing", Name: "Fake Name"}},
 				{Id: "5", Metadata: NodeMetadata{Type: "action", Name: "Fake Name"}},
 			},
 			Edges: []Edge{
@@ -251,7 +252,7 @@ func TestValidate(t *testing.T) {
 		channel := Channel{
 			Nodes: []Node{
 				{Id: "1", Metadata: NodeMetadata{Type: "source", Name: "Fake Name"}},
-				{Id: "2", Metadata: NodeMetadata{Type: "process", Name: "Fake Name"}},
+				{Id: "2", Metadata: NodeMetadata{Type: "processing", Name: "Fake Name"}},
 			},
 			Edges: []Edge{
 				{Id: "1", From: EdgeConnection{NodeId: "1", IoId: "mqttOutput"}, To: EdgeConnection{NodeId: "2", IoId: "bytesOutput"}},
@@ -277,7 +278,7 @@ func TestValidate(t *testing.T) {
 		channel := Channel{
 			Nodes: []Node{
 				{Id: "1", Metadata: NodeMetadata{Type: "source", Name: "Fake Name"}},
-				{Id: "2", Metadata: NodeMetadata{Type: "process", Name: "Fake Name"}},
+				{Id: "2", Metadata: NodeMetadata{Type: "processing", Name: "Fake Name"}},
 			},
 			Edges: []Edge{
 				{Id: "1", From: EdgeConnection{NodeId: "1", IoId: "mqttInput"}, To: EdgeConnection{NodeId: "2", IoId: "bytesInput"}},
@@ -303,7 +304,7 @@ func TestValidate(t *testing.T) {
 		channel := Channel{
 			Nodes: []Node{
 				{Id: "1", Metadata: NodeMetadata{Type: "source"}},
-				{Id: "2", Metadata: NodeMetadata{Type: "process"}},
+				{Id: "2", Metadata: NodeMetadata{Type: "processing"}},
 			},
 			Edges: []Edge{
 				{Id: "1", From: EdgeConnection{NodeId: "1", IoId: "mqttInput"}, To: EdgeConnection{NodeId: "2", IoId: "bytesInput"}},
@@ -330,7 +331,7 @@ func TestValidate(t *testing.T) {
 		channel := Channel{
 			Nodes: []Node{
 				{Id: "1", Metadata: NodeMetadata{Type: "source", Name: "Fake Name"}},
-				{Id: "2", Metadata: NodeMetadata{Type: "process", Name: "Fake Name"}},
+				{Id: "2", Metadata: NodeMetadata{Type: "processing", Name: "Fake Name"}},
 			},
 			Edges: []Edge{
 				{Id: "1", From: EdgeConnection{NodeId: "1", IoId: "mqttInput"}, To: EdgeConnection{NodeId: "2", IoId: "bytesInput"}},
@@ -349,6 +350,35 @@ func TestValidate(t *testing.T) {
 		expectedError := "Edge 2 (between Fake Name and Fake Name) connects an input to an output from the same node 2."
 		if !slices.Contains(validationErrors.ChannelErrors, expectedError) {
 			t.Errorf("expected error message %s but got %v", expectedError, validationErrors)
+		}
+	})
+
+	t.Run("Steps from the step library have known types", func(t *testing.T) {
+		// Given: an HTTP source and a log step as the channel editor saves them.
+		channel := Channel{
+			Runtime: Runtime{Size: "small"},
+			Nodes: []Node{
+				{Id: "src", Metadata: NodeMetadata{Type: "source", Label: "http-source", PluginType: "http-source", PluginVersion: 1}},
+				{Id: "log", Metadata: NodeMetadata{Type: "action", Label: "log", PluginType: "log", PluginVersion: 1}},
+			},
+			Edges: []Edge{
+				{Id: "e1", From: EdgeConnection{NodeId: "src", IoId: "output"}, To: EdgeConnection{NodeId: "log", IoId: "input"}},
+			},
+		}
+
+		// When
+		validationErrors := channel.Validate()
+
+		// Then
+		if validationErrors != nil {
+			t.Errorf("expected no error but got %v", validationErrors)
+		}
+	})
+
+	t.Run("Invalid node type", func(t *testing.T) {
+		node := Node{Id: "1", Metadata: NodeMetadata{Type: "trigger"}}
+		if errors := node.ValidateConfig(); !slices.Equal(errors, []string{"Invalid node type: trigger."}) {
+			t.Errorf("unexpected errors %v", errors)
 		}
 	})
 }
