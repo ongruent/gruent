@@ -4,6 +4,9 @@
 export VAULT_ADDR='http://127.0.0.1:8200'
 export VAULT_INIT_FILE='/mnt/vault/file/init.json'
 
+# Clear the readiness marker from any previous run of this container
+rm -f /tmp/vault-ready
+
 # Start Vault server in the background
 vault server -config=/vault/config/vault.hcl &
 
@@ -113,6 +116,15 @@ path "pki/issue/*" {
 }
 ' | vault policy write http-api -
 
+# Create a controller service user and policy
+vault write auth/userpass/users/controller password=gruent policies=controller
+
+echo '
+path "kv/config/controller" {
+  capabilities = ["read"]
+}
+' | vault policy write controller -
+
 # Create a tests services user and policy
 vault write auth/userpass/users/tests password=gruent policies=tests
 
@@ -127,6 +139,13 @@ path "kv/config/tests" {
 
 # Setup PKI engine
 /vault/config/setup_vault_pki.sh
+
+# Signal readiness to the container healthcheck once Vault is unsealed
+if vault status >/dev/null; then
+  touch /tmp/vault-ready
+else
+  echo "Vault is not unsealed; the container will remain unhealthy"
+fi
 
 # Keep the container running
 tail -f /dev/null

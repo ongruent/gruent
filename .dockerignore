@@ -5,7 +5,7 @@
 .nx
 .vscode
 node_modules
-deploy/engine/production
+deploy/backend/production
 deploy/services/production
 **/.env
 **/docker-compose.yaml

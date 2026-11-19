@@ -18,7 +18,7 @@ import (
 
 const (
 	// This network is the one spawn up with the docker compose file
-	// in the local environment at deploy/engine/local/docker-compose.yaml
+	// in the local environment at deploy/backend/local/docker-compose.yaml
 	LocalEnvDockerNetworkName = "gruent_network"
 )
 

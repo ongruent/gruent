@@ -1,0 +1,23 @@
+{
+	"name": "backend",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "deploy/backend",
+	"projectType": "application",
+	"targets": {
+		"start": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "deploy/backend/local/ctl.sh up"
+			}
+		},
+		"stop": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "deploy/backend/local/ctl.sh down"
+			}
+		}
+	},
+	"tags": []
+}

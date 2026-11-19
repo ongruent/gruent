@@ -1,0 +1,33 @@
+{
+	"name": "all",
+	"$schema": "../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "deploy",
+	"projectType": "application",
+	"targets": {
+		"start": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"parallel": false,
+				"commands": [
+					"nx start runtime",
+					"nx start backend",
+					"nx start frontend"
+				]
+			}
+		},
+		"stop": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"parallel": false,
+				"commands": [
+					"nx stop frontend",
+					"nx stop backend",
+					"nx stop runtime"
+				]
+			}
+		}
+	},
+	"tags": []
+}
