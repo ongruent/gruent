@@ -6,10 +6,11 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/ongruent/gruent/libs/engine/routing"
+	"github.com/ongruent/gruent/libs/engine/signing"
 	"github.com/ongruent/gruent/services/controller/internal/artifacts"
 	"github.com/ongruent/gruent/services/controller/internal/compiler"
 	"github.com/ongruent/gruent/services/controller/internal/plan"
-	"github.com/ongruent/gruent/services/controller/internal/signing"
 )
 
 // memoryStore implements Store in memory, with the same semantics as the Postgres queries.
@@ -193,21 +194,23 @@ func TestPublishRecordsDesiredStateWithoutObservingIt(t *testing.T) {
 	if published.Dependencies.Version != state.DependencyBundle.Version || published.Payloads.Schema.Version != state.PayloadSchema.Version {
 		t.Fatal("the plan does not pin the recorded dependency bundle and payload schema")
 	}
-	var routing plan.RoutingArtifact
-	if err := json.Unmarshal(files.Objects[state.Routing.StorageKey], &routing); err != nil {
+	var routingArtifact plan.RoutingArtifact
+	if err := json.Unmarshal(files.Objects[state.Routing.StorageKey], &routingArtifact); err != nil {
 		t.Fatal(err)
 	}
-	if routing.PlanVersion != state.Plan.Version {
-		t.Fatalf("routing artifact references %s, want %s", routing.PlanVersion, state.Plan.Version)
+	if routingArtifact.PlanVersion != state.Plan.Version {
+		t.Fatalf("routing artifact references %s, want %s", routingArtifact.PlanVersion, state.Plan.Version)
 	}
 
-	// Publishing an unchanged channel again uploads nothing.
+	// Publishing an unchanged channel again uploads no artifact; only the routing table entry and its
+	// signature are rewritten, with the same content.
 	puts := files.Puts
+	entry := string(files.Objects[routing.EntryKey("c1")])
 	again, err := service.Publish(context.Background(), "c1")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if again.Plan.Version != state.Plan.Version || files.Puts != puts {
+	if again.Plan.Version != state.Plan.Version || files.Puts != puts+2 || string(files.Objects[routing.EntryKey("c1")]) != entry {
 		t.Fatal("republishing an unchanged channel created a new version")
 	}
 }

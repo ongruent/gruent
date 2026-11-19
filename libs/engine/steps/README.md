@@ -231,6 +231,8 @@ annotations.
   named ports. Conditional plugins with distinct pass/fail outputs need a port model before they can be
   expressed.
 - **Integration.** The hub serves definitions from the library directory and edits configuration with
-  `<NodeConfig />` (see above). Backend storage of definitions, Go validation of saved channels and
-  publishing library steps to the runtime are follow-up work. Plugin runtime artifacts (WASM) and
+  `<NodeConfig />` (see above). The API (`PATCH /v1/channels/validate`) and the controller validate saved
+  library steps against the library embedded in their binaries (`steps.EmbeddedLibrary()`), and the
+  controller compiles them into plans (see `services/controller/README.md`). Executing library steps in the
+  runtime is follow-up work. Plugin runtime artifacts (WASM) and
   custom/third-party step packages are out of scope: definitions carry no artifact fields.

@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ongruent/gruent/libs/engine/signing"
 	"github.com/ongruent/gruent/services/controller/internal/plan"
-	"github.com/ongruent/gruent/services/controller/internal/signing"
 )
 
 // Reference locates an uploaded artifact.
@@ -32,6 +32,8 @@ type Store interface {
 	Exists(ctx context.Context, key string) (bool, error)
 	// Put writes an object.
 	Put(ctx context.Context, key string, data []byte, contentType string) error
+	// Delete removes an object. Deleting a missing object is not an error.
+	Delete(ctx context.Context, key string) error
 }
 
 // Presigner creates expiring download URLs. Future deployment integration gives runtimes presigned URLs

@@ -11,7 +11,7 @@ Compiles channels into signed, versioned artifacts and records their desired dep
 | **Plan** (`plan.Plan`) | Channel graph, publish strategy, bindings, payload types, runtime and deployment policies, and metadata. Pins the versions of its dependency bundle and payload schema. | Runtimes |
 | **DependencyBundle** (`plan.DependencyBundle`) | Models, connections, and references to secrets and certificates. | Runtimes (hydration) |
 | **Payload schema** (`.fbs`) | FlatBuffers tables for every step input and output, and for every model. | Runtimes |
-| **Routing** (`plan.RoutingArtifact`) | Source bindings, expected input models, and concurrency limits. Pins the plan version. | Source services |
+| **Routing** (`routing.Artifact`) | Source bindings, expected input models, and concurrency limits. Pins the plan version. | Source services |
 
 An artifact's identity is its kind plus its version, which is `sha256:<hex>` of the artifact's canonical content. The storage key is derived from that identity (`orgs/<org>/spaces/<space>/channels/<channel>/<kind>/<hex>.json|.fbs`). Artifacts are never overwritten. An unchanged channel always compiles to the same versions. Editor layout and step order don't affect versions; resource and concurrency values do.
 
@@ -71,17 +71,37 @@ These settings live in the channel configuration's `runtime` object. The control
 | `maxQueuedExecutions` | no (0) | Bounded queue for work that arrives while every execution slot is in use. |
 | `maxInvocationMs` | no | Maximum execution time. |
 
-Work that exceeds both limits is handled by each binding's `overflow`. HTTP sources reject it with `429`, and timer sources skip the tick. Sources that don't define overflow handling yet (MQTT, message queues) don't compile.
+Work that exceeds both limits is handled by each binding's `overflow`. HTTP sources reject it with `429`, timer sources skip the tick, and message queue sources pause consumption so messages wait in the broker. Sources that don't define overflow handling yet (MQTT) don't compile.
 
 Dedicated and shared runtimes use the same contract. In a dedicated runtime, `memoryMiB` can be used as the container memory limit. In a shared JVM, the reservation only counts against the worker's capacity when scheduling (`plan.WorkerCapacity` subtracts runtime overhead and safety headroom). Channels on a shared worker aren't memory-isolated from each other.
 
 The plan's publish strategy is `replace`. A runtime that applies a new version stops admitting work to the previous version, lets in-flight executions finish, and then switches to the new version.
 
+## Step library steps
+
+Steps created from the step library (`libs/engine/steps`) carry `metadata.pluginType` and `metadata.pluginVersion`. The compiler resolves that exact definition from the library embedded in the binary, validates the configuration against its schema (errors are reported at `/config/<field>`), and pins the definition's digest in the plan step (`definition`). Their dependencies are the values of named selects: `models` and `connections`. A source's model field declares its output; other steps use `inputModelId` and `outputModelId`. Library steps declare no ports, so their inputs accept any type.
+
+The library source steps compile into bindings:
+
+| Step | Binding |
+| --- | --- |
+| `http-source@1` | `method`, `responseMode` (`sync` waits up to `responseTimeout` seconds for the reply; `async` answers 202 once a runtime admits the execution), path `/v1/trigger/http/<channel ID>` |
+| `timer-source@1` | `cronExpression` (5 fields, optional leading seconds field, or a descriptor), evaluated in UTC |
+| `message-queue-source@1` | `broker` (`NATS_CLIENT` or `KAFKA_CONSUMER`), a connection of that category, and the subject or topic |
+
+Every binding names the channel's invocation subject (`gruent.v1.invocations.<channel ID>`).
+
+## Routing table
+
+Source services never read Postgres. After recording a published version, the controller writes the channel's signed route table entry (`routing.Entry`) to `routing/v1/channels/<channel ID>.json`. It points to the routing artifact; unpublishing deletes it. Source services list these entries, verify each entry and routing artifact, and reconcile an in-memory table (`routing.Reconciler`). An entry that fails verification never changes routing: the previous routes stay until a later reconciliation succeeds.
+
+`libs/engine/routing` also defines the `Invocation` message that sources publish to the binding's subject and the `Reply` that runtimes answer with, and `routing.Ingress`, the HTTP source that matches requests against the table and uses request/reply. Running source services, scheduling timers, consuming queues, and runtimes subscribing to invocation subjects are later runtime work.
+
 ## Deployment state
 
 Uploading artifacts is not a deployment. The observed state (`observed_status`) stays `unknown` until a runtime acknowledges a plan version through `deployments.Service.RecordObserved`. `Status` returns `PUBLISHED` only after a runtime acknowledges the desired version. When compilation or upload fails, the failure is recorded (`preparation_status = failed`, with its stage and error), and the last successfully prepared version stays desired.
 
-Delivering desired state and presigned URLs to runtimes and source services (for example over NATS), pool provisioning, and Kubernetes reconciliation will be added with runtime integration.
+Delivering desired state and presigned URLs to runtimes (for example over NATS), pool provisioning, and Kubernetes reconciliation will be added with runtime integration.
 
 ## Tests
 

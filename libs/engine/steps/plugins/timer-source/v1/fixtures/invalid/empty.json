@@ -1,0 +1,5 @@
+{
+  "description": "An empty expression violates minLength.",
+  "config": { "cronExpression": "" },
+  "errors": ["/cronExpression"]
+}

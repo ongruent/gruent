@@ -8,12 +8,12 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	sqlcdb "github.com/ongruent/gruent/db/sqlc"
+	"github.com/ongruent/gruent/libs/engine/signing"
 	"github.com/ongruent/gruent/libs/legacy/engine/environment"
 	"github.com/ongruent/gruent/libs/legacy/engine/observability"
 	"github.com/ongruent/gruent/libs/secrets"
 	"github.com/ongruent/gruent/services/controller/internal/artifacts"
 	"github.com/ongruent/gruent/services/controller/internal/artifactstore"
-	"github.com/ongruent/gruent/services/controller/internal/signing"
 	sqlcService "github.com/ongruent/gruent/services/controller/internal/sqlc"
 	"github.com/rs/zerolog"
 	"github.com/spf13/viper"

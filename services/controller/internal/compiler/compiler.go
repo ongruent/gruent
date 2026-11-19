@@ -14,6 +14,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/ongruent/gruent/libs/engine/steps"
 	"github.com/ongruent/gruent/services/controller/internal/artifacts"
 	"github.com/ongruent/gruent/services/controller/internal/flatbuffers"
 	"github.com/ongruent/gruent/services/controller/internal/plan"
@@ -118,20 +119,14 @@ func (e *Error) Error() string {
 	return "channel does not compile: " + strings.Join(messages, "; ")
 }
 
-// Supported HTTP methods of HTTP sources.
-var httpMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"}
-
-// Bounds of an HTTP source's response timeout, in seconds.
-const (
-	minHTTPResponseTimeout = 1
-	maxHTTPResponseTimeout = 30
-)
-
 // Compile validates a channel, resolves its types, and compiles its artifacts if there are no errors.
 // Problems with the configuration are reported as diagnostics; the error is only set when compilation
 // could not run, e.g. because the Resolver failed.
 func Compile(ctx context.Context, input Input, resolver Resolver) (*Result, error) {
-	c := &compilation{input: input, resolver: resolver, models: map[string]resolvedModel{}}
+	c, err := newCompilation(input, resolver)
+	if err != nil {
+		return nil, err
+	}
 	return c.run(ctx)
 }
 
@@ -140,6 +135,23 @@ type compilation struct {
 	resolver    Resolver
 	diagnostics []Diagnostic
 	models      map[string]resolvedModel
+	// library holds the step library definitions that library steps are validated against.
+	library      *steps.Registry
+	libraryCache map[string]*libraryStep
+}
+
+func newCompilation(input Input, resolver Resolver) (*compilation, error) {
+	library, err := steps.EmbeddedLibrary()
+	if err != nil {
+		return nil, fmt.Errorf("load step library: %w", err)
+	}
+	return &compilation{
+		input:        input,
+		resolver:     resolver,
+		models:       map[string]resolvedModel{},
+		library:      library,
+		libraryCache: map[string]*libraryStep{},
+	}, nil
 }
 
 type resolvedModel struct {
@@ -168,6 +180,7 @@ func (c *compilation) run(ctx context.Context) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
+	c.checkSourceConnections(bindings, connections)
 
 	resolved, typeDiagnostics := types.ResolveGraph(c.typeSteps(config), typeEdges(graph))
 	c.diagnostics = append(c.diagnostics, typeDiagnostics...)
@@ -361,7 +374,7 @@ func (c *compilation) graph(config channelConfig) (plan.Graph, []sourceStep) {
 			continue
 		}
 		if node.Metadata.Type == "source" {
-			sources = append(sources, sourceStep{step: step, config: node.Metadata.Config})
+			sources = append(sources, sourceStep{step: step, node: node, library: c.resolveLibraryStep(node)})
 		}
 		graph.Steps = append(graph.Steps, step)
 	}
@@ -430,6 +443,25 @@ func (c *compilation) step(node nodeConfig) (plan.Step, bool) {
 		ModelRefs:      []string{},
 		ConnectionRefs: []string{},
 	}
+
+	// Steps from the step library declare their dependencies as named selects in their configuration.
+	if library := c.resolveLibraryStep(node); library != nil {
+		step.Type, step.Version = libraryStepType(node)
+		step.Definition = library.stepDefinition()
+		for _, model := range library.referencesTo(collectionModels) {
+			step.ModelRefs = appendUnique(step.ModelRefs, model.modelID)
+		}
+		for _, connection := range library.referencesTo(collectionConnections) {
+			step.ConnectionRefs = appendUnique(step.ConnectionRefs, connection.modelID)
+		}
+		slices.Sort(step.ModelRefs)
+		slices.Sort(step.ConnectionRefs)
+		if metadata.Type == "source" {
+			step.BindingRef = "bind_" + node.ID
+		}
+		return step, true
+	}
+
 	for _, model := range metadata.Dependencies.Models {
 		if model.ModelID == "" || model.ModelID == unsetReference {
 			c.errorf("model_not_selected", node.ID, "/"+model.FieldName, "step %s (%s) has no model selected for %s", node.ID, metadata.Name, model.FieldName)
@@ -454,68 +486,6 @@ func (c *compilation) step(node nodeConfig) (plan.Step, bool) {
 		step.BindingRef = "bind_" + node.ID
 	}
 	return step, true
-}
-
-type sourceStep struct {
-	step   plan.Step
-	config json.RawMessage
-}
-
-// bindings compiles source steps into bindings. A source type is only supported once its overflow
-// handling is defined, so that admission is bounded for every source.
-func (c *compilation) bindings(sources []sourceStep) plan.Bindings {
-	bindings := plan.Bindings{HTTP: []plan.HTTPBinding{}, Timer: []plan.TimerBinding{}}
-
-	for _, source := range sources {
-		step := source.step
-		switch step.Type {
-		case "source.http":
-			var config httpSourceConfig
-			if err := json.Unmarshal(source.config, &config); err != nil {
-				c.errorf("invalid_step_config", step.ID, "/config", "HTTP source %s has an invalid configuration: %v", step.ID, err)
-				continue
-			}
-			if !slices.Contains(httpMethods, config.Method) {
-				c.errorf("invalid_http_method", step.ID, "/config/method", "HTTP source %s has an unsupported method %q", step.ID, config.Method)
-			}
-			if config.ResponseTimeout < minHTTPResponseTimeout || config.ResponseTimeout > maxHTTPResponseTimeout {
-				c.errorf("invalid_http_timeout", step.ID, "/config/responseTimeout", "HTTP source %s response timeout must be between %d and %d seconds", step.ID, minHTTPResponseTimeout, maxHTTPResponseTimeout)
-			}
-			bindings.HTTP = append(bindings.HTTP, plan.HTTPBinding{
-				BindingID:      step.BindingRef,
-				StepID:         step.ID,
-				Method:         config.Method,
-				Path:           fmt.Sprintf("/v1/spaces/%s/channels/%s", c.input.SpaceID, c.input.ChannelID),
-				ResponseMode:   "sync",
-				TimeoutMs:      config.ResponseTimeout * 1000,
-				InputModelRefs: step.ModelRefs,
-				// 429 Too Many Requests tells clients that they can retry later.
-				Overflow: plan.Overflow{Action: plan.OverflowReject, HTTPStatus: 429},
-			})
-		case "source.timer":
-			var config timerSourceConfig
-			if err := json.Unmarshal(source.config, &config); err != nil {
-				c.errorf("invalid_step_config", step.ID, "/config", "timer source %s has an invalid configuration: %v", step.ID, err)
-				continue
-			}
-			if strings.TrimSpace(config.CronExpression) == "" {
-				c.errorf("missing_cron_expression", step.ID, "/config/cronExpression", "timer source %s has no cron expression", step.ID)
-			}
-			bindings.Timer = append(bindings.Timer, plan.TimerBinding{
-				BindingID:      step.BindingRef,
-				StepID:         step.ID,
-				CronExpression: config.CronExpression,
-				InputModelRefs: step.ModelRefs,
-				// A tick that arrives while the channel is saturated is dropped rather than queued
-				// without bound; the next tick runs as scheduled.
-				Overflow: plan.Overflow{Action: plan.OverflowSkip},
-			})
-		default:
-			c.errorf("unsupported_source", step.ID, "", "source type %s is not supported yet: its handling of excess work is not defined", step.Type)
-		}
-	}
-
-	return bindings
 }
 
 // resolveModels loads every model referenced by the steps and converts it into a type.
@@ -583,27 +553,44 @@ func (c *compilation) typeSteps(config channelConfig) []types.Step {
 			continue
 		}
 		seen[node.ID] = true
-		steps = append(steps, typeStep(node, func(id string) (types.Type, bool) {
-			model, ok := c.models[id]
-			return model.t, ok
-		}))
+		steps = append(steps, c.typeStep(node))
 	}
 	return steps
 }
 
-func typeStep(node nodeConfig, model func(id string) (types.Type, bool)) types.Step {
+func (c *compilation) typeStep(node nodeConfig) types.Step {
 	step := types.Step{
 		ID:             node.ID,
 		Category:       node.Metadata.Type,
 		Label:          node.Metadata.Label,
 		Models:         map[string]types.Type{},
 		InputDataTypes: map[string][]string{},
+		EmitsSignal:    node.Metadata.Type == "source" && node.Metadata.Label == "timer",
 	}
-	for _, dependency := range node.Metadata.Dependencies.Models {
-		step.DeclaredModels = append(step.DeclaredModels, dependency.FieldName)
-		if t, ok := model(dependency.ModelID); ok {
-			step.Models[dependency.FieldName] = t
+	declare := func(field, modelID string) {
+		step.DeclaredModels = append(step.DeclaredModels, field)
+		if model, ok := c.models[modelID]; ok {
+			step.Models[field] = model.t
 		}
+	}
+
+	// Library steps declare no ports, so their inputs accept any type. Their models come from the
+	// configuration.
+	if library := c.resolveLibraryStep(node); library != nil {
+		step.Label = node.Metadata.PluginType
+		step.EmitsSignal = library.is(pluginTimerSource, 1)
+		for _, model := range library.referencesTo(collectionModels) {
+			field := model.field
+			if mapped, ok := libraryModelFields[field]; ok {
+				field = mapped
+			}
+			declare(field, model.modelID)
+		}
+		return step
+	}
+
+	for _, dependency := range node.Metadata.Dependencies.Models {
+		declare(dependency.FieldName, dependency.ModelID)
 	}
 	for _, input := range node.Metadata.Io.Inputs {
 		if len(input.DataType) > 0 {
@@ -638,6 +625,11 @@ func inputModels(bindings plan.Bindings, models []plan.Model) []plan.ModelRefere
 		}
 	}
 	for _, binding := range bindings.Timer {
+		for _, id := range binding.InputModelRefs {
+			ids = appendUnique(ids, id)
+		}
+	}
+	for _, binding := range bindings.MessageQueue {
 		for _, id := range binding.InputModelRefs {
 			ids = appendUnique(ids, id)
 		}

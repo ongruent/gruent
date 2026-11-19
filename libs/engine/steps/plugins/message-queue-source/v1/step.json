@@ -1,0 +1,62 @@
+{
+  "contractVersion": 1,
+  "pluginType": "message-queue-source",
+  "pluginVersion": 1,
+  "displayName": "Message Queue",
+  "description": "Start the channel for every message on a NATS subject or Kafka topic.",
+  "category": "source",
+  "configSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["broker", "connectionId", "topic"],
+    "properties": {
+      "broker": {
+        "type": "string",
+        "title": "Broker",
+        "enum": ["NATS_CLIENT", "KAFKA_CONSUMER"],
+        "default": "NATS_CLIENT",
+        "x-ui": {
+          "control": "select",
+          "order": 1,
+          "options": {
+            "static": [
+              { "value": "NATS_CLIENT", "label": "NATS" },
+              { "value": "KAFKA_CONSUMER", "label": "Kafka" }
+            ]
+          }
+        }
+      },
+      "connectionId": {
+        "type": "string",
+        "title": "Connection",
+        "description": "NATS client or Kafka consumer connection used to subscribe.",
+        "minLength": 1,
+        "x-ui": {
+          "control": "select",
+          "order": 2,
+          "options": { "named": { "name": "connections", "paramsFromFields": { "category": "/broker" } } }
+        }
+      },
+      "topic": {
+        "type": "string",
+        "title": "Topic",
+        "description": "NATS subject (wildcards allowed) or Kafka topic. While the channel is busy, consumption pauses and messages stay in the broker.",
+        "minLength": 1,
+        "maxLength": 255,
+        "x-ui": { "control": "text", "order": 3, "placeholder": "sensors.temperature" }
+      },
+      "modelId": {
+        "type": "string",
+        "title": "Message model",
+        "description": "Model of JSON messages. Without a model, messages are passed on as raw bytes.",
+        "minLength": 1,
+        "x-ui": {
+          "control": "select",
+          "order": 4,
+          "options": { "named": { "name": "models" } }
+        }
+      }
+    }
+  }
+}

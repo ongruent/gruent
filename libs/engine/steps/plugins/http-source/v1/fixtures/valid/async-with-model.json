@@ -1,0 +1,4 @@
+{
+  "description": "Asynchronous source with a request model. The hidden timeout keeps its value.",
+  "config": { "method": "PUT", "modelId": "mdl_123", "responseMode": "async", "responseTimeout": 10 }
+}

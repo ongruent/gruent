@@ -1,0 +1,5 @@
+{
+  "description": "Unknown broker, empty topic, missing connection.",
+  "config": { "broker": "MQTT_CLIENT", "topic": "" },
+  "errors": ["/broker", "/connectionId", "/topic"]
+}

@@ -15,6 +15,51 @@
         "class": "HelloWorldConfig",
         "path": "generated/kotlin/com/gruent/steps/plugins/helloworld/v1/HelloWorldConfig.kt"
       }
+    },
+    {
+      "pluginType": "http-source",
+      "pluginVersion": 1,
+      "contractVersion": 1,
+      "category": "source",
+      "definition": {
+        "path": "plugins/http-source/v1/step.json",
+        "digest": "sha256:880ed8ff6d0d5650677d64e9fed47adb7a9056a9e32a971a6f661b5dabd43e27"
+      },
+      "kotlin": {
+        "package": "com.gruent.steps.plugins.httpsource.v1",
+        "class": "HttpSourceConfig",
+        "path": "generated/kotlin/com/gruent/steps/plugins/httpsource/v1/HttpSourceConfig.kt"
+      }
+    },
+    {
+      "pluginType": "message-queue-source",
+      "pluginVersion": 1,
+      "contractVersion": 1,
+      "category": "source",
+      "definition": {
+        "path": "plugins/message-queue-source/v1/step.json",
+        "digest": "sha256:afbaf7ddda96524fa839f40157a099232770b49c0e9adaa56a24ce324241bc7d"
+      },
+      "kotlin": {
+        "package": "com.gruent.steps.plugins.messagequeuesource.v1",
+        "class": "MessageQueueSourceConfig",
+        "path": "generated/kotlin/com/gruent/steps/plugins/messagequeuesource/v1/MessageQueueSourceConfig.kt"
+      }
+    },
+    {
+      "pluginType": "timer-source",
+      "pluginVersion": 1,
+      "contractVersion": 1,
+      "category": "source",
+      "definition": {
+        "path": "plugins/timer-source/v1/step.json",
+        "digest": "sha256:5f29b426afda1310ea2bb777cce8a3a79f97fc7804335b70ddd7ee70511765e3"
+      },
+      "kotlin": {
+        "package": "com.gruent.steps.plugins.timersource.v1",
+        "class": "TimerSourceConfig",
+        "path": "generated/kotlin/com/gruent/steps/plugins/timersource/v1/TimerSourceConfig.kt"
+      }
     }
   ]
 }

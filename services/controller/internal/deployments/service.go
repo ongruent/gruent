@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/ongruent/gruent/libs/engine/signing"
 	"github.com/ongruent/gruent/services/controller/internal/artifacts"
 	"github.com/ongruent/gruent/services/controller/internal/compiler"
 	"github.com/ongruent/gruent/services/controller/internal/plan"
-	"github.com/ongruent/gruent/services/controller/internal/signing"
 	"github.com/ongruent/gruent/services/controller/internal/types"
 )
 
@@ -104,8 +104,8 @@ type Service struct {
 	Store     Store
 }
 
-// Publish compiles the channel, signs and uploads its artifacts, and records the plan as the desired
-// version. If any stage fails, the failure is recorded and a *PreparationError is returned; a channel
+// Publish compiles the channel, signs and uploads its artifacts, records the plan as the desired
+// version, and points the channel's routing table entry to the new routing artifact. If any stage fails, the failure is recorded and a *PreparationError is returned; a channel
 // that does not compile wraps a *compiler.Error with its diagnostics. Publishing does not change the
 // observed state.
 func (s *Service) Publish(ctx context.Context, channelID string) (State, error) {
@@ -150,12 +150,23 @@ func (s *Service) Publish(ctx context.Context, channelID string) (State, error) 
 		references = append(references, reference)
 	}
 
-	return s.Store.RecordPrepared(ctx, Prepared{
+	state, err := s.Store.RecordPrepared(ctx, Prepared{
 		ChannelID: input.ChannelID,
 		SpaceID:   input.SpaceID,
 		Artifacts: references,
 		Policies:  result.Artifacts.Plan.Policies,
 	})
+	if err != nil {
+		return State{}, err
+	}
+
+	// The routing table entry is written last, once the version is desired, so source services never
+	// route to a version that is not recorded. If it fails, publishing again rewrites it.
+	metadata := result.Artifacts.Plan.Metadata
+	if err := artifacts.PutRouteEntry(ctx, s.Artifacts, s.Signer, metadata, artifacts.Ref(metadata, plan.ArtifactRouting, result.Artifacts.EncodedRouting)); err != nil {
+		return fail(StageUpload, err)
+	}
+	return state, nil
 }
 
 // DraftRequest is a soft compilation request for a whole channel.
@@ -189,10 +200,19 @@ func (s *Service) CompileStep(ctx context.Context, spaceID string, step []byte, 
 	return compiler.CompileStep(ctx, compiler.StepInput{SpaceID: spaceID, Step: step, UpstreamType: upstream}, s.Resolver)
 }
 
-// Unpublish sets the desired state to unpublished. Artifacts are kept, so that the observed version
-// can still be resolved.
+// Unpublish sets the desired state to unpublished and removes the channel from the routing table.
+// Artifacts are kept, so that the observed version can still be resolved.
 func (s *Service) Unpublish(ctx context.Context, channelID string) (State, error) {
-	return s.Store.SetUnpublished(ctx, channelID)
+	state, err := s.Store.SetUnpublished(ctx, channelID)
+	if err != nil {
+		return State{}, err
+	}
+	// Source services stop routing to the channel once they reconcile. If deleting the entry fails,
+	// unpublishing again retries it.
+	if err := artifacts.DeleteRouteEntry(ctx, s.Artifacts, channelID); err != nil {
+		return State{}, err
+	}
+	return state, nil
 }
 
 // Status returns the deployment state of a channel, or ErrNotFound if it was never published.

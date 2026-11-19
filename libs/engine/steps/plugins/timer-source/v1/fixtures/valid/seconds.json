@@ -1,0 +1,4 @@
+{
+  "description": "Six-field expression with seconds.",
+  "config": { "cronExpression": "*/5 * * * * *" }
+}

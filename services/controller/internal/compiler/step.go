@@ -31,7 +31,10 @@ type StepResult struct {
 
 // CompileStep validates a single step and resolves its types with the same rules as Compile.
 func CompileStep(ctx context.Context, input StepInput, resolver Resolver) (*StepResult, error) {
-	c := &compilation{input: Input{SpaceID: input.SpaceID}, resolver: resolver, models: map[string]resolvedModel{}}
+	c, err := newCompilation(Input{SpaceID: input.SpaceID}, resolver)
+	if err != nil {
+		return nil, err
+	}
 
 	var node nodeConfig
 	if err := json.NewDecoder(bytes.NewReader(input.Step)).Decode(&node); err != nil {
@@ -51,10 +54,7 @@ func CompileStep(ctx context.Context, input StepInput, resolver Resolver) (*Step
 		}
 	}
 
-	typeStep := typeStep(node, func(id string) (types.Type, bool) {
-		model, ok := c.models[id]
-		return model.t, ok
-	})
+	typeStep := c.typeStep(node)
 	upstream := input.UpstreamType
 	if typeStep.Category == "source" && upstream != nil {
 		c.errorf("source_with_input", node.ID, "", "source step %s cannot have an upstream type", node.ID)

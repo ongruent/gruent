@@ -26,13 +26,17 @@ type nodeConfig struct {
 }
 
 type nodeMetadata struct {
-	Version      string           `json:"version"`
-	Name         string           `json:"name"`
-	Label        string           `json:"label"`
-	Type         string           `json:"type"`
-	Config       json.RawMessage  `json:"config"`
-	Dependencies nodeDependencies `json:"dependencies"`
-	Io           struct {
+	// PluginType and PluginVersion identify the exact step library definition of steps created from the
+	// step library. Older steps have neither.
+	PluginType    string           `json:"pluginType"`
+	PluginVersion int              `json:"pluginVersion"`
+	Version       string           `json:"version"`
+	Name          string           `json:"name"`
+	Label         string           `json:"label"`
+	Type          string           `json:"type"`
+	Config        json.RawMessage  `json:"config"`
+	Dependencies  nodeDependencies `json:"dependencies"`
+	Io            struct {
 		Inputs []struct {
 			ID       string   `json:"id"`
 			DataType []string `json:"dataType"`
@@ -66,10 +70,18 @@ type edgeEnd struct {
 const unsetReference = "__IOTEA_IGNORE__"
 
 type httpSourceConfig struct {
-	Method          string `json:"method"`
+	Method string `json:"method"`
+	// ResponseMode is "sync" or "async". Steps created before the step library always wait ("sync").
+	ResponseMode    string `json:"responseMode"`
 	ResponseTimeout int64  `json:"responseTimeout"` // seconds
 }
 
 type timerSourceConfig struct {
 	CronExpression string `json:"cronExpression"`
+}
+
+type messageQueueSourceConfig struct {
+	Broker       string `json:"broker"`
+	ConnectionID string `json:"connectionId"`
+	Topic        string `json:"topic"`
 }

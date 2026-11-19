@@ -1,0 +1,25 @@
+{
+  "contractVersion": 1,
+  "pluginType": "timer-source",
+  "pluginVersion": 1,
+  "displayName": "Timer",
+  "description": "Start the channel on a cron schedule, evaluated in UTC.",
+  "category": "source",
+  "configSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["cronExpression"],
+    "properties": {
+      "cronExpression": {
+        "type": "string",
+        "title": "Cron expression",
+        "description": "Five fields (minute hour day-of-month month day-of-week), or six with a leading seconds field. Descriptors such as @hourly are also accepted. A tick that arrives while the channel is busy is skipped.",
+        "minLength": 1,
+        "maxLength": 120,
+        "default": "0 */5 * * * *",
+        "x-ui": { "control": "text", "order": 1, "placeholder": "0 */5 * * * *" }
+      }
+    }
+  }
+}

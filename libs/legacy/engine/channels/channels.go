@@ -43,14 +43,18 @@ type NodeDependencies struct {
 }
 
 type NodeMetadata struct {
-	Version      string           `json:"version"`
-	Name         string           `json:"name"`
-	Label        string           `json:"label"`
-	Type         string           `json:"type"`
-	Description  string           `json:"description"`
-	Io           NodeIo           `json:"io"`
-	Config       json.RawMessage  `json:"config"`
-	Dependencies NodeDependencies `json:"dependencies"`
+	// PluginType and PluginVersion identify the exact step library definition of steps created from the
+	// step library (libs/engine/steps). Older steps have neither.
+	PluginType    string           `json:"pluginType,omitempty"`
+	PluginVersion int              `json:"pluginVersion,omitempty"`
+	Version       string           `json:"version"`
+	Name          string           `json:"name"`
+	Label         string           `json:"label"`
+	Type          string           `json:"type"`
+	Description   string           `json:"description"`
+	Io            NodeIo           `json:"io"`
+	Config        json.RawMessage  `json:"config"`
+	Dependencies  NodeDependencies `json:"dependencies"`
 }
 
 type NodeIo struct {

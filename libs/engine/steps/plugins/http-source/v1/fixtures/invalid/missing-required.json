@@ -1,0 +1,5 @@
+{
+  "description": "Required fields are reported at their pointers; the legacy internal HTTP server connection is gone.",
+  "config": { "httpServer::thing": "__IOTEA_IGNORE__" },
+  "errors": ["/httpServer::thing", "/method", "/responseMode", "/responseTimeout"]
+}
