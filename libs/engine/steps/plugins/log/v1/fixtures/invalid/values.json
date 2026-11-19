@@ -1,0 +1,5 @@
+{
+  "description": "Unknown level, empty model reference, and an unknown property.",
+  "config": { "level": "trace", "redactionModelId": "", "redact": ["password"] },
+  "errors": ["/level", "/redact", "/redactionModelId"]
+}

@@ -1,0 +1,4 @@
+{
+  "description": "Warning with a message and a sensitive fields model.",
+  "config": { "level": "warn", "message": "Reading received", "redactionModelId": "mdl_123" }
+}

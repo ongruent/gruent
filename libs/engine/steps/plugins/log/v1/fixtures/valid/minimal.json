@@ -1,0 +1,4 @@
+{
+  "description": "Defaults: info level without redaction.",
+  "config": { "level": "info" }
+}
