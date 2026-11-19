@@ -3,7 +3,7 @@ import CreateConnectionModal from '@gruent/hub/components/modals/CreateConnectio
 import ConnectionsTable from '@gruent/hub/components/organisms/ConnectionsTable'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
 import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
-import { CirclePlusIcon, CircleXIcon, RouterIcon } from 'lucide-react'
+import { CirclePlusIcon, CircleXIcon, WaypointsIcon } from 'lucide-react'
 import Container from '@gruent/libs/frontend/components/Container'
 import ListTablePlaceholder from '@gruent/hub/components/molecules/ListTablePlaceholder'
 import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
@@ -113,7 +113,7 @@ const ConnectionsPage = async ({ params, searchParams }) => {
               title="Connections"
               description="Devices, APIs, databases, message queues - anything you need to connect."
             >
-              <RouterIcon size="3em" className="text-gray-600 mb-2" />
+              <WaypointsIcon size="3em" className="text-gray-600 mb-2" />
               <p className="text-gray-600 text-center mb-2">No connections... yet!</p>
               <OpenModalButton modalId="createConnection">
                 <CirclePlusIcon />

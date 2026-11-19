@@ -6,10 +6,10 @@ import {
   CogIcon,
   HouseIcon,
   KeyRoundIcon,
-  RouterIcon,
   ShapesIcon,
   ShieldUserIcon,
   UsersIcon,
+  WaypointsIcon,
 } from 'lucide-react'
 import SpaceSelectDropdown from '@gruent/hub/components/organisms/SpaceSelectDropdown'
 import styles from './layout.module.css'
@@ -60,7 +60,7 @@ const Layout = async ({ children, params }) => {
               </li>
               <li id="spaceConnections">
                 <Link href={`/organizations/${orgId}/spaces/${spaceId}/connections`}>
-                  <RouterIcon size="1.5em" className={styles.sidebarLink} />
+                  <WaypointsIcon size="1.5em" className={styles.sidebarLink} />
                 </Link>
               </li>
               <li id="spaceModels">

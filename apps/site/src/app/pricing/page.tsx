@@ -13,7 +13,7 @@ import {
   LayersIcon,
   LockIcon,
   NewspaperIcon,
-  RouterIcon,
+  WaypointsIcon,
   ServerIcon,
   ShapesIcon,
   ShieldUserIcon,
@@ -235,7 +235,7 @@ const Pricing = async ({ searchParams }) => {
                 </ul>
               </div>
               <div>
-                <RouterIcon size="2em" className="text-green-700" />
+                <WaypointsIcon size="2em" className="text-green-700" />
                 <h3 className="text-lg my-4">Simple service and device management</h3>
                 <ul className="text-gray-500 ml-4" style={{ listStyleType: 'disclosure-closed' }}>
                   <li>Create and manage up to 10,000 connections</li>
@@ -316,7 +316,7 @@ const Pricing = async ({ searchParams }) => {
                 </ul>
               </div> */}
               {/* <div>
-                <RouterIcon size="2em" className="text-green-700" />
+                <WaypointsIcon size="2em" className="text-green-700" />
                 <h3 className="text-lg my-4">24x7 service availability</h3>
                 <ul className="text-gray-500 ml-4" style={{ listStyleType: 'disclosure-closed' }}>
                   <li>99.999% uptime</li>
@@ -364,7 +364,7 @@ const Pricing = async ({ searchParams }) => {
                 <div className="flex flex-col md:flex-row gap-4 mt-4">
                   <div className="grow">
                     <h4 className="flex items-center gap-1 text-lg mt-4 font-normal">
-                      <RouterIcon size="1.3333em" className="text-green-700" /> Connections
+                      <WaypointsIcon size="1.3333em" className="text-green-700" /> Connections
                     </h4>
                     <p className="text-gray-500 max-w-lg">
                       Integrate devices, APIs, third-party services, databases, messages queues, and
