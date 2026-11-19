@@ -12,7 +12,9 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel/attribute"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 )
 
 func execute(request *gruenthttp.Request[Input]) (*Output, error) {
@@ -63,6 +65,13 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 			attribute.String("error.type", "grpc_request"),
 			attribute.String("error.message", fmt.Sprintf("could not send publish message to the controller: %s", err)),
 		)
+		// The controller rejects channels that do not compile, e.g. without a memory budget or
+		// concurrency limit. Retrying does not help, so report the reason.
+		if grpcStatus, ok := status.FromError(err); ok && grpcStatus.Code() == codes.InvalidArgument {
+			response := gruenthttp.NewErrorResponse([]any{grpcStatus.Message()})
+			responseJson, _ := response.MarshalJson()
+			return nil, fiber.NewError(fiber.StatusBadRequest, string(responseJson))
+		}
 		response := gruenthttp.NewErrorResponse([]any{
 			"Could not publish the channel at this time. Please try again.",
 		})

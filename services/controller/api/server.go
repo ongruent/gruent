@@ -15,12 +15,12 @@ type Server struct {
 	grpc *grpc.Server
 }
 
-// New constructs a basic gRPC server with default options.
-func New() *Server {
+// New constructs a gRPC server that serves the deployment service.
+func New(deployments Deployments) *Server {
 	s := grpc.NewServer(
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 	)
-	pb.RegisterControllerServiceServer(s, newControllerGRPC())
+	pb.RegisterControllerServiceServer(s, newControllerGRPC(deployments))
 	return &Server{grpc: s}
 }
 

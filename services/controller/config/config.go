@@ -50,6 +50,14 @@ type VaultConfig struct {
 	// Observability
 	OtelCollectorEndpoint string `mapstructure:"OTEL_COLLECTOR_ENDPOINT"`
 
+	// Artifact storage (S3-compatible)
+	ArtifactStorageEndpoint        string `mapstructure:"ARTIFACT_STORAGE_ENDPOINT"`
+	ArtifactStorageAccessKeyID     string `mapstructure:"ARTIFACT_STORAGE_ACCESS_KEY_ID"`
+	ArtifactStorageSecretAccessKey string `mapstructure:"ARTIFACT_STORAGE_SECRET_ACCESS_KEY"`
+	ArtifactStorageBucket          string `mapstructure:"ARTIFACT_STORAGE_BUCKET"`
+	ArtifactStorageRegion          string `mapstructure:"ARTIFACT_STORAGE_REGION"`
+	ArtifactStorageUseSSL          bool   `mapstructure:"ARTIFACT_STORAGE_USE_SSL"`
+
 	// Redis
 	RedisHost     string `mapstructure:"REDIS_HOST"`
 	RedisPort     int    `mapstructure:"REDIS_PORT"`
@@ -149,6 +157,12 @@ func loadVaultSecrets() (*VaultConfig, error) {
 		ControllerServerPort:  SecretsClient.GetIntFromMap(secrets, "CONTROLLER_SERVER_PORT"),
 		DatabaseUrl:           SecretsClient.GetStringFromMap(secrets, "DATABASE_URL"),
 		OtelCollectorEndpoint: SecretsClient.GetStringFromMap(secrets, "OTEL_COLLECTOR_ENDPOINT"),
+		ArtifactStorageEndpoint:        SecretsClient.GetStringFromMap(secrets, "ARTIFACT_STORAGE_ENDPOINT"),
+		ArtifactStorageAccessKeyID:     SecretsClient.GetStringFromMap(secrets, "ARTIFACT_STORAGE_ACCESS_KEY_ID"),
+		ArtifactStorageSecretAccessKey: SecretsClient.GetStringFromMap(secrets, "ARTIFACT_STORAGE_SECRET_ACCESS_KEY"),
+		ArtifactStorageBucket:          SecretsClient.GetStringFromMap(secrets, "ARTIFACT_STORAGE_BUCKET"),
+		ArtifactStorageRegion:          SecretsClient.GetStringFromMap(secrets, "ARTIFACT_STORAGE_REGION"),
+		ArtifactStorageUseSSL:          SecretsClient.GetBoolFromMap(secrets, "ARTIFACT_STORAGE_USE_SSL"),
 		RedisHost:             SecretsClient.GetStringFromMap(secrets, "REDIS_HOST"),
 		RedisPort:             SecretsClient.GetIntFromMap(secrets, "REDIS_PORT"),
 		RedisUsername:         SecretsClient.GetStringFromMap(secrets, "REDIS_USERNAME"),

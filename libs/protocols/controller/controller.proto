@@ -4,7 +4,12 @@ package controller;
 option go_package = "https://github.com/ongruent/gruent/libs/protocols/controller";
 
 service ControllerService {
+  // Publish compiles the channel, uploads its artifacts, and records them as the desired version.
+  // It does not deploy the channel: the observed state stays unknown until a runtime acknowledges
+  // the version. Returns INVALID_ARGUMENT if the channel does not compile, and NOT_FOUND if it does
+  // not exist. Compilation and upload failures are also recorded in the deployment state.
   rpc Publish (PublishRequest) returns (PublishResponse) {}
+  // Unpublish sets the desired state of the channel to unpublished.
   rpc Unpublish (UnpublishRequest) returns (UnpublishResponse) {}
   rpc Status (StatusRequest) returns (StatusResponse) {}
 }
@@ -13,20 +18,28 @@ message PublishRequest {
   string channelId = 1;
 }
 
-message PublishResponse {}
+message PublishResponse {
+  Deployment deployment = 1;
+}
 
 message UnpublishRequest {
   string channelId = 1;
 }
 
-message UnpublishResponse {}
+message UnpublishResponse {
+  Deployment deployment = 1;
+}
 
 message StatusRequest {
   string channelId = 1;
 }
 
 message StatusResponse {
+  // PUBLISHED only once a runtime has acknowledged applying the desired version. A channel whose
+  // artifacts were uploaded but not acknowledged is UNKNOWN.
   ChannelStatus status = 1;
+  // Unset if the channel was never published.
+  Deployment deployment = 2;
 }
 
 enum ChannelStatus {
@@ -34,4 +47,37 @@ enum ChannelStatus {
   PUBLISHED = 1;
   UNPUBLISHED = 2;
   ERROR = 3;
+}
+
+message ArtifactRef {
+  // "sha256:<hex>" digest of the artifact.
+  string version = 1;
+  string storageKey = 2;
+}
+
+// Deployment is the desired and observed deployment state of a channel.
+message Deployment {
+  string channelId = 1;
+  // "published" or "unpublished".
+  string desiredState = 2;
+  // Artifacts of the desired version. Unset until a version has been prepared.
+  ArtifactRef plan = 3;
+  ArtifactRef routing = 4;
+
+  // Static resource and concurrency contract of the desired version.
+  int32 memoryMiB = 5;
+  int32 memoryReservationMiB = 6;
+  int32 maxConcurrentExecutions = 7;
+  int32 maxQueuedExecutions = 8;
+
+  // "ready" or "failed", for the latest publish.
+  string preparationStatus = 9;
+  // "load", "compile" or "upload" when preparationStatus is "failed".
+  string preparationErrorStage = 10;
+  string preparationError = 11;
+
+  // "unknown", "applied", "failed" or "stopped", as reported by runtimes.
+  string observedStatus = 12;
+  string observedVersion = 13;
+  string observedMessage = 14;
 }

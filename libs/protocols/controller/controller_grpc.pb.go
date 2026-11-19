@@ -22,7 +22,12 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ControllerServiceClient interface {
+	// Publish compiles the channel, uploads its artifacts, and records them as the desired version.
+	// It does not deploy the channel: the observed state stays unknown until a runtime acknowledges
+	// the version. Returns INVALID_ARGUMENT if the channel does not compile, and NOT_FOUND if it does
+	// not exist. Compilation and upload failures are also recorded in the deployment state.
 	Publish(ctx context.Context, in *PublishRequest, opts ...grpc.CallOption) (*PublishResponse, error)
+	// Unpublish sets the desired state of the channel to unpublished.
 	Unpublish(ctx context.Context, in *UnpublishRequest, opts ...grpc.CallOption) (*UnpublishResponse, error)
 	Status(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusResponse, error)
 }
@@ -66,7 +71,12 @@ func (c *controllerServiceClient) Status(ctx context.Context, in *StatusRequest,
 // All implementations must embed UnimplementedControllerServiceServer
 // for forward compatibility
 type ControllerServiceServer interface {
+	// Publish compiles the channel, uploads its artifacts, and records them as the desired version.
+	// It does not deploy the channel: the observed state stays unknown until a runtime acknowledges
+	// the version. Returns INVALID_ARGUMENT if the channel does not compile, and NOT_FOUND if it does
+	// not exist. Compilation and upload failures are also recorded in the deployment state.
 	Publish(context.Context, *PublishRequest) (*PublishResponse, error)
+	// Unpublish sets the desired state of the channel to unpublished.
 	Unpublish(context.Context, *UnpublishRequest) (*UnpublishResponse, error)
 	Status(context.Context, *StatusRequest) (*StatusResponse, error)
 	mustEmbedUnimplementedControllerServiceServer()
