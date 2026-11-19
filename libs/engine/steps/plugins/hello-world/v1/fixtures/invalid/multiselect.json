@@ -1,0 +1,5 @@
+{
+  "description": "Multi-select items are validated individually; duplicates violate uniqueItems.",
+  "config": { "greeting": "Hi", "language": "en", "repeatCount": 1, "connectionIds": ["a", "", "a", 3] },
+  "errors": ["/connectionIds", "/connectionIds/1", "/connectionIds/3"]
+}

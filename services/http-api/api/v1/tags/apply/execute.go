@@ -38,8 +38,8 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 	}
 
 	switch idType {
-	case id.IdTypeThing:
-		params.ThingID = &request.Input.SubjectId
+	case id.IdTypeConnection:
+		params.ConnectionID = &request.Input.SubjectId
 	case id.IdTypeChannel:
 		params.ChannelID = &request.Input.SubjectId
 	case id.IdTypeModel:

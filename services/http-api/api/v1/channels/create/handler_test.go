@@ -40,8 +40,8 @@ func TestHandler(t *testing.T) {
 			testChannelConfig := map[string]any{
 				"id": *testChannelId,
 			}
-			testThingId := testChannelId
-			testThingName := testChannelName
+			testConnectionId := testChannelId
+			testConnectionName := testChannelName
 
 			marshalledTestChannelConfig, _ := json.Marshal(testChannelConfig)
 
@@ -52,9 +52,9 @@ func TestHandler(t *testing.T) {
 				},
 			}
 
-			expectedDatabaseThingOutput := db.ThingModel{
-				InnerThing: db.InnerThing{
-					ID:         *testThingId,
+			expectedDatabaseConnectionOutput := db.ConnectionModel{
+				InnerConnection: db.InnerConnection{
+					ID:         *testConnectionId,
 					Attributes: db.JSON{'{', '}'},
 				},
 			}
@@ -73,22 +73,22 @@ func TestHandler(t *testing.T) {
 			).Returns(expectedDatabaseChannelOutput)
 
 			now := util.GetCurrentTime()
-			mocks.DB.Server.Thing.Expect(
-				mocks.DB.Client.Thing.CreateOne(
-					db.Thing.ID.Set(*testThingId),
-					db.Thing.Name.Set(testThingName),
-					db.Thing.Attributes.Set(db.JSON{'{', '}'}),
-					db.Thing.CreatedBy.Set("internal"),
-					db.Thing.UpdatedBy.Set("internal"),
-					db.Thing.ThingCategory.Set(things.HttpServerThingCategory.String()),
-					db.Thing.Space.Link(
+			mocks.DB.Server.Connection.Expect(
+				mocks.DB.Client.Connection.CreateOne(
+					db.Connection.ID.Set(*testConnectionId),
+					db.Connection.Name.Set(testConnectionName),
+					db.Connection.Attributes.Set(db.JSON{'{', '}'}),
+					db.Connection.CreatedBy.Set("internal"),
+					db.Connection.UpdatedBy.Set("internal"),
+					db.Connection.ConnectionCategory.Set(things.HttpServerThingCategory.String()),
+					db.Connection.Space.Link(
 						db.Space.ID.Equals(*testSpaceId),
 					),
-					db.Thing.Internal.Set(true),
-					db.Thing.CreatedAt.Set(now),
-					db.Thing.UpdatedAt.Set(now),
+					db.Connection.Internal.Set(true),
+					db.Connection.CreatedAt.Set(now),
+					db.Connection.UpdatedAt.Set(now),
 				),
-			).Returns(expectedDatabaseThingOutput)
+			).Returns(expectedDatabaseConnectionOutput)
 
 			// when
 			// API route is called with valid input

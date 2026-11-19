@@ -13,7 +13,7 @@ describe('models/get', () => {
   it('should return model', async () => {
     // Given
     const mockResponseData: ResponseData = {
-      id: 'thing-id-fake',
+      id: 'connection-id-fake',
       spaceId: 'space-id-fake',
       name: 'test',
       attributes: {},

@@ -4,7 +4,7 @@ import '@xyflow/react/dist/style.css'
 
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
 import useSettingsStore from '@gruent/hub/stores/settingsStore'
-import { generateEdgeId, generateNodeId, generateNoteId } from '@gruent/hub/util/idGenerator'
+import { generateEdgeId, generateStepId, generateNoteId } from '@gruent/hub/util/idGenerator'
 import type { ChannelNote } from '@gruent/libs/engine/channels/channels'
 import type { ChannelNode } from '@gruent/libs/engine/nodes/v1'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
@@ -25,9 +25,9 @@ import {
 import { DragEvent, FC, useCallback, useMemo, useRef } from 'react'
 import ChannelValidationErrorModal from './ChannelValidationErrorModal'
 import { useChannelEditorKeyboardEvents } from './events/keyboard'
-import ChannelNodeView from './flow/ChannelNodeView'
+import ChannelStepView from './flow/ChannelStepView'
 import ChannelNoteView from './flow/ChannelNoteView'
-import { GRID_SIZE, snapToGrid, toFlowEdges, toFlowNodes, validateConnection } from './flow/convert'
+import { GRID_SIZE, snapToGrid, toFlowEdges, toFlowSteps, validateConnection } from './flow/convert'
 import type { ChannelFlowElement } from './flow/types'
 import { Button } from '@gruent/libs/frontend/components/core/button'
 
@@ -36,7 +36,7 @@ const MAX_ZOOM = 1.5
 const DEFAULT_VIEWPORT = { x: 0, y: 0, zoom: 1 }
 
 const nodeTypes: NodeTypes = {
-  channelNode: ChannelNodeView,
+  channelStep: ChannelStepView,
   channelNote: ChannelNoteView,
 }
 
@@ -58,19 +58,19 @@ const ChannelEditorCanvas: FC<Props> = ({ hooks }) => {
   const { screenToFlowPosition, zoomIn, zoomOut, setViewport } = useReactFlow()
 
   // Set up store
-  const nodes = useChannelEditorStore((state) => state.nodes)
+  const steps = useChannelEditorStore((state) => state.steps)
   const edges = useChannelEditorStore((state) => state.edges)
   const notes = useChannelEditorStore((state) => state.notes)
-  const currentNode = useChannelEditorStore((state) => state.currentNode)
+  const currentStep = useChannelEditorStore((state) => state.currentStep)
   const currentEdge = useChannelEditorStore((state) => state.currentEdge)
   const currentNote = useChannelEditorStore((state) => state.currentNote)
   const validationErrors = useChannelEditorStore((state) => state.validationErrors)
-  const upsertNode = useChannelEditorStore((state) => state.upsertNode)
-  const moveNode = useChannelEditorStore((state) => state.moveNode)
+  const upsertStep = useChannelEditorStore((state) => state.upsertStep)
+  const moveStep = useChannelEditorStore((state) => state.moveStep)
   const upsertEdge = useChannelEditorStore((state) => state.upsertEdge)
   const upsertNote = useChannelEditorStore((state) => state.upsertNote)
   const moveNote = useChannelEditorStore((state) => state.moveNote)
-  const setCurrentNode = useChannelEditorStore((state) => state.setCurrentNode)
+  const setCurrentStep = useChannelEditorStore((state) => state.setCurrentStep)
   const setCurrentEdge = useChannelEditorStore((state) => state.setCurrentEdge)
   const setCurrentNote = useChannelEditorStore((state) => state.setCurrentNote)
   const userTheme = useSettingsStore((state) => state.theme)
@@ -84,55 +84,55 @@ const ChannelEditorCanvas: FC<Props> = ({ hooks }) => {
   })
 
   // Derive the xyflow graph from the channel config held in the store
-  const flowNodes = useMemo(
+  const flowSteps = useMemo(
     () =>
-      toFlowNodes({
-        nodes,
+      toFlowSteps({
+        steps,
         notes,
         edges,
-        currentNode,
+        currentStep,
         currentEdge,
         currentNote,
-        nodeErrors: validationErrors?.nodeErrors,
+        stepErrors: validationErrors?.stepErrors,
       }),
-    [nodes, notes, edges, currentNode, currentEdge, currentNote, validationErrors],
+    [steps, notes, edges, currentStep, currentEdge, currentNote, validationErrors],
   )
 
   const flowEdges = useMemo(
-    () => toFlowEdges({ nodes, edges, currentNode, currentEdge }),
-    [nodes, edges, currentNode, currentEdge],
+    () => toFlowEdges({ steps, edges, currentStep, currentEdge }),
+    [steps, edges, currentStep, currentEdge],
   )
 
   // Selection is owned by the store, so only position changes need to be written back
-  const handleNodesChange = useCallback(
+  const handleStepsChange = useCallback(
     (changes: NodeChange<ChannelFlowElement>[]) => {
       for (const change of changes) {
         if (change.type !== 'position' || !change.position) continue
 
         const coordinates = { x: change.position.x, y: change.position.y }
-        if (nodes.has(change.id)) moveNode(change.id, coordinates)
+        if (steps.has(change.id)) moveStep(change.id, coordinates)
         else if (notes.has(change.id)) moveNote(change.id, coordinates)
       }
     },
-    [nodes, notes, moveNode, moveNote],
+    [steps, notes, moveStep, moveNote],
   )
 
   const selectElement = useCallback(
     (id: string) => {
-      const node = nodes.get(id)
-      if (node) {
-        if (currentNode?.id !== id) setCurrentNode(node)
+      const step = steps.get(id)
+      if (step) {
+        if (currentStep?.id !== id) setCurrentStep(step)
         return
       }
 
       const note = notes.get(id)
       if (note && currentNote?.id !== id) setCurrentNote(note)
     },
-    [nodes, notes, currentNode, currentNote, setCurrentNode, setCurrentNote],
+    [steps, notes, currentStep, currentNote, setCurrentStep, setCurrentNote],
   )
 
-  const handleNodeClick: NodeMouseHandler<ChannelFlowElement> = useCallback(
-    (_, node) => selectElement(node.id),
+  const handleStepClick: NodeMouseHandler<ChannelFlowElement> = useCallback(
+    (_, step) => selectElement(step.id),
     [selectElement],
   )
 
@@ -142,14 +142,14 @@ const ChannelEditorCanvas: FC<Props> = ({ hooks }) => {
   )
 
   const clearSelection = useCallback(() => {
-    setCurrentNode(null)
+    setCurrentStep(null)
     setCurrentEdge(null)
     setCurrentNote(null)
-  }, [setCurrentNode, setCurrentEdge, setCurrentNote])
+  }, [setCurrentStep, setCurrentEdge, setCurrentNote])
 
   const handleConnect = useCallback(
     (connection: Connection) => {
-      const result = validateConnection(connection, nodes, edges)
+      const result = validateConnection(connection, steps, edges)
       if (!result.valid) {
         addToast({ title: 'Could not create edge', body: result.reason, level: 'warning' })
         return
@@ -158,7 +158,7 @@ const ChannelEditorCanvas: FC<Props> = ({ hooks }) => {
       const edgeId = generateEdgeId()
       upsertEdge(edgeId, { id: edgeId, ...result.edge })
     },
-    [nodes, edges, upsertEdge],
+    [steps, edges, upsertEdge],
   )
 
   const handleDragOver = useCallback(
@@ -166,15 +166,15 @@ const ChannelEditorCanvas: FC<Props> = ({ hooks }) => {
       e.preventDefault()
       e.dataTransfer.dropEffect = 'copy'
       // Reset the selection to ensure the options pane state resets
-      if (currentNode || currentEdge) {
-        setCurrentNode(null)
+      if (currentStep || currentEdge) {
+        setCurrentStep(null)
         setCurrentEdge(null)
       }
     },
-    [currentNode, currentEdge, setCurrentNode, setCurrentEdge],
+    [currentStep, currentEdge, setCurrentStep, setCurrentEdge],
   )
 
-  // Add nodes and notes dragged in from the node library pane
+  // Add steps and notes dragged in from the step library pane
   const handleDrop = useCallback(
     (e: DragEvent<HTMLDivElement>) => {
       e.preventDefault()
@@ -194,9 +194,9 @@ const ChannelEditorCanvas: FC<Props> = ({ hooks }) => {
       const coordinates = { x: snapToGrid(position.x), y: snapToGrid(position.y) }
 
       if ('metadata' in parsedDropData) {
-        const newNode = { ...(parsedDropData as ChannelNode), id: generateNodeId(), coordinates }
-        upsertNode(newNode.id, newNode)
-        setCurrentNode(newNode)
+        const newStep = { ...(parsedDropData as ChannelNode), id: generateStepId(), coordinates }
+        upsertStep(newStep.id, newStep)
+        setCurrentStep(newStep)
         return
       }
 
@@ -206,7 +206,7 @@ const ChannelEditorCanvas: FC<Props> = ({ hooks }) => {
         setCurrentNote(newNote)
       }
     },
-    [screenToFlowPosition, upsertNode, setCurrentNode, upsertNote, setCurrentNote],
+    [screenToFlowPosition, upsertStep, setCurrentStep, upsertNote, setCurrentNote],
   )
 
   return (
@@ -230,12 +230,12 @@ const ChannelEditorCanvas: FC<Props> = ({ hooks }) => {
         )}
 
       <ReactFlow<ChannelFlowElement>
-        nodes={flowNodes}
+        nodes={flowSteps}
         edges={flowEdges}
         nodeTypes={nodeTypes}
-        onNodesChange={handleNodesChange}
-        onNodeClick={handleNodeClick}
-        onNodeDragStart={handleNodeClick}
+        onNodesChange={handleStepsChange}
+        onNodeClick={handleStepClick}
+        onNodeDragStart={handleStepClick}
         onEdgeClick={handleEdgeClick}
         onPaneClick={clearSelection}
         onConnect={handleConnect}

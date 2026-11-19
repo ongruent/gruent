@@ -20,13 +20,13 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 		attribute.String("request.Input.SpaceId", request.Input.SpaceId),
 	)
 
-	// Check if secret is used in any things
-	dbCtx, dbSpan := otel.Tracer("sqlc").Start(request.Context, "Check if secret is used in things")
-	things, err := sqlc.Queries.ListThings(dbCtx, request.Input.SpaceId)
+	// Check if secret is used in any connections
+	dbCtx, dbSpan := otel.Tracer("sqlc").Start(request.Context, "Check if secret is used in connections")
+	connections, err := sqlc.Queries.ListConnections(dbCtx, request.Input.SpaceId)
 	if err != nil {
 		dbSpan.SetAttributes(
 			attribute.String("error.type", "database"),
-			attribute.String("error.message", fmt.Sprintf("error checking if secret is used in a thing: %s", err)),
+			attribute.String("error.message", fmt.Sprintf("error checking if secret is used in a connection: %s", err)),
 		)
 		dbSpan.End()
 
@@ -35,32 +35,32 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 
 	dbSpan.End()
 
-	thingsWithSecret := []sqldb.AppThing{}
-	for _, thing := range things {
-		var thingAttributes map[string]any
-		err = json.Unmarshal(thing.Attributes, &thingAttributes)
+	connectionsWithSecret := []sqldb.AppConnection{}
+	for _, connection := range connections {
+		var connectionAttributes map[string]any
+		err = json.Unmarshal(connection.Attributes, &connectionAttributes)
 		if err != nil {
 			request.Span.SetAttributes(
 				attribute.String("error.type", "parse_json"),
-				attribute.String("error.message", fmt.Sprintf("could not read thing config: %s", err.Error())),
+				attribute.String("error.message", fmt.Sprintf("could not read connection config: %s", err.Error())),
 			)
 
 			errorResponse := gruenthttp.NewErrorResponse([]any{
-				fmt.Sprintf("could not read thing config: %s", err.Error()),
+				fmt.Sprintf("could not read connection config: %s", err.Error()),
 			})
 			errorResponseJson, _ := errorResponse.MarshalJson()
 			return nil, fiber.NewError(fiber.StatusBadRequest, string(errorResponseJson))
 		}
 
-		for _, value := range thingAttributes {
+		for _, value := range connectionAttributes {
 			if value == request.Input.Name {
-				thingsWithSecret = append(thingsWithSecret, thing)
+				connectionsWithSecret = append(connectionsWithSecret, connection)
 			}
 		}
 	}
 
-	if len(thingsWithSecret) > 0 {
-		errMessage := fmt.Sprintf("secret is used in %d thing(s)", len(thingsWithSecret))
+	if len(connectionsWithSecret) > 0 {
+		errMessage := fmt.Sprintf("secret is used in %d connection(s)", len(connectionsWithSecret))
 		request.Span.SetAttributes(
 			attribute.String("error.type", "context_validation"),
 			attribute.String("error.message", errMessage),

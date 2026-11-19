@@ -1,0 +1,104 @@
+'use client'
+
+import { FC, useState } from 'react'
+import dayjs from 'dayjs'
+import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../core/collapsible'
+
+type LogAttributes = {
+  execution_id: string
+  node: string // emitted by the engine runtime logger, not renamed
+  level: string
+  time: string
+  data?: string
+  'base64-data'?: string
+}
+
+export type StepExecutionLog = {
+  traceId: string
+  spanId: string
+  timestamp: string
+  level: string
+  body: string
+  logAttributes: LogAttributes
+  resourceAttributes: Record<string, string>
+}
+
+const StepExecutionLogEntry: FC<{
+  stepExecutionLog: StepExecutionLog
+}> = ({ stepExecutionLog }) => {
+  const [open, setOpen] = useState(false)
+
+  const { timestamp, body, level, logAttributes } = stepExecutionLog
+  const { node: step } = logAttributes
+
+  const borderColor = (() => {
+    switch (level) {
+      case 'error':
+        return 'border-error'
+      case 'warn':
+        return 'border-warning'
+      case 'info':
+      default:
+        return 'border-gray-300 hover:border-blue-500'
+    }
+  })()
+
+  const stringifiedMessage = (() => {
+    if (logAttributes.data) {
+      const logData = (() => {
+        try {
+          return JSON.parse(logAttributes.data)
+        } catch (_e) {
+          // eslint-disable-line
+          return logAttributes.data
+        }
+      })()
+      return `${stepExecutionLog.body}\n\n${JSON.stringify(logData, null, 2)}`
+    }
+
+    if (logAttributes['base64-data']) {
+      const logData = (() => {
+        try {
+          const d = decodeURIComponent(atob(logAttributes['base64-data']))
+          return JSON.parse(d)
+        } catch (_e) {
+          // eslint-disable-line
+          return logAttributes['base64-data']
+        }
+      })()
+      return `${stepExecutionLog.body}\n\n${JSON.stringify(logData, null, 2)}`
+    }
+
+    return body
+  })()
+
+  return (
+    <Collapsible
+      open={open}
+      onOpenChange={setOpen}
+      className={`mt-2 rounded-sm transition border ${borderColor} w-full`}
+    >
+      <CollapsibleTrigger
+        className={`transition ${open ? 'border-b' : ''} ${borderColor} p-4 cursor-pointer flex w-full text-left`}
+      >
+        <p className="select-none">
+          {dayjs(timestamp).format('MM-DD-YYYY HH:mm:ss.SSS ')} - {step} ({level})
+        </p>
+        <div className="grow" />
+        {open ? (
+          <ChevronUpIcon size="1em" className="text-gray-500" />
+        ) : (
+          <ChevronDownIcon size="1em" className="text-gray-500" />
+        )}
+      </CollapsibleTrigger>
+      <CollapsibleContent className="max-w-full overflow-x-scroll">
+        <pre className="whitespace-pre-wrap dark:text-gray-200 pt-4 px-4 pb-1 text-sm">
+          {stringifiedMessage}
+        </pre>
+      </CollapsibleContent>
+    </Collapsible>
+  )
+}
+
+export default StepExecutionLogEntry

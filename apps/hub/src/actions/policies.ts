@@ -30,6 +30,6 @@ export const handleUpdatePolicy = async (
       error: `An error occurred while updating the policy: ${updateErrors[0]}`,
     }
 
-  revalidatePath('spaces/[spaceId]/things/[thingId]', 'page')
+  revalidatePath('spaces/[spaceId]/connections/[connectionId]', 'page')
   return { error: null }
 }

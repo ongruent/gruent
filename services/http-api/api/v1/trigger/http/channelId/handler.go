@@ -18,8 +18,8 @@ type Output struct {
 	response *http.Response
 }
 
-// @Summary Trigger an HTTP source node
-// @Description Given a channel ID, triggers an HTTP source node if available.
+// @Summary Trigger an HTTP source step
+// @Description Given a channel ID, triggers an HTTP source step if available.
 // @Tags trigger
 // @Accept  json
 // @Produce  json

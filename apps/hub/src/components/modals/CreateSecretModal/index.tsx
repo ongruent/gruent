@@ -32,7 +32,7 @@ const CreateSecretModal: FC<Props> = ({ spaceId }) => {
       handleClose()
       addToast({
         title: 'Successfully added secret to space',
-        body: 'You may now use this secret within thing configurations.',
+        body: 'You may now use this secret within connection configurations.',
         level: 'success',
       })
     }
@@ -49,7 +49,7 @@ const CreateSecretModal: FC<Props> = ({ spaceId }) => {
     >
       <h2>Add a secret</h2>
       <p className="text-gray-500">
-        <small>Add a secret to your space to use within thing configurations.</small>
+        <small>Add a secret to your space to use within connection configurations.</small>
       </p>
       <form onSubmit={handleSubmit}>
         <Field className="my-3">

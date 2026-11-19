@@ -17,7 +17,7 @@ export function generateModelAttributeId() {
   return `f${nanoid()}`
 }
 
-export function generateNodeId() {
+export function generateStepId() {
   return `n${nanoid()}`
 }
 

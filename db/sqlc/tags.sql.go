@@ -12,21 +12,21 @@ import (
 
 const applyTag = `-- name: ApplyTag :one
 INSERT INTO app.applied_tags (
-  space_id, tag_id, channel_id, model_id, thing_id, created_by, updated_by
+  space_id, tag_id, channel_id, model_id, connection_id, created_by, updated_by
 ) VALUES (
   $1, $2, $3, $4, $5, $6, $7
 )
-RETURNING id, space_id, tag_id, channel_id, model_id, thing_id, created_at, updated_at, created_by, updated_by
+RETURNING id, space_id, tag_id, channel_id, model_id, connection_id, created_at, updated_at, created_by, updated_by
 `
 
 type ApplyTagParams struct {
-	SpaceID   string  `json:"space_id"`
-	TagID     string  `json:"tag_id"`
-	ChannelID *string `json:"channel_id"`
-	ModelID   *string `json:"model_id"`
-	ThingID   *string `json:"thing_id"`
-	CreatedBy string  `json:"created_by"`
-	UpdatedBy string  `json:"updated_by"`
+	SpaceID      string  `json:"space_id"`
+	TagID        string  `json:"tag_id"`
+	ChannelID    *string `json:"channel_id"`
+	ModelID      *string `json:"model_id"`
+	ConnectionID *string `json:"connection_id"`
+	CreatedBy    string  `json:"created_by"`
+	UpdatedBy    string  `json:"updated_by"`
 }
 
 func (q *Queries) ApplyTag(ctx context.Context, arg ApplyTagParams) (AppAppliedTag, error) {
@@ -35,7 +35,7 @@ func (q *Queries) ApplyTag(ctx context.Context, arg ApplyTagParams) (AppAppliedT
 		arg.TagID,
 		arg.ChannelID,
 		arg.ModelID,
-		arg.ThingID,
+		arg.ConnectionID,
 		arg.CreatedBy,
 		arg.UpdatedBy,
 	)
@@ -46,7 +46,7 @@ func (q *Queries) ApplyTag(ctx context.Context, arg ApplyTagParams) (AppAppliedT
 		&i.TagID,
 		&i.ChannelID,
 		&i.ModelID,
-		&i.ThingID,
+		&i.ConnectionID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.CreatedBy,
@@ -130,7 +130,7 @@ func (q *Queries) GetTag(ctx context.Context, id string) (AppTag, error) {
 
 const listAppliedTagsByChannel = `-- name: ListAppliedTagsByChannel :many
 SELECT 
-  at.id, at.space_id, at.tag_id, at.channel_id, at.model_id, at.thing_id, at.created_at, at.updated_at, at.created_by, at.updated_by,
+  at.id, at.space_id, at.tag_id, at.channel_id, at.model_id, at.connection_id, at.created_at, at.updated_at, at.created_by, at.updated_by,
   t.name as tag_name
 FROM app.applied_tags at
 JOIN app.tags t ON at.tag_id = t.id
@@ -138,17 +138,17 @@ WHERE at.channel_id = $1
 `
 
 type ListAppliedTagsByChannelRow struct {
-	ID        string    `json:"id"`
-	SpaceID   string    `json:"space_id"`
-	TagID     string    `json:"tag_id"`
-	ChannelID *string   `json:"channel_id"`
-	ModelID   *string   `json:"model_id"`
-	ThingID   *string   `json:"thing_id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	CreatedBy string    `json:"created_by"`
-	UpdatedBy string    `json:"updated_by"`
-	TagName   string    `json:"tag_name"`
+	ID           string    `json:"id"`
+	SpaceID      string    `json:"space_id"`
+	TagID        string    `json:"tag_id"`
+	ChannelID    *string   `json:"channel_id"`
+	ModelID      *string   `json:"model_id"`
+	ConnectionID *string   `json:"connection_id"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	CreatedBy    string    `json:"created_by"`
+	UpdatedBy    string    `json:"updated_by"`
+	TagName      string    `json:"tag_name"`
 }
 
 func (q *Queries) ListAppliedTagsByChannel(ctx context.Context, channelID *string) ([]ListAppliedTagsByChannelRow, error) {
@@ -166,7 +166,62 @@ func (q *Queries) ListAppliedTagsByChannel(ctx context.Context, channelID *strin
 			&i.TagID,
 			&i.ChannelID,
 			&i.ModelID,
-			&i.ThingID,
+			&i.ConnectionID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CreatedBy,
+			&i.UpdatedBy,
+			&i.TagName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAppliedTagsByConnection = `-- name: ListAppliedTagsByConnection :many
+SELECT 
+  at.id, at.space_id, at.tag_id, at.channel_id, at.model_id, at.connection_id, at.created_at, at.updated_at, at.created_by, at.updated_by,
+  t.name as tag_name
+FROM app.applied_tags at
+JOIN app.tags t ON at.tag_id = t.id
+WHERE at.connection_id = $1
+`
+
+type ListAppliedTagsByConnectionRow struct {
+	ID           string    `json:"id"`
+	SpaceID      string    `json:"space_id"`
+	TagID        string    `json:"tag_id"`
+	ChannelID    *string   `json:"channel_id"`
+	ModelID      *string   `json:"model_id"`
+	ConnectionID *string   `json:"connection_id"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	CreatedBy    string    `json:"created_by"`
+	UpdatedBy    string    `json:"updated_by"`
+	TagName      string    `json:"tag_name"`
+}
+
+func (q *Queries) ListAppliedTagsByConnection(ctx context.Context, connectionID *string) ([]ListAppliedTagsByConnectionRow, error) {
+	rows, err := q.db.Query(ctx, listAppliedTagsByConnection, connectionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAppliedTagsByConnectionRow{}
+	for rows.Next() {
+		var i ListAppliedTagsByConnectionRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.SpaceID,
+			&i.TagID,
+			&i.ChannelID,
+			&i.ModelID,
+			&i.ConnectionID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.CreatedBy,
@@ -185,7 +240,7 @@ func (q *Queries) ListAppliedTagsByChannel(ctx context.Context, channelID *strin
 
 const listAppliedTagsByModel = `-- name: ListAppliedTagsByModel :many
 SELECT 
-  at.id, at.space_id, at.tag_id, at.channel_id, at.model_id, at.thing_id, at.created_at, at.updated_at, at.created_by, at.updated_by,
+  at.id, at.space_id, at.tag_id, at.channel_id, at.model_id, at.connection_id, at.created_at, at.updated_at, at.created_by, at.updated_by,
   t.name as tag_name
 FROM app.applied_tags at
 JOIN app.tags t ON at.tag_id = t.id
@@ -193,17 +248,17 @@ WHERE at.model_id = $1
 `
 
 type ListAppliedTagsByModelRow struct {
-	ID        string    `json:"id"`
-	SpaceID   string    `json:"space_id"`
-	TagID     string    `json:"tag_id"`
-	ChannelID *string   `json:"channel_id"`
-	ModelID   *string   `json:"model_id"`
-	ThingID   *string   `json:"thing_id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	CreatedBy string    `json:"created_by"`
-	UpdatedBy string    `json:"updated_by"`
-	TagName   string    `json:"tag_name"`
+	ID           string    `json:"id"`
+	SpaceID      string    `json:"space_id"`
+	TagID        string    `json:"tag_id"`
+	ChannelID    *string   `json:"channel_id"`
+	ModelID      *string   `json:"model_id"`
+	ConnectionID *string   `json:"connection_id"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	CreatedBy    string    `json:"created_by"`
+	UpdatedBy    string    `json:"updated_by"`
+	TagName      string    `json:"tag_name"`
 }
 
 func (q *Queries) ListAppliedTagsByModel(ctx context.Context, modelID *string) ([]ListAppliedTagsByModelRow, error) {
@@ -221,7 +276,7 @@ func (q *Queries) ListAppliedTagsByModel(ctx context.Context, modelID *string) (
 			&i.TagID,
 			&i.ChannelID,
 			&i.ModelID,
-			&i.ThingID,
+			&i.ConnectionID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.CreatedBy,
@@ -239,7 +294,7 @@ func (q *Queries) ListAppliedTagsByModel(ctx context.Context, modelID *string) (
 }
 
 const listAppliedTagsByTag = `-- name: ListAppliedTagsByTag :many
-SELECT id, space_id, tag_id, channel_id, model_id, thing_id, created_at, updated_at, created_by, updated_by FROM app.applied_tags
+SELECT id, space_id, tag_id, channel_id, model_id, connection_id, created_at, updated_at, created_by, updated_by FROM app.applied_tags
 WHERE tag_id = $1
 `
 
@@ -258,66 +313,11 @@ func (q *Queries) ListAppliedTagsByTag(ctx context.Context, tagID string) ([]App
 			&i.TagID,
 			&i.ChannelID,
 			&i.ModelID,
-			&i.ThingID,
+			&i.ConnectionID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.CreatedBy,
 			&i.UpdatedBy,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listAppliedTagsByThing = `-- name: ListAppliedTagsByThing :many
-SELECT 
-  at.id, at.space_id, at.tag_id, at.channel_id, at.model_id, at.thing_id, at.created_at, at.updated_at, at.created_by, at.updated_by,
-  t.name as tag_name
-FROM app.applied_tags at
-JOIN app.tags t ON at.tag_id = t.id
-WHERE at.thing_id = $1
-`
-
-type ListAppliedTagsByThingRow struct {
-	ID        string    `json:"id"`
-	SpaceID   string    `json:"space_id"`
-	TagID     string    `json:"tag_id"`
-	ChannelID *string   `json:"channel_id"`
-	ModelID   *string   `json:"model_id"`
-	ThingID   *string   `json:"thing_id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	CreatedBy string    `json:"created_by"`
-	UpdatedBy string    `json:"updated_by"`
-	TagName   string    `json:"tag_name"`
-}
-
-func (q *Queries) ListAppliedTagsByThing(ctx context.Context, thingID *string) ([]ListAppliedTagsByThingRow, error) {
-	rows, err := q.db.Query(ctx, listAppliedTagsByThing, thingID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []ListAppliedTagsByThingRow{}
-	for rows.Next() {
-		var i ListAppliedTagsByThingRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.SpaceID,
-			&i.TagID,
-			&i.ChannelID,
-			&i.ModelID,
-			&i.ThingID,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.CreatedBy,
-			&i.UpdatedBy,
-			&i.TagName,
 		); err != nil {
 			return nil, err
 		}
@@ -377,14 +377,14 @@ const removeAppliedTagBySubject = `-- name: RemoveAppliedTagBySubject :exec
 DELETE FROM app.applied_tags
 WHERE tag_id = $1
   AND (
-    thing_id = $2
+    connection_id = $2
     OR channel_id = $2
     OR model_id = $2
   )
 `
 
-func (q *Queries) RemoveAppliedTagBySubject(ctx context.Context, tagID string, thingID *string) error {
-	_, err := q.db.Exec(ctx, removeAppliedTagBySubject, tagID, thingID)
+func (q *Queries) RemoveAppliedTagBySubject(ctx context.Context, tagID string, connectionID *string) error {
+	_, err := q.db.Exec(ctx, removeAppliedTagBySubject, tagID, connectionID)
 	return err
 }
 

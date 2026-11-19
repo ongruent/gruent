@@ -4,7 +4,7 @@ export enum PermissionNamespace {
   "channels",
   "channel-executions",
   "analytics",
-  "things",
+  "connections",
   "models",
   "users",
   "data",
@@ -81,7 +81,7 @@ export const defaultSpacePermissions = {
   //   update: false,
   //   delete: false,
   // },
-  things: {
+  connections: {
     list: false,
     create: false,
     get: false,

@@ -1,0 +1,10 @@
+{
+  "description": "Empty optional textarea and empty multi-select are valid; code points (not UTF-16 units) count toward maxLength.",
+  "config": {
+    "greeting": "👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋👋",
+    "signature": "",
+    "language": "en",
+    "repeatCount": 1,
+    "connectionIds": []
+  }
+}

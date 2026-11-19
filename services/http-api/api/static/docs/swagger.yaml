@@ -163,7 +163,7 @@ definitions:
       name:
         type: string
     type: object
-  things.ThingCategory:
+  connections.ConnectionCategory:
     enum:
     - KAFKA_CLUSTER
     - KAFKA_PRODUCER
@@ -182,32 +182,32 @@ definitions:
     - MINIO_BUCKET
     type: string
     x-enum-varnames:
-    - KafkaClusterThingCategory
-    - KafkaProducerThingCategory
-    - KafkaConsumerThingCategory
-    - NatsServerThingCategory
-    - NatsClientThingCategory
-    - MongoDbServerThingCategory
-    - AwsSNSThingCategory
-    - AwsSESThingCategory
-    - SendgridClientThingCategory
-    - HttpServerThingCategory
-    - InfluxDbDatabaseThingCategory
-    - MqttBrokerThingCategory
-    - MqttClientThingCategory
-    - S3BucketThingCategory
-    - MinioBucketThingCategory
-  thingsCreate.parse.RequestBody:
+    - KafkaClusterConnectionCategory
+    - KafkaProducerConnectionCategory
+    - KafkaConsumerConnectionCategory
+    - NatsServerConnectionCategory
+    - NatsClientConnectionCategory
+    - MongoDbServerConnectionCategory
+    - AwsSNSConnectionCategory
+    - AwsSESConnectionCategory
+    - SendgridClientConnectionCategory
+    - HttpServerConnectionCategory
+    - InfluxDbDatabaseConnectionCategory
+    - MqttBrokerConnectionCategory
+    - MqttClientConnectionCategory
+    - S3BucketConnectionCategory
+    - MinioBucketConnectionCategory
+  connectionsCreate.parse.RequestBody:
     properties:
       attributes:
         additionalProperties: {}
         type: object
       category:
-        $ref: '#/definitions/things.ThingCategory'
+        $ref: '#/definitions/connections.ConnectionCategory'
       name:
         type: string
     type: object
-  thingsHealthcheck.Input:
+  connectionsHealthcheck.Input:
     properties:
       attributes:
         additionalProperties: {}
@@ -216,15 +216,15 @@ definitions:
         type: string
       spaceId:
         type: string
-      thingCategory:
+      connectionCategory:
         type: string
     required:
     - attributes
     - bearerToken
     - spaceId
-    - thingCategory
+    - connectionCategory
     type: object
-  thingsUpdate.parse.RequestBody:
+  connectionsUpdate.parse.RequestBody:
     properties:
       attributes:
         additionalProperties: {}
@@ -1345,21 +1345,21 @@ paths:
       summary: Update a space
       tags:
       - spaces
-  /things:
+  /connections:
     get:
       consumes:
       - application/json
-      description: Given a space, list the things in a space. Optionally filter by
-        thing category.
+      description: Given a space, list the connections in a space. Optionally filter by
+        connection category.
       parameters:
       - description: Space ID
         in: query
         name: spaceId
         required: true
         type: string
-      - description: Thing Category
+      - description: Connection Category
         in: query
-        name: thingCategory
+        name: connectionCategory
         type: string
       - description: Page
         in: query
@@ -1376,21 +1376,21 @@ paths:
           description: OK
       security:
       - ApiKeyAuth: []
-      summary: List things
+      summary: List connections
       tags:
-      - things
+      - connections
     post:
       consumes:
       - application/json
       description: Given a space ID, name, category, and attributes, creates a new
-        thing in a space.
+        connection in a space.
       parameters:
       - description: Body
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/thingsCreate.parse.RequestBody'
+          $ref: '#/definitions/connectionsCreate.parse.RequestBody'
       - description: Space ID
         in: query
         name: spaceId
@@ -1403,18 +1403,18 @@ paths:
           description: Created
       security:
       - ApiKeyAuth: []
-      summary: Create a thing
+      summary: Create a connection
       tags:
-      - things
-  /things/{thingId}:
+      - connections
+  /connections/{connectionId}:
     delete:
       consumes:
       - application/json
-      description: Given a thing ID, permanently delete a thing.
+      description: Given a connection ID, permanently delete a connection.
       parameters:
-      - description: Thing ID
+      - description: Connection ID
         in: path
-        name: thingId
+        name: connectionId
         required: true
         type: string
       - description: Space ID
@@ -1429,17 +1429,17 @@ paths:
           description: OK
       security:
       - ApiKeyAuth: []
-      summary: Delete a thing
+      summary: Delete a connection
       tags:
-      - things
+      - connections
     get:
       consumes:
       - application/json
-      description: Given a thing ID, retrieve the details of a thing.
+      description: Given a connection ID, retrieve the details of a connection.
       parameters:
-      - description: Thing ID
+      - description: Connection ID
         in: path
-        name: thingId
+        name: connectionId
         required: true
         type: string
       - description: Space ID
@@ -1454,23 +1454,23 @@ paths:
           description: OK
       security:
       - ApiKeyAuth: []
-      summary: Get a thing
+      summary: Get a connection
       tags:
-      - things
+      - connections
     put:
       consumes:
       - application/json
-      description: Given a thing ID, name, and attributes, update the details of that
-        thing.
+      description: Given a connection ID, name, and attributes, update the details of that
+        connection.
       parameters:
       - description: Space ID
         in: query
         name: spaceId
         required: true
         type: string
-      - description: Thing ID
+      - description: Connection ID
         in: path
-        name: thingId
+        name: connectionId
         required: true
         type: string
       - description: Body
@@ -1478,7 +1478,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/thingsUpdate.parse.RequestBody'
+          $ref: '#/definitions/connectionsUpdate.parse.RequestBody'
       produces:
       - application/json
       responses:
@@ -1486,23 +1486,23 @@ paths:
           description: OK
       security:
       - ApiKeyAuth: []
-      summary: Update a thing
+      summary: Update a connection
       tags:
-      - things
-  /things/healthcheck:
+      - connections
+  /connections/healthcheck:
     patch:
       consumes:
       - application/json
-      description: Given a thing category and attributes, healthcheck that thing.
+      description: Given a connection category and attributes, healthcheck that connection.
       parameters:
       - description: Space ID
         in: query
         name: spaceId
         required: true
         type: string
-      - description: Thing Category
+      - description: Connection Category
         in: query
-        name: thingCategory
+        name: connectionCategory
         required: true
         type: string
       - description: Attributes
@@ -1510,7 +1510,7 @@ paths:
         name: attributes
         required: true
         schema:
-          $ref: '#/definitions/thingsHealthcheck.Input'
+          $ref: '#/definitions/connectionsHealthcheck.Input'
       produces:
       - application/json
       responses:
@@ -1518,14 +1518,14 @@ paths:
           description: OK
       security:
       - ApiKeyAuth: []
-      summary: Healthcheck thing attributes
+      summary: Healthcheck connection attributes
       tags:
-      - things
+      - connections
   /trigger/http/{channelId}:
     post:
       consumes:
       - application/json
-      description: Given a channel ID, triggers an HTTP source node if available.
+      description: Given a channel ID, triggers an HTTP source step if available.
       parameters:
       - description: Body
         in: body
@@ -1547,7 +1547,7 @@ paths:
             $ref: '#/definitions/channelId.Output'
       security:
       - ApiKeyAuth: []
-      summary: Trigger an HTTP source node
+      summary: Trigger an HTTP source step
       tags:
       - trigger
   /users/{userId}:

@@ -1,5 +1,5 @@
 import gruentClient from '@gruent/hub/lib/gruent'
-import NodeExecutionLogEntry from '@gruent/libs/frontend/components/NodeExecutionLogEntry'
+import StepExecutionLogEntry from '@gruent/libs/frontend/components/StepExecutionLogEntry'
 import Link from 'next/link'
 import dayjs from 'dayjs'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
@@ -43,17 +43,17 @@ const ChannelExecutionByIdPage = async ({ params }) => {
 
   const { executionId, status, startTime, endTime, durationMs } = channelExecution
 
-  const nodeExecutionLogsJsx = (() => {
-    const { nodeExecutionLogs } = channelExecution
+  const stepExecutionLogsJsx = (() => {
+    const { stepExecutionLogs } = channelExecution
 
-    return nodeExecutionLogs.map((nodeExecutionLog, index) => {
-      const { level, timestamp, logAttributes } = nodeExecutionLog
-      const { node } = logAttributes
+    return stepExecutionLogs.map((stepExecutionLog, index) => {
+      const { level, timestamp, logAttributes } = stepExecutionLog
+      const { node: step } = logAttributes
 
       return (
-        <NodeExecutionLogEntry
-          key={`${node}-${level}-${timestamp}-${index}`}
-          nodeExecutionLog={nodeExecutionLog}
+        <StepExecutionLogEntry
+          key={`${step}-${level}-${timestamp}-${index}`}
+          stepExecutionLog={stepExecutionLog}
         />
       )
     })
@@ -84,7 +84,7 @@ const ChannelExecutionByIdPage = async ({ params }) => {
           <small>{status}</small>
         </p>
       )}
-      <div style={{ width: '100%', maxWidth: 'calc(100vw - 150px)' }}>{nodeExecutionLogsJsx}</div>
+      <div style={{ width: '100%', maxWidth: 'calc(100vw - 150px)' }}>{stepExecutionLogsJsx}</div>
     </div>
   )
 }

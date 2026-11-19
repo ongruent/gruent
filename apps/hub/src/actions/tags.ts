@@ -16,7 +16,7 @@ export const handleCreateTag = async (spaceId: string, name: string) => {
 
   if (errors && errors.length > 0) return { data: null, error: errors[0] }
 
-  revalidatePath('spaces/[spaceId]/things', 'page')
+  revalidatePath('spaces/[spaceId]/connections', 'page')
   revalidatePath('spaces/[spaceId]/models', 'page')
   revalidatePath('spaces/[spaceId]/channels', 'page')
   revalidatePath('spaces/[spaceId]/tags', 'page')
@@ -35,7 +35,7 @@ export const handleApplyTag = async (spaceId: string, tagId: string, subjectId: 
 
   if (errors && errors.length > 0) return { error: errors[0] }
 
-  revalidatePath('spaces/[spaceId]/things', 'page')
+  revalidatePath('spaces/[spaceId]/connections', 'page')
   revalidatePath('spaces/[spaceId]/models', 'page')
   revalidatePath('spaces/[spaceId]/channels', 'page')
   return { error: null }
@@ -53,7 +53,7 @@ export const handleRemoveTag = async (spaceId: string, tagId: string, subjectId:
 
   if (errors && errors.length > 0) return { error: errors[0] }
 
-  revalidatePath('spaces/[spaceId]/things', 'page')
+  revalidatePath('spaces/[spaceId]/connections', 'page')
   revalidatePath('spaces/[spaceId]/models', 'page')
   revalidatePath('spaces/[spaceId]/channels', 'page')
   return { error: null }
@@ -71,7 +71,7 @@ export const handleDeleteTag = async (spaceId: string, tagId: string) => {
 
   if (errors && errors.length > 0) return { error: errors[0] }
 
-  revalidatePath('spaces/[spaceId]/things', 'page')
+  revalidatePath('spaces/[spaceId]/connections', 'page')
   revalidatePath('spaces/[spaceId]/models', 'page')
   revalidatePath('spaces/[spaceId]/channels', 'page')
   revalidatePath('spaces/[spaceId]/tags', 'page')

@@ -11,7 +11,7 @@ type LogAttributes = {
   'base64-data'?: string
 }
 
-type NodeExecutionLog = {
+type StepExecutionLog = {
   traceId: string
   spanId: string
   timestamp: string
@@ -28,7 +28,7 @@ export type ChannelExecution = {
   durationMs: number
   channelId: string
   status: string
-  nodeExecutionLogs: NodeExecutionLog[]
+  stepExecutionLogs: StepExecutionLog[]
 }
 
 type ResponseData = ChannelExecution

@@ -29,7 +29,7 @@ WHERE id = $1;
 
 -- name: ApplyTag :one
 INSERT INTO app.applied_tags (
-  space_id, tag_id, channel_id, model_id, thing_id, created_by, updated_by
+  space_id, tag_id, channel_id, model_id, connection_id, created_by, updated_by
 ) VALUES (
   $1, $2, $3, $4, $5, $6, $7
 )
@@ -43,7 +43,7 @@ WHERE id = $1;
 DELETE FROM app.applied_tags
 WHERE tag_id = $1
   AND (
-    thing_id = $2
+    connection_id = $2
     OR channel_id = $2
     OR model_id = $2
   );
@@ -69,13 +69,13 @@ FROM app.applied_tags at
 JOIN app.tags t ON at.tag_id = t.id
 WHERE at.model_id = $1;
 
--- name: ListAppliedTagsByThing :many
+-- name: ListAppliedTagsByConnection :many
 SELECT 
   at.*,
   t.name as tag_name
 FROM app.applied_tags at
 JOIN app.tags t ON at.tag_id = t.id
-WHERE at.thing_id = $1;
+WHERE at.connection_id = $1;
 
 -- name: ListAppliedTagsByTag :many
 SELECT * FROM app.applied_tags

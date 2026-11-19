@@ -10,7 +10,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 )
 
-type NodeExecutionLog struct {
+type StepExecutionLog struct {
 	TraceId            string            `ch:"traceId" json:"traceId"`
 	SpanId             string            `ch:"spanId" json:"spanId"`
 	Timestamp          time.Time         `ch:"timestamp" json:"timestamp"`
@@ -28,7 +28,7 @@ type ChannelExecution struct {
 	DurationMs        int64              `ch:"durationMs" json:"durationMs"`
 	ChannelId         string             `ch:"channelId" json:"channelId"`
 	Status            string             `ch:"status" json:"status"`
-	NodeExecutionLogs []NodeExecutionLog `ch:"nodeExecutionLogs" json:"nodeExecutionLogs"`
+	StepExecutionLogs []StepExecutionLog `ch:"stepExecutionLogs" json:"stepExecutionLogs"`
 }
 
 func execute(request *gruenthttp.Request[Input]) (*Output, error) {
@@ -38,10 +38,10 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 		attribute.String("request.Input.SpaceId", request.Input.SpaceId),
 	)
 
-	// Get node execution logs in a channel execution
-	dbCtx, dbSpan := otel.Tracer("clickhouse").Start(request.Context, "List node execution logs")
+	// Get step execution logs in a channel execution
+	dbCtx, dbSpan := otel.Tracer("clickhouse").Start(request.Context, "List step execution logs")
 
-	nodeExecutionLogs := []NodeExecutionLog{}
+	stepExecutionLogs := []StepExecutionLog{}
 
 	query := `
 	SELECT
@@ -64,7 +64,7 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 	ORDER BY Timestamp DESC
 	`
 
-	err := clickhouseService.Conn.Select(dbCtx, &nodeExecutionLogs, query, request.Input.ChannelExecutionId)
+	err := clickhouseService.Conn.Select(dbCtx, &stepExecutionLogs, query, request.Input.ChannelExecutionId)
 	if err != nil {
 		dbSpan.SetAttributes(
 			attribute.String("error.type", "database"),
@@ -77,10 +77,10 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 	dbSpan.End()
 
 	// Group logs into a channel execution
-	durationMs := int64(nodeExecutionLogs[len(nodeExecutionLogs)-1].Timestamp.Sub(nodeExecutionLogs[0].Timestamp).Milliseconds())
-	channelId := nodeExecutionLogs[0].ResourceAttributes["service.instance.id"]
+	durationMs := int64(stepExecutionLogs[len(stepExecutionLogs)-1].Timestamp.Sub(stepExecutionLogs[0].Timestamp).Milliseconds())
+	channelId := stepExecutionLogs[0].ResourceAttributes["service.instance.id"]
 	channelStatus := (func() string {
-		for _, log := range nodeExecutionLogs {
+		for _, log := range stepExecutionLogs {
 			if log.Status != "Unknown" {
 				return log.Status
 			}
@@ -90,11 +90,11 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 	channelExecution := &ChannelExecution{
 		TraceId:           request.Input.ChannelExecutionId,
 		ChannelId:         channelId,
-		StartTime:         nodeExecutionLogs[0].Timestamp,
-		EndTime:           nodeExecutionLogs[len(nodeExecutionLogs)-1].Timestamp,
+		StartTime:         stepExecutionLogs[0].Timestamp,
+		EndTime:           stepExecutionLogs[len(stepExecutionLogs)-1].Timestamp,
 		DurationMs:        durationMs,
 		Status:            channelStatus,
-		NodeExecutionLogs: nodeExecutionLogs,
+		StepExecutionLogs: stepExecutionLogs,
 	}
 
 	output := Output{

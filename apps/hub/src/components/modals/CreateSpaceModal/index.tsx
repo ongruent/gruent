@@ -66,7 +66,7 @@ const CreateSpaceModal: FC<Props> = ({ orgId }) => {
       <div className="mb-6">
         <h2>Create a new space</h2>
         <p className="text-gray-500">
-          <small>Use a space to organize and manage channels, things, and data.</small>
+          <small>Use a space to organize and manage channels, connections, and data.</small>
         </p>
       </div>
       <form onSubmit={noop} ref={formRef} className="mb-4">

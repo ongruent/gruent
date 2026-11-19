@@ -1,0 +1,20 @@
+{
+  "manifestVersion": 1,
+  "plugins": [
+    {
+      "pluginType": "hello-world",
+      "pluginVersion": 1,
+      "contractVersion": 1,
+      "category": "processing",
+      "definition": {
+        "path": "plugins/hello-world/v1/step.json",
+        "digest": "sha256:633abfbf5120b372e4ff4867d17a951cb5f7850cc8aea34bc4c0b44f6cd1ce7d"
+      },
+      "kotlin": {
+        "package": "com.gruent.steps.plugins.helloworld.v1",
+        "class": "HelloWorldConfig",
+        "path": "generated/kotlin/com/gruent/steps/plugins/helloworld/v1/HelloWorldConfig.kt"
+      }
+    }
+  ]
+}

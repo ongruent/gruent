@@ -52,8 +52,8 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 			return nil, fiber.NewError(fiber.StatusBadRequest, string(errorResponseJson))
 		}
 
-		for _, node := range channelConfig.Nodes {
-			for _, modelDependency := range node.Metadata.Dependencies.Models {
+		for _, step := range channelConfig.Nodes {
+			for _, modelDependency := range step.Metadata.Dependencies.Models {
 
 				if modelDependency.ModelId == request.Input.ModelId {
 					channelsWithModel = append(channelsWithModel, channel.ID)
@@ -76,7 +76,7 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 		return nil, fiber.NewError(fiber.StatusConflict, string(errorResponseJson))
 	}
 
-	// Delete thing
+	// Delete connection
 	dbCtx, dbSpan = otel.Tracer("sqlc").Start(request.Context, "Delete model")
 	_, err = sqlc.Queries.GetModel(dbCtx, request.Input.ModelId)
 	if err != nil {

@@ -4,7 +4,7 @@ import {
   CogIcon,
   HouseIcon,
   KeyRoundIcon,
-  RouterIcon,
+  WaypointsIcon,
   ShapesIcon,
   ShieldUserIcon,
 } from 'lucide-react'
@@ -45,9 +45,9 @@ const Layout = async ({ children, params }) => {
                   <HouseIcon size="1.5em" className={styles.sidebarLink} />
                 </Link>
               </li>
-              <li id="spaceThings">
-                <Link href={`/organizations/${orgId}/spaces/${spaceId}/things`}>
-                  <RouterIcon size="1.5em" className={styles.sidebarLink} />
+              <li id="spaceConnections">
+                <Link href={`/organizations/${orgId}/spaces/${spaceId}/connections`}>
+                  <WaypointsIcon size="1.5em" className={styles.sidebarLink} />
                 </Link>
               </li>
               <li id="spaceModels">

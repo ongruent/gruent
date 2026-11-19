@@ -18,7 +18,7 @@ describe('channels/executions/get', () => {
       endTime: new Date().toISOString(),
       durationMs: 1000,
       status: 'COMPLETED',
-      nodeExecutionLogs: [],
+      stepExecutionLogs: [],
     }
 
     const mockResponseCode = 200

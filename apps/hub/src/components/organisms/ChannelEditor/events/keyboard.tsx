@@ -10,7 +10,7 @@ export const useChannelEditorKeyboardEvents = (
   editorRef: RefObject<HTMLDivElement | null>,
   hooks?: EditorHooks,
 ) => {
-  // Track whether the editor canvas was the last thing the user interacted with. xyflow can
+  // Track whether the editor canvas was the last connection the user interacted with. xyflow can
   // re-render the element under the pointer (e.g. a newly selected edge), which drops focus to
   // <body>, so focus alone is not a reliable signal.
   const isEditorActive = useRef(false)
@@ -42,9 +42,9 @@ export const useChannelEditorKeyboardEvents = (
   }
 
   // set up store
-  const currentNode = useChannelEditorStore((state) => state.currentNode)
-  const removeNode = useChannelEditorStore((state) => state.removeNode)
-  const setCurrentNode = useChannelEditorStore((state) => state.setCurrentNode)
+  const currentStep = useChannelEditorStore((state) => state.currentStep)
+  const removeStep = useChannelEditorStore((state) => state.removeStep)
+  const setCurrentStep = useChannelEditorStore((state) => state.setCurrentStep)
   const removeEdge = useChannelEditorStore((state) => state.removeEdge)
   const currentEdge = useChannelEditorStore((state) => state.currentEdge)
   const setCurrentEdge = useChannelEditorStore((state) => state.setCurrentEdge)
@@ -55,12 +55,12 @@ export const useChannelEditorKeyboardEvents = (
   const handleDeleteKeypress = () => {
     if (!isEditorFocused()) return
 
-    if (currentNode) {
-      // update nodes map (attached edges are removed with the node)
-      removeNode(currentNode.id)
+    if (currentStep) {
+      // update steps map (attached edges are removed with the step)
+      removeStep(currentStep.id)
 
-      // reset current node
-      setCurrentNode(null)
+      // reset current step
+      setCurrentStep(null)
     }
 
     if (currentNote) {
@@ -134,7 +134,7 @@ export const useChannelEditorKeyboardEvents = (
       e.preventDefault()
       addToast({
         title: 'Coming soon',
-        body: 'Copying nodes is coming soon!',
+        body: 'Copying steps is coming soon!',
         level: 'info',
       })
     }
@@ -148,7 +148,7 @@ export const useChannelEditorKeyboardEvents = (
       e.preventDefault()
       addToast({
         title: 'Coming soon',
-        body: 'Pasting nodes is coming soon!',
+        body: 'Pasting steps is coming soon!',
         level: 'info',
       })
     }
@@ -160,7 +160,7 @@ export const useChannelEditorKeyboardEvents = (
       e.preventDefault()
       addToast({
         title: 'Coming soon',
-        body: 'Duplicating nodes is coming soon!',
+        body: 'Duplicating steps is coming soon!',
         level: 'info',
       })
     }

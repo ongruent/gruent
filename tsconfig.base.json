@@ -20,7 +20,7 @@
       "@gruent/hub/*": ["apps/hub/src/*"],
       "@gruent/libs/engine/channels/*": ["libs/engine/channels/*"],
       "@gruent/libs/engine/dependencies/*": ["libs/engine/dependencies/*"],
-      "@gruent/libs/engine/nodes/*": ["libs/engine/nodes/*"],
+      "@gruent/libs/engine/steps/*": ["libs/engine/steps/*"],
       "@gruent/libs/legacy/engine/channels/*": ["libs/legacy/engine/channels/*"],
       "@gruent/libs/legacy/engine/nodes/*": ["libs/legacy/engine/nodes/*"],
       "@gruent/libs/frontend/*": ["libs/frontend/src/*"],

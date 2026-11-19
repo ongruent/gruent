@@ -56,25 +56,25 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 
 	dbSpan.End()
 
-	// Create draft internal HTTP server thing
-	dbCtx, dbSpan = otel.Tracer("sqlc").Start(request.Context, "Insert internal HTTP server thing")
+	// Create draft internal HTTP server connection
+	dbCtx, dbSpan = otel.Tracer("sqlc").Start(request.Context, "Insert internal HTTP server connection")
 
-	// Set the thing ID to the same ID than the channel
-	thingId := channelId
-	_, err = sqlc.Queries.CreateThing(dbCtx, sqldb.CreateThingParams{
-		ID:            *thingId,
-		Name:          request.Input.Name,
-		SpaceID:       request.Input.SpaceId,
-		Attributes:    []byte("{}"),
-		Internal:      true,
-		ThingCategory: things.HttpServerThingCategory.String(),
-		CreatedBy:     "internal",
-		UpdatedBy:     "internal",
+	// Set the connection ID to the same ID than the channel
+	connectionId := channelId
+	_, err = sqlc.Queries.CreateConnection(dbCtx, sqldb.CreateConnectionParams{
+		ID:                 *connectionId,
+		Name:               request.Input.Name,
+		SpaceID:            request.Input.SpaceId,
+		Attributes:         []byte("{}"),
+		Internal:           true,
+		ConnectionCategory: things.HttpServerThingCategory.String(),
+		CreatedBy:          "internal",
+		UpdatedBy:          "internal",
 	})
 	if err != nil {
 		dbSpan.SetAttributes(
 			attribute.String("error.type", "database"),
-			attribute.String("error.message", fmt.Sprintf("error inserting internal HTTP server thing into the database: %s", err)),
+			attribute.String("error.message", fmt.Sprintf("error inserting internal HTTP server connection into the database: %s", err)),
 		)
 		dbSpan.End()
 		return nil, err
