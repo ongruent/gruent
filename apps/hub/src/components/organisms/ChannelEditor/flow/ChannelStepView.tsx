@@ -1,10 +1,10 @@
 'use client'
 
-import { CircleAlertIcon } from 'lucide-react'
 import { Handle, type NodeProps, Position } from '@xyflow/react'
+import { CircleAlertIcon } from 'lucide-react'
 import { memo } from 'react'
 import { HIDDEN_INPUT_IDS, HIDDEN_OUTPUT_IDS, ioKey } from './convert'
-import { StepLabelIcon, StepTypeIcon } from './stepIcons'
+import { StepCategoryIcon, StepTypeIcon } from './stepIcons'
 import type { ChannelFlowStep, ChannelNodeType } from './types'
 
 // Horizontal spacing between output handles, in px
@@ -72,7 +72,7 @@ const stepStyles: Record<ChannelNodeType | 'default', StepStyle> = {
 
 const ChannelStepView = ({ data, selected }: NodeProps<ChannelFlowStep>) => {
   const { step, errors, activeIo } = data
-  const { type, label, name, io } = step.metadata
+  const { type, name, io } = step.metadata
   const style = stepStyles[type] ?? stepStyles.default
   const idleIoColor = 'var(--channel-editor-idle-color)'
 
@@ -104,8 +104,8 @@ const ChannelStepView = ({ data, selected }: NodeProps<ChannelFlowStep>) => {
       >
         {name}
       </p>
-      <StepLabelIcon
-        label={label}
+      <StepCategoryIcon
+        type={type}
         className={`absolute left-[21px] top-[24px] w-12 h-12 text-base ${style.labelText}`}
       />
 

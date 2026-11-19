@@ -1,45 +1,32 @@
-import { ChannelNode, defaultNodes } from '@gruent/libs/legacy/engine/nodes/v1'
-import { DragEvent, FC } from 'react'
-import styles from './StepLibrarySectionStep.module.css'
+import type { Definition } from '@gruent/libs/engine/steps/ts'
 import { GripVerticalIcon } from 'lucide-react'
-import { addToast } from '@gruent/libs/frontend/hooks/useToast'
+import { DragEvent, FC } from 'react'
+import { createPluginNode } from '../pluginNodes'
+import styles from './StepLibrarySectionStep.module.css'
 
 type Props = {
-  label: string
-  defaultStep: ChannelNode
+  definition: Definition
 }
 
-const StepLibrarySectionStep: FC<Props> = ({ label, defaultStep }) => {
-  const handleDragStart = (e: DragEvent<HTMLDivElement>, stepName: string) => {
-    const defaultStepValue = defaultNodes.get(stepName)
-    if (!defaultStepValue) {
-      addToast({
-        title: 'No default step confiuration found',
-        body: 'If this is a custom step, please add a JSON configuration to the steps library.',
-        level: 'error',
-        ttl: -1,
-      })
-      return
-    }
-    e.dataTransfer.setData('application/json', JSON.stringify(defaultStepValue))
+/** A draggable step library entry for one exact plugin version. */
+const StepLibrarySectionStep: FC<Props> = ({ definition }) => {
+  const { displayName, description, pluginType, pluginVersion } = definition.document
+
+  const handleDragStart = (e: DragEvent<HTMLDivElement>) => {
+    e.dataTransfer.setData('application/json', JSON.stringify(createPluginNode(definition)))
   }
 
   return (
-    <div className={styles.sectionStep}>
-      <div
-        draggable
-        onDragStart={(e) => {
-          handleDragStart(e, label)
-        }}
-      >
+    <div className={styles.sectionStep} data-testid={`step-library-${pluginType}-${pluginVersion}`}>
+      <div draggable onDragStart={handleDragStart}>
         <GripVerticalIcon
           size="1em"
           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-600"
         />
-        <h3 className={styles.name}>{defaultStep?.metadata?.name ?? label}</h3>
-        {defaultStep?.metadata?.description && (
-          <p className={styles.description}>{defaultStep.metadata.description}</p>
-        )}
+        <h3 className={styles.name}>
+          {displayName} <span className="font-normal text-gray-500">v{pluginVersion}</span>
+        </h3>
+        {description && <p className={styles.description}>{description}</p>}
       </div>
     </div>
   )

@@ -1,12 +1,11 @@
-import { useMemo } from 'react'
-import type { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
-
 import type {
   ChannelConfig,
   ChannelEdge,
   ChannelNote,
   ChannelRuntime,
-} from '@gruent/libs/engine/channels/index'
+} from '@gruent/libs/legacy/engine/channels/index'
+import type { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
+import { useMemo } from 'react'
 
 // Temporary static resource settings until the editor lets users configure them. The controller
 // requires both to compile a channel and never chooses them itself (see services/controller/README.md).
