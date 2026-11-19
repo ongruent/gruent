@@ -57,8 +57,8 @@ func TestExecuteLibraryChannel(t *testing.T) {
 		"nodes": [
 			{"id": "src", "metadata": {"type": "source", "label": "http-source", "name": "http-source", "version": "1", "pluginType": "http-source", "pluginVersion": 1,
 				"config": {"method": "POST", "responseMode": "sync", "responseTimeout": 10}, "dependencies": {"models": [], "things": []}}},
-			{"id": "act", "metadata": {"type": "action", "label": "hello-world", "name": "hello-world", "version": "1", "pluginType": "hello-world", "pluginVersion": 1,
-				"config": {}, "dependencies": {"models": [], "things": []}}}
+			{"id": "act", "metadata": {"type": "action", "label": "log", "name": "log", "version": "1", "pluginType": "log", "pluginVersion": 1,
+				"config": {"level": "info"}, "dependencies": {"models": [], "things": []}}}
 		],
 		"edges": [
 			{"id": "e1", "from": {"nodeId": "src", "ioId": "output"}, "to": {"nodeId": "act", "ioId": "input"}}
@@ -79,7 +79,7 @@ func TestExecuteLibraryChannel(t *testing.T) {
 			}
 		}
 	}
-	if _, ok := output.StepErrors["src"]; ok {
-		t.Fatalf("valid HTTP source reported: %v", output.StepErrors["src"])
+	if len(output.StepErrors) != 0 || len(output.ChannelErrors) != 0 {
+		t.Fatalf("unexpected errors: %+v", output)
 	}
 }
