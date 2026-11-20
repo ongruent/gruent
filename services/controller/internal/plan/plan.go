@@ -143,6 +143,14 @@ type StepDefinition struct {
 	Digest        string `json:"digest"`
 }
 
+// StepDefinition pins a step library definition: the runtime resolves exactly this plugin version and
+// checks its digest.
+type StepDefinition struct {
+	PluginType    string `json:"pluginType"`
+	PluginVersion int    `json:"pluginVersion"`
+	Digest        string `json:"digest"`
+}
+
 // Edge connects the output of one step to the input of another.
 type Edge struct {
 	From     string `json:"from"`
