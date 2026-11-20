@@ -1,6 +1,6 @@
 'use client'
 
-import { FC, useCallback, useState } from 'react'
+import ListTable from '@gruent/hub/components/atoms/ListTable'
 import {
   ColumnDef,
   createColumnHelper,
@@ -8,9 +8,9 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import ListTable from '@gruent/hub/components/atoms/ListTable'
+import { InfoIcon, KeyRoundIcon } from 'lucide-react'
+import { FC, useCallback, useState } from 'react'
 import SecretContextMenu from './SecretContextMenu'
-import { InfoIcon } from 'lucide-react'
 
 type Props = {
   secrets: { name: string }[]
@@ -47,7 +47,12 @@ const SecretsTable: FC<Props> = ({ secrets, spaceId, totalPages, totalResults })
           <span>Name</span>
         </div>
       ),
-      cell: (info) => info.row.original.name,
+      cell: (info) => (
+        <span className="inline-flex items-center gap-2 font-mono text-sm">
+          <KeyRoundIcon className="size-3.5 text-muted-foreground" aria-hidden />
+          {info.row.original.name}
+        </span>
+      ),
       enableSorting: true,
     }),
     columnHelper.display({
@@ -91,8 +96,6 @@ const SecretsTable: FC<Props> = ({ secrets, spaceId, totalPages, totalResults })
 
   return (
     <ListTable
-      title="Secrets"
-      description="Keys, passwords, tokens - anything that you need to stay private."
       table={table}
       page={currentPage}
       totalPages={totalPages}

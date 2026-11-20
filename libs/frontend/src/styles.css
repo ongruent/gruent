@@ -249,26 +249,12 @@ layer(base);
   background: linear-gradient(to right, #e0e0e0 0%, #f0f0f0 50%, #e0e0e0 100%);
   background-size: 200% 100%;
 
-  .dark & {
-    animation: shimmer 2s infinite linear;
+  [data-theme='dark'] & {
     background: linear-gradient(
       to right,
-      #4c4c4c 0%,
-      #2e2e2e 50%,
-      #4c4c4c 100%
-    );
-    background-size: 200% 100%;
-  }
-}
-
-@utility dark {
-  & .animate-shimmer {
-    animation: shimmer 2s infinite linear;
-    background: linear-gradient(
-      to right,
-      #4c4c4c 0%,
-      #2e2e2e 50%,
-      #4c4c4c 100%
+      #3a3a3a 0%,
+      #2a2a2a 50%,
+      #3a3a3a 100%
     );
     background-size: 200% 100%;
   }
@@ -310,7 +296,7 @@ layer(base);
     background-clip: content-box;
   }
 
-  .dark ::-webkit-scrollbar-thumb {
+  [data-theme='dark'] ::-webkit-scrollbar-thumb {
     @apply bg-gray-700;
   }
 }

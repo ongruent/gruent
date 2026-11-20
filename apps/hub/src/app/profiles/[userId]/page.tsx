@@ -1,7 +1,9 @@
 'use client'
 
+import { signout } from '@gruent/hub/actions/auth'
 import updatePassword from '@gruent/hub/actions/updatePassword'
 import useSettingsStore, { Theme } from '@gruent/hub/stores/settingsStore'
+import Container from '@gruent/libs/frontend/components/Container'
 import { Button } from '@gruent/libs/frontend/components/core/button'
 import { Checkbox } from '@gruent/libs/frontend/components/core/checkbox'
 import {
@@ -16,12 +18,10 @@ import { Input } from '@gruent/libs/frontend/components/core/input'
 import { RadioGroup, RadioGroupItem } from '@gruent/libs/frontend/components/core/radio-group'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { FC, useState } from 'react'
-import Container from '@gruent/libs/frontend/components/Container'
-import { signout } from '@gruent/hub/actions/auth'
 
 const themeOptions = [
   { value: Theme.light, label: 'Light' },
-  { value: Theme.dark, label: 'Dark (beta)' },
+  { value: Theme.dark, label: 'Dark' },
 ]
 
 const UserPage: FC = () => {

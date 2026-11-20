@@ -1,16 +1,16 @@
 'use client'
 
-import { FC, PropsWithChildren, useMemo } from 'react'
-import { Table, flexRender } from '@tanstack/react-table'
 import { Button } from '@gruent/libs/frontend/components/core/button'
 import {
-  Table as TableRoot,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
+  Table as TableRoot,
   TableRow,
 } from '@gruent/libs/frontend/components/core/table'
+import { useInterval } from '@react-hooks-library/core'
+import { flexRender, Table } from '@tanstack/react-table'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -19,7 +19,7 @@ import {
   LoaderCircleIcon,
   RefreshCwIcon,
 } from 'lucide-react'
-import { useInterval } from '@react-hooks-library/core'
+import { FC, PropsWithChildren, useMemo } from 'react'
 
 type TableColumnMeta = {
   align?: 'left' | 'center' | 'right'
@@ -31,7 +31,7 @@ type Props = {
   totalPages?: number
   autoRefresh?: number // must be greater than or equal to 1000 (1 second)
   isLoading?: boolean
-  title: string
+  title?: string
   description?: string
   handlePageChange?: (newPage: number) => void
   headerContent?: React.ReactNode
@@ -80,16 +80,18 @@ const ListTable: FC<PropsWithChildren<Props>> = ({
 
   return (
     <>
-      <div className="mb-2">
-        <h2 className="text-lg font-extrabold">{title}</h2>
-        {description && <p className="text-xs text-gray-500">{description}</p>}
-      </div>
-      {headerContent && <div className="mb-2">{headerContent}</div>}
-      <div className="bg-gray-100 dark:bg-gray-800 p-[2px] rounded-md">
+      {title && (
+        <div className="mb-2">
+          <h2 className="text-lg font-extrabold">{title}</h2>
+          {description && <p className="text-xs text-muted-foreground">{description}</p>}
+        </div>
+      )}
+      {headerContent && <div className="mb-3">{headerContent}</div>}
+      <div className="overflow-hidden rounded-lg border bg-card">
         <TableRoot className="w-full">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="border-0 hover:bg-transparent">
+              <TableRow key={headerGroup.id} className="hover:bg-transparent">
                 {headerGroup.headers.map((header) => {
                   const meta = header.column.columnDef.meta as TableColumnMeta | undefined
 
@@ -108,7 +110,7 @@ const ListTable: FC<PropsWithChildren<Props>> = ({
                     <TableHead
                       key={header.id}
                       colSpan={header.colSpan}
-                      className={`h-auto py-2 px-6 font-normal text-sm text-gray-500 bg-white dark:bg-gray-900 first:rounded-tl last:rounded-tr ${alignClass}`}
+                      className={`h-auto py-2 px-4 font-normal text-xs text-muted-foreground bg-muted/40 ${alignClass}`}
                       style={{
                         width: header.column.getIndex() === 0 ? 'auto' : header.column.getSize(),
                       }}
@@ -122,8 +124,8 @@ const ListTable: FC<PropsWithChildren<Props>> = ({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows.map((row, rowIndex) => (
-              <TableRow key={row.id} className="group border-0 hover:bg-transparent">
+            {table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id} className="group hover:bg-muted/40">
                 {row.getVisibleCells().map((cell) => {
                   const meta = cell.column.columnDef.meta as TableColumnMeta | undefined
 
@@ -141,12 +143,12 @@ const ListTable: FC<PropsWithChildren<Props>> = ({
                   return (
                     <TableCell
                       key={cell.id}
-                      className={`h-12 p-0 first:pl-0 last:pr-0 ${rowIndex === 0 ? 'pt-[2px]' : ''} ${alignClass}`}
+                      className={`h-12 p-0 ${alignClass}`}
                       style={{
                         width: cell.column.getIndex() === 0 ? 'auto' : cell.column.getSize(),
                       }}
                     >
-                      <div className="h-full w-full flex items-center transition py-1 px-6 bg-white dark:bg-gray-900 text-gray-700 hover:text-gray-800 dark:text-gray-200 dark:hover:text-gray-100 group-hover:bg-gray-50 dark:group-hover:bg-gray-800">
+                      <div className="h-full w-full flex items-center py-1 px-4 text-foreground">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </div>
                     </TableCell>
@@ -161,16 +163,16 @@ const ListTable: FC<PropsWithChildren<Props>> = ({
               Array(10 - table.getRowModel().rows.length)
                 .fill(0)
                 .map((_, index) => (
-                  <TableRow key={`empty-${index}`} className="group border-0 hover:bg-transparent">
+                  <TableRow key={`empty-${index}`} className="hover:bg-transparent">
                     {table.getHeaderGroups()[0].headers.map((header) => (
                       <TableCell
                         key={`empty-${index}-${header.id}`}
-                        className="h-12 p-0 first:pl-0 last:pr-0"
+                        className="h-12 p-0"
                         style={{
                           width: header.column.getIndex() === 0 ? 'auto' : header.column.getSize(),
                         }}
                       >
-                        <div className="h-full w-full flex items-center transition py-1 px-6 bg-gray-100 group-hover:bg-gray-100">
+                        <div className="h-full w-full flex items-center py-1 px-4 bg-muted/20">
                           &nbsp;
                         </div>
                       </TableCell>
@@ -179,7 +181,7 @@ const ListTable: FC<PropsWithChildren<Props>> = ({
                 ))}
           </TableBody>
         </TableRoot>
-        <div className="mt-px bg-white dark:bg-gray-900 rounded-b px-6 py-2 [&_small]:text-gray-500">
+        <div className="border-t bg-muted/20 px-4 py-2 [&_small]:text-muted-foreground">
           {children}
         </div>
       </div>
@@ -212,7 +214,7 @@ const ListTable: FC<PropsWithChildren<Props>> = ({
                   disabled={p === page}
                   variant="ghost"
                   size="icon-sm"
-                  className={p === page ? 'text-gray-900! font-bold' : ''}
+                  className={p === page ? 'text-foreground! font-bold' : ''}
                 >
                   {p}
                 </Button>
@@ -246,9 +248,9 @@ const ListTable: FC<PropsWithChildren<Props>> = ({
             disabled={isLoading}
           >
             {isLoading ? (
-              <LoaderCircleIcon size="1em" className="animate-spin dark:text-gray-200" />
+              <LoaderCircleIcon size="1em" className="animate-spin" />
             ) : (
-              <RefreshCwIcon size="1em" className="dark:text-gray-200" />
+              <RefreshCwIcon size="1em" />
             )}
           </Button>
         </div>
