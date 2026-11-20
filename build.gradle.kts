@@ -31,6 +31,16 @@ subprojects {
 
   // Java-only projects (like :libs:engine:steps:api) still get JUnit Platform
   tasks.withType(Test::class.java).configureEach { useJUnitPlatform() }
+
+  // Step plugin modules are all named v<N>, so their jars would all be v<N>.jar and collide in the
+  // runtime's distribution (lib/). Name them <pluginType>-v<N> instead.
+  if (path.startsWith(":libs:engine:steps:plugins:")) {
+    plugins.withId("base") {
+      extensions.configure(BasePluginExtension::class.java) {
+        archivesName.set("${project.parent!!.name}-${project.name}")
+      }
+    }
+  }
 }
 
 // ---- Helper aggregate tasks
