@@ -8,14 +8,15 @@ import { useRouter } from 'next/navigation'
 import { FC } from 'react'
 
 type Props = {
+  orgId: string
   space: Space
 }
 
-const DeleteSpaceModal: FC<Props> = ({ space }) => {
+const DeleteSpaceModal: FC<Props> = ({ orgId, space }) => {
   const router = useRouter()
 
   const handleAccept = async () => {
-    const { error } = await handleDeleteSpace(space.organizationId, space.id)
+    const { error } = await handleDeleteSpace(orgId, space.id)
     if (error) {
       addToast({
         title: 'Could not delete the space',
