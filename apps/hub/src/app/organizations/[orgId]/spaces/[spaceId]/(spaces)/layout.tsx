@@ -26,14 +26,9 @@ const Layout = async ({ children, params }) => {
   const accessToken = await getAccessToken()
   if (!accessToken) return null
 
-  const { data: space, errors: _spaceErrors } = await gruentClient(accessToken).spaces.get(
-    orgId,
-    spaceId,
-  )
-
-  const { data: organization, errors: _organizationErrors } = await gruentClient(
-    accessToken,
-  ).organizations.get(space?.organizationId ?? '')
+  // the organization comes with its spaces, which the space selector needs
+  const { data: organization, errors: _organizationErrors } =
+    await gruentClient(accessToken).organizations.get(orgId)
 
   return (
     <>
@@ -100,10 +95,8 @@ const Layout = async ({ children, params }) => {
                 {organization?.name ?? 'Error'}
               </Link>
               <span>/</span>
-              <Link
-                href={`/organizations/${orgId}/spaces/${spaceId}`}
-                className="flex items-center gap-1 transition text-gray-700 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-200"
-              >
+              {/* not a link: the space selector is a dropdown button */}
+              <div className="flex items-center gap-1">
                 <div className="w-5 h-5 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xs">
                   <CircleIcon size=".875em" />
                 </div>
@@ -111,7 +104,7 @@ const Layout = async ({ children, params }) => {
                   organization={organization ?? undefined}
                   currentSpaceId={spaceId}
                 />
-              </Link>
+              </div>
             </div>
           </header>
           <div className="grow px-8 pt-10 pb-20">{children}</div>
