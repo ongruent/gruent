@@ -118,6 +118,29 @@ type Step struct {
 	ModelRefs  []string `json:"modelRefs"`
 	// ConnectionRefs are the IDs of the connections the step uses, hydrated from the DependencyBundle.
 	ConnectionRefs []string `json:"connectionRefs"`
+	// Redaction lists the input values the step must redact before they leave the runtime, e.g. in logs.
+	Redaction *Redaction `json:"redaction,omitempty"`
+}
+
+// Redaction lists the sensitive fields of a step's input, resolved from a model whose every field is
+// sensitive. Paths are relative to the input and use variable syntax: "password", "card.number",
+// "readings[].token". The value at a path, whatever its type, is replaced with Replacement; for a path
+// through an array, the field is redacted in every item.
+//
+// Redaction fails closed: a runtime that cannot parse the input as a JSON value records the input without
+// its payload rather than unredacted.
+type Redaction struct {
+	ModelRef    string   `json:"modelRef"`
+	Paths       []string `json:"paths"`
+	Replacement string   `json:"replacement"`
+}
+
+// StepDefinition pins a step library definition: the runtime resolves exactly this plugin version and
+// checks its digest.
+type StepDefinition struct {
+	PluginType    string `json:"pluginType"`
+	PluginVersion int    `json:"pluginVersion"`
+	Digest        string `json:"digest"`
 }
 
 // StepDefinition pins a step library definition: the runtime resolves exactly this plugin version and

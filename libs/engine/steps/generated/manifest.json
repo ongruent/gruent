@@ -32,6 +32,21 @@
       }
     },
     {
+      "pluginType": "log",
+      "pluginVersion": 1,
+      "contractVersion": 1,
+      "category": "action",
+      "definition": {
+        "path": "plugins/log/v1/step.json",
+        "digest": "sha256:5e19bc1734e24adae27d7e988afdd664bd2b13a75b8f51551c81ca85edb2763f"
+      },
+      "kotlin": {
+        "package": "com.gruent.steps.plugins.log.v1",
+        "class": "LogConfig",
+        "path": "generated/kotlin/com/gruent/steps/plugins/log/v1/LogConfig.kt"
+      }
+    },
+    {
       "pluginType": "message-queue-source",
       "pluginVersion": 1,
       "contractVersion": 1,

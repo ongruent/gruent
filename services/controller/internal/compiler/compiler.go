@@ -185,6 +185,7 @@ func (c *compilation) run(ctx context.Context) (*Result, error) {
 	resolved, typeDiagnostics := types.ResolveGraph(c.typeSteps(config), typeEdges(graph))
 	c.diagnostics = append(c.diagnostics, typeDiagnostics...)
 	result := &Result{Types: sortedResolved(resolved)}
+	c.applyRedactions(graph, result.Types)
 
 	if !hasErrors(c.diagnostics) {
 		artifacts, err := c.artifacts(graph, bindings, policies, result.Types, connections)

@@ -47,6 +47,12 @@ var resolver = fakeResolver{
 	models: map[string]ModelRecord{
 		"m1": {ID: "m1", Name: "Telemetry", Attributes: []byte(telemetryAttributes)},
 		"m2": {ID: "m2", Name: "Alert", Attributes: []byte(`{"b1": {"id": "b1", "key": "message", "type": "string", "required": true}}`)},
+		"m3": {ID: "m3", Name: "Sensitive telemetry", Attributes: []byte(`{
+			"c1": {"id": "c1", "key": "deviceId", "type": "string"},
+			"c2": {"id": "c2", "key": "location", "type": "object"},
+			"c3": {"id": "c3", "key": "lat", "type": "number", "parentId": "c2"},
+			"c4": {"id": "c4", "key": "readings", "type": "array", "subtype": "object", "arrayObjectAttributes": {"c5": {"id": "c5", "key": "token", "type": "string", "parentId": "c4"}}}
+		}`)},
 	},
 	connections: map[string]ConnectionRecord{
 		"t1": {ID: "t1", Name: "Mailer", Category: "SENDGRID_CLIENT", Revision: "sha256:t1", Attributes: []byte(`{"apiKey": "SENDGRID_KEY", "fromEmail": "alerts@example.com"}`)},

@@ -91,6 +91,8 @@ The library source steps compile into bindings:
 
 Every binding names the channel's invocation subject (`gruent.v1.invocations.<channel ID>`).
 
+The `log@1` action records its input at the configured `level`, with an optional `message`. Its optional `redactionModelId` selects a model whose every field is sensitive. The compiler resolves it into the plan step's `redaction` (paths such as `card.number` or `readings[].token`, replaced with `[REDACTED]`) and adds the model to the dependency bundle. The step's input type is unchanged. Warnings report sensitive fields that the input type doesn't have, and inputs without a model, which can't be checked. Redaction fails closed: input that can't be parsed as JSON is logged without its payload.
+
 ## Routing table
 
 Source services never read Postgres. After recording a published version, the controller writes the channel's signed route table entry (`routing.Entry`) to `routing/v1/channels/<channel ID>.json`. It points to the routing artifact; unpublishing deletes it. Source services list these entries, verify each entry and routing artifact, and reconcile an in-memory table (`routing.Reconciler`). An entry that fails verification never changes routing: the previous routes stay until a later reconciliation succeeds.

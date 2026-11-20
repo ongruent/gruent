@@ -1,0 +1,64 @@
+{
+  "contractVersion": 1,
+  "pluginType": "log",
+  "pluginVersion": 1,
+  "displayName": "Log",
+  "description": "Record the step's input in the channel's execution logs for monitoring and debugging. Values of sensitive fields are redacted.",
+  "category": "action",
+  "configSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["level"],
+    "x-ui": {
+      "groups": [
+        { "id": "record", "title": "Record" },
+        {
+          "id": "redaction",
+          "title": "Redaction",
+          "description": "Every field of the selected model is sensitive: its value is replaced with [REDACTED] before the input is logged."
+        }
+      ]
+    },
+    "properties": {
+      "level": {
+        "type": "string",
+        "title": "Level",
+        "enum": ["debug", "info", "warn", "error"],
+        "default": "info",
+        "x-ui": {
+          "control": "select",
+          "order": 1,
+          "group": "record",
+          "options": {
+            "static": [
+              { "value": "debug", "label": "Debug" },
+              { "value": "info", "label": "Info" },
+              { "value": "warn", "label": "Warning" },
+              { "value": "error", "label": "Error" }
+            ]
+          }
+        }
+      },
+      "message": {
+        "type": "string",
+        "title": "Message",
+        "description": "Optional text recorded with the input, e.g. to tell several log steps apart.",
+        "maxLength": 200,
+        "x-ui": { "control": "text", "order": 2, "group": "record", "placeholder": "Reading received" }
+      },
+      "redactionModelId": {
+        "type": "string",
+        "title": "Sensitive fields model",
+        "description": "Model whose fields are sensitive. Without a model, the input is logged as is.",
+        "minLength": 1,
+        "x-ui": {
+          "control": "select",
+          "order": 3,
+          "group": "redaction",
+          "options": { "named": { "name": "models" } }
+        }
+      }
+    }
+  }
+}
