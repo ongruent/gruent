@@ -6,7 +6,6 @@ import { cookies } from 'next/headers'
 export const dynamic = 'force-dynamic'
 
 // Applies the saved theme before the first paint, so dark mode doesn't flash light on load.
-// Signed-out pages always use the light theme (see SettingsLoader).
 const themeScript = `try{var t=JSON.parse(localStorage.getItem('settings')||'{}').theme;if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');document.documentElement.style.colorScheme='dark'}}catch(e){}`
 
 export const metadata = {
@@ -19,7 +18,9 @@ const RootLayout = async ({ children }: { children: React.ReactNode }) => {
 
   return (
     <html suppressHydrationWarning>
-      <head>{accessToken && <script dangerouslySetInnerHTML={{ __html: themeScript }} />}</head>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>
         <div className="flex flex-col min-h-screen">
           <Providers accessToken={accessToken ?? null}>

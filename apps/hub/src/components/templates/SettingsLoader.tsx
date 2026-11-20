@@ -1,11 +1,9 @@
 'use client'
 
-import useAuth from '@gruent/hub/hooks/useAuth'
-import useSettingsStore, { applyTheme, Theme } from '@gruent/hub/stores/settingsStore'
+import useSettingsStore, { applyTheme } from '@gruent/hub/stores/settingsStore'
 import { FC, useEffect, useState } from 'react'
 
 const SettingsLoader: FC = () => {
-  const { accessToken } = useAuth()
   const [loaded, setLoaded] = useState(false)
 
   const loadSettings = useSettingsStore((state) => state.loadSettings)
@@ -25,11 +23,11 @@ const SettingsLoader: FC = () => {
     setLoaded(true)
   }, [loadSettings, setTheme, setSidebarCollapsed, setShowChannelEditorGrid, setShowFeedbackButton])
 
-  // Signed-out pages (sign in, sign up, ...) always use the light theme
+  // The theme is a device setting, so signed-out pages (sign in, sign up, ...) use it too
   useEffect(() => {
     if (!loaded) return
-    applyTheme(accessToken ? theme : Theme.light)
-  }, [loaded, theme, accessToken])
+    applyTheme(theme)
+  }, [loaded, theme])
 
   return <></>
 }
