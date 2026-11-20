@@ -96,7 +96,8 @@ collector and `channel_obsv` database. Resource attributes `gruent.workload=chan
 `channel.execution` (its trace ID is the execution ID) with `gruent.execution.status`, and each step a child
 span `channel.step` with `gruent.step.id`, `gruent.step.name` and `gruent.step.type`. Log entries carry the
 same attributes. The API lists executions from the root spans and reads an execution's logs by trace ID,
-both filtered by these attributes and the space.
+both filtered by these attributes and the space. The list's status filter takes a log level (the hub's
+`info`/`error` tags: executions with a log entry at that level) or an execution status.
 
 **Log step** (port of the legacy log node): logs at the configured level with the configured message (or
 "Signal received"/"Input received"), and records the input in the `data` attribute: pretty JSON after

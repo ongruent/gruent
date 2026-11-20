@@ -29,7 +29,7 @@ type Output struct {
 // @Param   spaceId	query	string	true	"Space ID"
 // @Param   channelId	path	string	true	"Channel ID"
 // @Param   page	query	int	false	"Page"
-// @Param   statusFilter	query	string	false	"Status filter"
+// @Param   statusFilter	query	string	false	"Log level (debug, info, warn, error): executions with a log entry at that level; or execution status (completed, failed, timeout, cancelled)"
 // @Param   resultsPerPage	query	int	false	"Results per page"
 // @Success 200
 // @Router /channels/{channelId}/executions [get]
