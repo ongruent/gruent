@@ -1,29 +1,41 @@
 plugins {
-    kotlin("jvm") version "2.0.0"
-    application
+  kotlin("jvm")
+  kotlin("plugin.serialization") version "2.0.0"
+  application
 }
 
-java { toolchain { languageVersion.set(JavaLanguageVersion.of(21)) } }
-
 dependencies {
-    implementation(project(":libs:engine:steps:api"))
+  implementation(project(":libs:engine:steps:api"))
+  implementation(project(":libs:engine:steps:kotlin"))
 
-    // Logging / metrics
-    implementation("ch.qos.logback:logback-classic:1.5.6")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.13.1")
+  // Built-in steps. They register through META-INF/services, like external step packages would.
+  runtimeOnly(project(":libs:engine:steps:plugins:timer-source:v1"))
+  runtimeOnly(project(":libs:engine:steps:plugins:log:v1"))
 
-    // Optional HTTP, Kafka, etc., later
-    // implementation("io.netty:netty-all:4.1.111.Final")
+  implementation(libs.kotlinx.serialization.json)
+  implementation("io.nats:jnats:2.20.4")
+
+  // Channel execution telemetry, exported over OTLP to the shared collector
+  implementation(platform("io.opentelemetry:opentelemetry-bom:1.43.0"))
+  implementation("io.opentelemetry:opentelemetry-api")
+  implementation("io.opentelemetry:opentelemetry-sdk")
+  implementation("io.opentelemetry:opentelemetry-exporter-otlp")
+
+  // Process logs
+  implementation("org.slf4j:slf4j-api:2.0.13")
+  runtimeOnly(libs.logback.classic)
+
+  testImplementation(platform(libs.junit.bom))
+  testImplementation(libs.junit.jupiter)
+  testImplementation(libs.junit.jupiter.params)
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-testing")
+  testImplementation(project(":libs:engine:steps:plugins:timer-source:v1"))
+  testImplementation(project(":libs:engine:steps:plugins:log:v1"))
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 application {
-    mainClass.set("com.gruent.runtime.MainKt")
+  applicationName = "runtime"
+  mainClass.set("com.gruent.runtime.MainKt")
 }
-
-tasks.withType<Jar> {
-    manifest {
-        attributes["Main-Class"] = "com.gruent.runtime.MainKt"
-    }
-}
-
-tasks.test { useJUnitPlatform() }

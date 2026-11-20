@@ -66,6 +66,19 @@ type VaultConfig struct {
 	ArtifactSigningKeyID      string `mapstructure:"ARTIFACT_SIGNING_KEY_ID"`
 	ArtifactSigningPrivateKey string `mapstructure:"ARTIFACT_SIGNING_PRIVATE_KEY"`
 
+	// Runtime workers (see internal/runtimes). Without a kubeconfig or an in-cluster service account,
+	// publishing prepares artifacts but deploys nothing.
+	RuntimeNamespace       string `mapstructure:"RUNTIME_NAMESPACE"`
+	RuntimeImage           string `mapstructure:"RUNTIME_IMAGE"`
+	RuntimeImagePullPolicy string `mapstructure:"RUNTIME_IMAGE_PULL_POLICY"`
+	// Addresses as seen from runtime workers
+	RuntimeNatsURL                 string `mapstructure:"RUNTIME_NATS_URL"`
+	RuntimeOtelCollectorEndpoint   string `mapstructure:"RUNTIME_OTEL_COLLECTOR_ENDPOINT"`
+	RuntimeArtifactStorageEndpoint string `mapstructure:"RUNTIME_ARTIFACT_STORAGE_ENDPOINT"`
+
+	// NATS, for runtime observations
+	NatsURL string `mapstructure:"NATS_URL"`
+
 	// Redis
 	RedisHost     string `mapstructure:"REDIS_HOST"`
 	RedisPort     int    `mapstructure:"REDIS_PORT"`
@@ -185,6 +198,13 @@ func loadVaultSecrets() (*VaultConfig, error) {
 		ArtifactStorageUseSSL:          SecretsClient.GetBoolFromMap(secrets, "ARTIFACT_STORAGE_USE_SSL"),
 		ArtifactSigningKeyID:           SecretsClient.GetStringFromMap(secrets, "ARTIFACT_SIGNING_KEY_ID"),
 		ArtifactSigningPrivateKey:      SecretsClient.GetStringFromMap(secrets, "ARTIFACT_SIGNING_PRIVATE_KEY"),
+		RuntimeNamespace:               SecretsClient.GetStringFromMap(secrets, "RUNTIME_NAMESPACE"),
+		RuntimeImage:                   SecretsClient.GetStringFromMap(secrets, "RUNTIME_IMAGE"),
+		RuntimeImagePullPolicy:         SecretsClient.GetStringFromMap(secrets, "RUNTIME_IMAGE_PULL_POLICY"),
+		RuntimeNatsURL:                 SecretsClient.GetStringFromMap(secrets, "RUNTIME_NATS_URL"),
+		RuntimeOtelCollectorEndpoint:   SecretsClient.GetStringFromMap(secrets, "RUNTIME_OTEL_COLLECTOR_ENDPOINT"),
+		RuntimeArtifactStorageEndpoint: SecretsClient.GetStringFromMap(secrets, "RUNTIME_ARTIFACT_STORAGE_ENDPOINT"),
+		NatsURL:                        SecretsClient.GetStringFromMap(secrets, "NATS_URL"),
 		RedisHost:                      SecretsClient.GetStringFromMap(secrets, "REDIS_HOST"),
 		RedisPort:                      SecretsClient.GetIntFromMap(secrets, "REDIS_PORT"),
 		RedisUsername:                  SecretsClient.GetStringFromMap(secrets, "REDIS_USERNAME"),

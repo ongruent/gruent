@@ -233,6 +233,7 @@ annotations.
 - **Integration.** The hub serves definitions from the library directory and edits configuration with
   `<NodeConfig />` (see above). The API (`PATCH /v1/channels/validate`) and the controller validate saved
   library steps against the library embedded in their binaries (`steps.EmbeddedLibrary()`), and the
-  controller compiles them into plans (see `services/controller/README.md`). Executing library steps in the
-  runtime is follow-up work. Plugin runtime artifacts (WASM) and
+  controller compiles them into plans (see `services/controller/README.md`). The runtime (`services/runtime`)
+  executes steps that have a Kotlin implementation module in `plugins/<type>/v<N>` (`build.gradle.kts` +
+  `META-INF/services/com.gruent.steps.api.StepFactory`, see `api/`): today `timer-source@1` and `log@1`. Plugin runtime artifacts (WASM) and
   custom/third-party step packages are out of scope: definitions carry no artifact fields.

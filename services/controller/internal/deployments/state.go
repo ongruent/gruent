@@ -1,10 +1,9 @@
 // Package deployments prepares channel artifacts and records the desired deployment state.
 //
-// The package ends where deployment execution begins. Publishing a channel compiles it, uploads its
-// artifacts, and records the resulting version as desired. It never deploys anything, so the observed
-// state of a channel stays unknown until a runtime acknowledges a version through RecordObserved.
-// Publishing also updates the channel's routing table entry, which source services reconcile from file
-// storage (see libs/engine/routing). Delivering desired state to runtimes is future runtime integration.
+// Publishing a channel compiles it, uploads its artifacts, records the resulting version as desired,
+// updates the channel's routing table entry (see libs/engine/routing), and deploys the version to a
+// runtime worker (see package runtimes). The observed state of a channel stays unknown until the worker
+// acknowledges the version (HandleObservation, RecordObserved).
 package deployments
 
 import "time"

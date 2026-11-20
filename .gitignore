@@ -108,3 +108,7 @@ services/**/build
 
 # Local runtime cluster credentials
 services/runtime/deploy/local/.generated
+
+# Step implementation module builds
+libs/engine/steps/plugins/*/v*/build
+libs/engine/steps/plugins/*/v*/.kotlin

@@ -8,29 +8,35 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "{workspaceRoot}",
-        "commands": ["./gradlew buildRuntime"],
-        "parallel": false
+        "command": "./gradlew :services:runtime:installDist"
       },
-      "outputs": ["{projectRoot}/build"]
-    },
-    "start": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "{workspaceRoot}/services/runtime/build/install/runtime",
-        "commands": ["bin/main"],
-        "envFile": ".env"
-      },
-      "dependsOn": ["build"]
+      "outputs": [
+        "{projectRoot}/build/install"
+      ]
     },
     "test": {
       "executor": "nx:run-commands",
       "options": {
-        "cwd": "services/runtime",
-        "commands": ["./gradlew test"]
+        "cwd": "{workspaceRoot}",
+        "command": "./gradlew :services:runtime:test :libs:engine:steps:plugins:timer-source:v1:test :libs:engine:steps:plugins:log:v1:test"
       },
-      "outputs": ["{projectRoot}/build/test-results"]
+      "outputs": [
+        "{projectRoot}/build/test-results"
+      ]
+    },
+    "image": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}",
+        "command": "services/runtime/deploy/local/ctl.sh image"
+      }
     }
   },
-  "tags": ["kotlin", "runtime"],
-  "implicitDependencies": ["steps"]
+  "tags": [
+    "kotlin",
+    "runtime"
+  ],
+  "implicitDependencies": [
+    "steps"
+  ]
 }
