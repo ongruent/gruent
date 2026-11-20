@@ -34,10 +34,9 @@ const SpaceSelectDropDown: FC<Props> = ({ organization, currentSpaceId }) => {
     return organization.spaces[0]
   }, [organization?.spaces, currentSpaceId])
 
-  if (!currentSpace || !organization?.spaces || organization.spaces.length <= 0)
-    return <p>No spaces were found!</p>
-
   if (!organization) return <p className="text-gray-700 dark:text-gray-300 font-semibold">Error</p>
+
+  if (!currentSpace) return <p>No spaces were found!</p>
 
   return (
     <>

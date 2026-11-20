@@ -46,7 +46,7 @@ const SpaceSettingsPage = async ({ params }) => {
 
   return (
     <>
-      <DeleteSpaceModal space={space} />
+      <DeleteSpaceModal orgId={orgId} space={space} />
       <Container className="mb-4">
         <h1 className="text-xl">Space Settings</h1>
         <p>
