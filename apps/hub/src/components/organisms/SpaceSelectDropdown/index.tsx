@@ -1,8 +1,5 @@
 'use client'
 
-import { CheckIcon, ChevronDownIcon, PlusIcon } from 'lucide-react'
-import { Organization, Space } from '@prisma/client'
-import { FC, useMemo } from 'react'
 import CreateSpaceModal from '@gruent/hub/components/modals/CreateSpaceModal'
 import { Button } from '@gruent/libs/frontend/components/core/button'
 import {
@@ -13,7 +10,10 @@ import {
   DropdownMenuTrigger,
 } from '@gruent/libs/frontend/components/core/dropdown-menu'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
+import { Organization, Space } from '@prisma/client'
+import { CheckIcon, ChevronDownIcon, PlusIcon } from 'lucide-react'
 import Link from 'next/link'
+import { FC, useMemo } from 'react'
 
 type Props = {
   organization?: Organization & { spaces: Space[] }
@@ -44,7 +44,7 @@ const SpaceSelectDropDown: FC<Props> = ({ organization, currentSpaceId }) => {
       <CreateSpaceModal orgId={organization.id} />
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="-ml-3 font-semibold">
+          <Button variant="ghost" size="sm" className="px-2 font-semibold hover:bg-sidebar-accent">
             {currentSpace.name}
             <ChevronDownIcon className="text-muted-foreground" />
           </Button>

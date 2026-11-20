@@ -1,6 +1,12 @@
 'use client'
 
-import { FC, useCallback, useRef, useState } from 'react'
+import ListTable from '@gruent/hub/components/atoms/ListTable'
+import RelativeTime from '@gruent/hub/components/atoms/RelativeTime'
+import apiField from '@gruent/hub/util/apiField'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { openModal } from '@gruent/libs/frontend/hooks/useModal'
+import { AppliedTag, Model, Tag } from '@prisma/client'
+import { useClickOutside } from '@react-hooks-library/core'
 import {
   ColumnDef,
   createColumnHelper,
@@ -8,23 +14,20 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { AppliedTag, Model, Tag } from '@prisma/client'
-import ListTable from '@gruent/hub/components/atoms/ListTable'
-import Link from 'next/link'
-import ModelContextMenu from './ModelContextMenu'
-import { useRouter } from 'next/navigation'
 import {
   CirclePlusIcon,
+  ClockIcon,
   InfoIcon,
   LibraryIcon,
   PlusIcon,
   SlidersHorizontalIcon,
 } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { FC, useCallback, useRef, useState } from 'react'
 import TagMenu from '../../modals/TagMenu'
-import { Button } from '@gruent/libs/frontend/components/core/button'
-import { openModal } from '@gruent/libs/frontend/hooks/useModal'
-import { useClickOutside } from '@react-hooks-library/core'
 import SearchBar from '../../molecules/SearchBar'
+import ModelContextMenu from './ModelContextMenu'
 
 type Props = {
   models: (Model & { tags?: (AppliedTag & { tag: Tag })[] })[]
@@ -81,10 +84,21 @@ const ModelsTable: FC<Props> = ({
       ),
       cell: (info) => (
         <Link href={`/organizations/${orgId}/spaces/${spaceId}/models/${info.row.id}`}>
-          {info.getValue()}
+          <span className="font-medium hover:underline">{info.getValue()}</span>
         </Link>
       ),
       enableSorting: true,
+    }),
+    columnHelper.display({
+      id: 'updated',
+      header: () => (
+        <div className="flex items-center">
+          <ClockIcon size="1em" className="mr-1" />
+          <span>Updated</span>
+        </div>
+      ),
+      cell: (info) => <RelativeTime value={apiField<string>(info.row.original, 'updatedAt')} />,
+      size: 140,
     }),
     columnHelper.accessor('tags', {
       header: () => (
@@ -220,8 +234,6 @@ const ModelsTable: FC<Props> = ({
 
   return (
     <ListTable
-      title="Models"
-      description="Define the structure of your data."
       table={table}
       page={page}
       totalPages={totalPages}
@@ -229,7 +241,7 @@ const ModelsTable: FC<Props> = ({
       headerContent={
         <>
           <div className="flex flex-wrap items-end gap-2 mb-1 relative">
-            <SearchBar paramKey="q" initialFilter={searchFilter} placeholder="Search connections" />
+            <SearchBar paramKey="q" initialFilter={searchFilter} placeholder="Search models" />
             <div className="grow" />
             <Button
               variant="outline"
@@ -247,9 +259,9 @@ const ModelsTable: FC<Props> = ({
             {showFilterOptions && (
               <div
                 ref={filterOptionsRef}
-                className="absolute max-w-[500px] z-10 top-10 right-0 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md p-4 flex flex-col gap-2 overflow-hidden"
+                className="absolute max-w-[500px] z-10 top-10 right-0 bg-popover text-popover-foreground border rounded-md shadow-md p-4 flex flex-col gap-2 overflow-hidden"
               >
-                <div className="border-b border-gray-200 dark:border-gray-800 pb-2">
+                <div className="border-b pb-2">
                   <h2 className="text-sm font-medium mb-1">Tags</h2>
                   <div className="flex flex-wrap items-center gap-2">
                     {tags.map((tag) => {
@@ -280,7 +292,7 @@ const ModelsTable: FC<Props> = ({
                   </div>
                 </div>
                 <span
-                  className="cursor-pointer transition text-xs text-gray-600 hover:text-red-500"
+                  className="cursor-pointer transition text-xs text-muted-foreground hover:text-red-500"
                   onClick={clearFilters}
                 >
                   Clear filters

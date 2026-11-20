@@ -1,10 +1,5 @@
 'use client'
 
-import { CheckIcon, ChevronDownIcon, PlusIcon } from 'lucide-react'
-import { Organization } from '@prisma/client'
-import { useRouter } from 'next/navigation'
-import { FC } from 'react'
-import CreateOrganizationModal from '../../modals/CreateOrganizationModal'
 import { Button } from '@gruent/libs/frontend/components/core/button'
 import {
   DropdownMenu,
@@ -14,6 +9,11 @@ import {
   DropdownMenuTrigger,
 } from '@gruent/libs/frontend/components/core/dropdown-menu'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
+import { Organization } from '@prisma/client'
+import { CheckIcon, ChevronDownIcon, PlusIcon } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { FC } from 'react'
+import CreateOrganizationModal from '../../modals/CreateOrganizationModal'
 
 type Props = {
   organizations: Organization[]
@@ -32,7 +32,7 @@ const OrgSelectDropdown: FC<Props> = ({ organizations, currentOrg }) => {
       <CreateOrganizationModal />
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="-ml-3 font-semibold">
+          <Button variant="ghost" size="sm" className="px-2 font-semibold hover:bg-sidebar-accent">
             {currentOrg?.name ?? 'No organizations found!'}
             <ChevronDownIcon className="text-muted-foreground" />
           </Button>
