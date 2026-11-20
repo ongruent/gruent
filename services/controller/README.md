@@ -1,6 +1,6 @@
 # controller
 
-Compiles channels into signed, versioned artifacts and records their desired deployment state. It replaces the legacy `orchestrator`, which worked differently. Kubernetes (with kind for local development) is the only deployment target, but this service does not deploy anything yet.
+Compiles channels into signed, versioned artifacts and records their desired deployment state. It replaces the legacy `orchestrator`, which worked differently. Kubernetes (with kind for local development) is the only deployment target: publishing deploys a runtime worker per channel (see [Runtime workers](#runtime-workers)).
 
 ## Artifacts
 
@@ -97,13 +97,19 @@ The `log@1` action records its input at the configured `level`, with an optional
 
 Source services never read Postgres. After recording a published version, the controller writes the channel's signed route table entry (`routing.Entry`) to `routing/v1/channels/<channel ID>.json`. It points to the routing artifact; unpublishing deletes it. Source services list these entries, verify each entry and routing artifact, and reconcile an in-memory table (`routing.Reconciler`). An entry that fails verification never changes routing: the previous routes stay until a later reconciliation succeeds.
 
-`libs/engine/routing` also defines the `Invocation` message that sources publish to the binding's subject and the `Reply` that runtimes answer with, and `routing.Ingress`, the HTTP source that matches requests against the table and uses request/reply. Running source services, scheduling timers, consuming queues, and runtimes subscribing to invocation subjects are later runtime work.
+`libs/engine/routing` also defines the `Invocation` message that sources publish to the binding's subject and the `Reply` that runtimes answer with, and `routing.Ingress`, the HTTP source that matches requests against the table and uses request/reply. Runtime workers subscribe to their channel's invocation subject and, until source services run, schedule their plan's timer bindings themselves. Running source services and consuming queues are later work.
 
 ## Deployment state
 
 Uploading artifacts is not a deployment. The observed state (`observed_status`) stays `unknown` until a runtime acknowledges a plan version through `deployments.Service.RecordObserved`. `Status` returns `PUBLISHED` only after a runtime acknowledges the desired version. When compilation or upload fails, the failure is recorded (`preparation_status = failed`, with its stage and error), and the last successfully prepared version stays desired.
 
-Delivering desired state and presigned URLs to runtimes (for example over NATS), pool provisioning, and Kubernetes reconciliation will be added with runtime integration.
+## Runtime workers
+
+After recording the desired version and its route entry, `Publish` applies the channel's runtime worker (`internal/runtimes`): a `channel-<channel ID>` Deployment (one replica, `Recreate`, memory = `memoryMiB` + 256 MiB overhead) in `RUNTIME_NAMESPACE`, configured with the plan's storage key and version (`libs/engine/workers`), and a `runtime-artifact-storage` Secret. `Unpublish` deletes the Deployment. The controller talks to the Kubernetes API with server-side apply, using `KUBECONFIG` or its in-cluster service account; without either, it only prepares artifacts. A deploy failure is returned as a `DeployError` and publishing again retries it.
+
+Workers report `applied`, `failed` and `stopped` on `gruent.v1.runtime.observations.<channel ID>`. The controller subscribes when `NATS_URL` is set and records them with `RecordObserved`, ignoring `stopped` reports for versions that are no longer desired. See `services/runtime/README.md` for the worker side, decisions and limitations.
+
+Pool provisioning, shared workers, presigned artifact URLs and periodic reconciliation of desired state are not implemented.
 
 ## Tests
 

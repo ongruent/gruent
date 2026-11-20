@@ -4,7 +4,9 @@
 # deploy/platform/local/ctl.sh (`pnpm nx start|stop|check platform`).
 #
 #   ctl.sh up      create (or resume) the cluster, attach it to the Docker
-#                  Compose network, and provision controller credentials
+#                  Compose network, provision controller credentials, and
+#                  build and load the runtime worker image
+#   ctl.sh image   rebuild and load the runtime worker image
 #   ctl.sh down    delete the cluster
 #   ctl.sh check   verify the networking between the cluster and the backend
 #                  services
@@ -22,6 +24,7 @@ NODE="${CLUSTER_NAME}-control-plane"
 NETWORK="gruent_network"
 API_SERVER="https://${NODE}:6443"
 RUNTIME_NAMESPACE="gruent-runtime"
+RUNTIME_IMAGE="${RUNTIME_IMAGE:-gruent-runtime:local}"
 
 GENERATED_DIR="$SCRIPT_DIR/.generated"
 CONTROLLER_KUBECONFIG="$GENERATED_DIR/controller.kubeconfig"
@@ -161,6 +164,15 @@ route_api() {
     fi
 }
 
+# Builds the runtime worker image and loads it into the cluster, where the
+# controller deploys it (RUNTIME_IMAGE, pulled with policy Never).
+load_runtime_image() {
+    log "Building the runtime worker image $RUNTIME_IMAGE"
+    docker build --quiet -f "$SCRIPT_DIR/../production/Dockerfile" -t "$RUNTIME_IMAGE" "$SCRIPT_DIR/../../../.." >/dev/null
+    log "Loading $RUNTIME_IMAGE into the cluster"
+    kind load docker-image "$RUNTIME_IMAGE" --name "$CLUSTER_NAME" >/dev/null
+}
+
 up() {
     require docker "See https://docs.docker.com/get-docker/"
     require kind "See https://kind.sigs.k8s.io/docs/user/quick-start/#installation"
@@ -169,6 +181,7 @@ up() {
     start_cluster
     wait_for_cluster
     provision_controller
+    load_runtime_image
     route_api
 
     log "Cluster $CLUSTER_NAME is ready"
@@ -241,10 +254,11 @@ check() {
 
 case "${1:-}" in
 up) up ;;
+image) load_runtime_image ;;
 down) down ;;
 check) check ;;
 *)
-    echo "Usage: $0 {up|down|check}" >&2
+    echo "Usage: $0 {up|image|down|check}" >&2
     exit 1
     ;;
 esac

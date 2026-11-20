@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
 	gruenthttp "github.com/ongruent/gruent/libs/http"
 	clickhouseService "github.com/ongruent/gruent/services/http-api/services/clickhouse"
 	"go.opentelemetry.io/otel"
@@ -43,28 +44,32 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 
 	stepExecutionLogs := []StepExecutionLog{}
 
+	// Logs of an execution share its trace ID. Only channel execution telemetry of the requested space
+	// is returned.
 	query := `
 	SELECT
 		TraceId as traceId,
 		SpanId as spanId,
 		Timestamp as timestamp,
-		SeverityText as level,
+		lower(SeverityText) as level,
 		Body as body,
 		LogAttributes as logAttributes,
 		ResourceAttributes as resourceAttributes,
-		CASE 
-			WHEN LogAttributes['flag'] = 'init_error' THEN 'Init Error'
-			WHEN LogAttributes['flag'] = 'timeout' THEN 'Timeout'
-			WHEN LogAttributes['flag'] = 'invalid_data' THEN 'Invalid Data'
-			WHEN LogAttributes['flag'] = 'complete' THEN 'Completed'
+		CASE LogAttributes['gruent.execution.status']
+			WHEN 'completed' THEN 'Completed'
+			WHEN 'timeout' THEN 'Timeout'
+			WHEN 'failed' THEN 'Fatal Error'
+			WHEN 'cancelled' THEN 'Cancelled'
 			ELSE 'Unknown'
 		END as status
-	FROM channel_obsv.otel_logs 
+	FROM otel_logs
 	WHERE TraceId = ?
-	ORDER BY Timestamp DESC
+		AND ResourceAttributes['gruent.workload'] = 'channel'
+		AND ResourceAttributes['gruent.space.id'] = ?
+	ORDER BY Timestamp ASC
 	`
 
-	err := clickhouseService.Conn.Select(dbCtx, &stepExecutionLogs, query, request.Input.ChannelExecutionId)
+	err := clickhouseService.Conn.Select(dbCtx, &stepExecutionLogs, query, request.Input.ChannelExecutionId, request.Input.SpaceId)
 	if err != nil {
 		dbSpan.SetAttributes(
 			attribute.String("error.type", "database"),
@@ -76,23 +81,40 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 
 	dbSpan.End()
 
-	// Group logs into a channel execution
-	durationMs := int64(stepExecutionLogs[len(stepExecutionLogs)-1].Timestamp.Sub(stepExecutionLogs[0].Timestamp).Milliseconds())
-	channelId := stepExecutionLogs[0].ResourceAttributes["service.instance.id"]
-	channelStatus := (func() string {
-		for _, log := range stepExecutionLogs {
-			if log.Status != "Unknown" {
-				return log.Status
-			}
+	if len(stepExecutionLogs) == 0 {
+		response := gruenthttp.NewErrorResponse([]any{"Channel execution not found"})
+		responseJson, _ := response.MarshalJson()
+		return nil, fiber.NewError(fiber.StatusNotFound, string(responseJson))
+	}
+
+	// The hub shows the step of each entry from the "node" attribute.
+	for i := range stepExecutionLogs {
+		if stepExecutionLogs[i].LogAttributes == nil {
+			stepExecutionLogs[i].LogAttributes = map[string]string{}
 		}
-		return "Unknown"
-	})()
+		attributes := stepExecutionLogs[i].LogAttributes
+		attributes["node"] = attributes["gruent.step.name"]
+		if attributes["node"] == "" {
+			attributes["node"] = "Channel"
+		}
+		attributes["level"] = stepExecutionLogs[i].Level
+		attributes["execution_id"] = stepExecutionLogs[i].TraceId
+	}
+
+	// Group logs into a channel execution
+	first, last := stepExecutionLogs[0], stepExecutionLogs[len(stepExecutionLogs)-1]
+	channelStatus := "Unknown"
+	for _, log := range stepExecutionLogs {
+		if log.Status != "Unknown" {
+			channelStatus = log.Status
+		}
+	}
 	channelExecution := &ChannelExecution{
 		TraceId:           request.Input.ChannelExecutionId,
-		ChannelId:         channelId,
-		StartTime:         stepExecutionLogs[0].Timestamp,
-		EndTime:           stepExecutionLogs[len(stepExecutionLogs)-1].Timestamp,
-		DurationMs:        durationMs,
+		ChannelId:         first.ResourceAttributes["gruent.channel.id"],
+		StartTime:         first.Timestamp,
+		EndTime:           last.Timestamp,
+		DurationMs:        last.Timestamp.Sub(first.Timestamp).Milliseconds(),
 		Status:            channelStatus,
 		StepExecutionLogs: stepExecutionLogs,
 	}

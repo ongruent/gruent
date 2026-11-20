@@ -28,6 +28,7 @@ tasks.test {
   useJUnitPlatform()
   // Shared fixtures, definitions and the manifest are read from the step library root.
   systemProperty("steps.root", stepLibraryRoot)
-  inputs.dir("../plugins")
+  // Only definitions and fixtures: plugin directories can also hold implementation modules and their builds.
+  inputs.files(fileTree("../plugins") { include("*/v*/step.json", "*/v*/fixtures/**") })
   inputs.file("../generated/manifest.json")
 }

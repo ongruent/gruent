@@ -10,8 +10,15 @@ import (
 	"github.com/ongruent/gruent/services/controller/internal/artifacts"
 	"github.com/ongruent/gruent/services/controller/internal/compiler"
 	"github.com/ongruent/gruent/services/controller/internal/plan"
+	"github.com/ongruent/gruent/services/controller/internal/runtimes"
 	"github.com/ongruent/gruent/services/controller/internal/types"
 )
+
+// Runtimes deploys runtime workers (see package runtimes).
+type Runtimes interface {
+	Deploy(ctx context.Context, worker runtimes.Worker) error
+	Remove(ctx context.Context, channelID string) error
+}
 
 // ErrNotFound is returned when a channel or its deployment state does not exist.
 var ErrNotFound = errors.New("not found")
@@ -102,6 +109,9 @@ type Service struct {
 	Artifacts artifacts.Store
 	Signer    *signing.Signer
 	Store     Store
+	// Runtimes deploys the desired version to a runtime worker. Without it, publishing only prepares
+	// artifacts.
+	Runtimes Runtimes
 }
 
 // Publish compiles the channel, signs and uploads its artifacts, records the plan as the desired
@@ -166,7 +176,36 @@ func (s *Service) Publish(ctx context.Context, channelID string) (State, error) 
 	if err := artifacts.PutRouteEntry(ctx, s.Artifacts, s.Signer, metadata, artifacts.Ref(metadata, plan.ArtifactRouting, result.Artifacts.EncodedRouting)); err != nil {
 		return fail(StageUpload, err)
 	}
+
+	// The version is desired and routed; deploy it. The observed state changes once the worker reports
+	// that it applied the plan. If deploying fails, publishing again retries it.
+	if s.Runtimes != nil && state.Plan != nil {
+		err := s.Runtimes.Deploy(ctx, runtimes.Worker{
+			ChannelID:   state.ChannelID,
+			SpaceID:     state.SpaceID,
+			PlanVersion: state.Plan.Version,
+			PlanKey:     state.Plan.StorageKey,
+			MemoryMiB:   state.MemoryMiB,
+		})
+		if err != nil {
+			return state, &DeployError{Err: err}
+		}
+	}
 	return state, nil
+}
+
+// DeployError is returned when a prepared version could not be deployed to a runtime worker. The version
+// stays desired; publishing again retries the deployment.
+type DeployError struct {
+	Err error
+}
+
+func (e *DeployError) Error() string {
+	return fmt.Sprintf("deploy failed: %v", e.Err)
+}
+
+func (e *DeployError) Unwrap() error {
+	return e.Err
 }
 
 // DraftRequest is a soft compilation request for a whole channel.
@@ -211,6 +250,11 @@ func (s *Service) Unpublish(ctx context.Context, channelID string) (State, error
 	// unpublishing again retries it.
 	if err := artifacts.DeleteRouteEntry(ctx, s.Artifacts, channelID); err != nil {
 		return State{}, err
+	}
+	if s.Runtimes != nil {
+		if err := s.Runtimes.Remove(ctx, channelID); err != nil {
+			return State{}, &DeployError{Err: err}
+		}
 	}
 	return state, nil
 }
