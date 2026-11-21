@@ -17,7 +17,7 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
-// @title GRUENT
+// @title Gruent
 // @version alpha-v1.0
 // @description Connect systems with clarity.
 // @schemes https http

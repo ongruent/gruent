@@ -41,7 +41,7 @@ func NewGruentValidationError(validationErrors validator.ValidationErrors) Gruen
 	return gruentValidationError
 }
 
-// Converts the validation error object to an GRUENT API response object.
+// Converts the validation error object to an Gruent API response object.
 func (r GruentValidationError) MarshalResponse() GruentApiResponse {
 	var errors []any
 	for _, err := range r.Errors {

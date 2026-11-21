@@ -40,8 +40,8 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 	<html>
 		<body>
 			<div>
-				<h1>GRUENT Invitation</h1>
-				<p>You've been invited to join an GRUENT organization!</p>
+				<h1>Gruent Invitation</h1>
+				<p>You've been invited to join an Gruent organization!</p>
 				<p>
 					<a href="{{ .AppUrl }}/signup?inviteToken={{ .Token }}" style="
 						display: inline-block;
@@ -59,7 +59,7 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 	</html>
 	`
 
-	const plainBodyTemplate = `GRUENT Invitation
+	const plainBodyTemplate = `Gruent Invitation
 
 	Copy and paste the link below to sign up and join the organization:
 	{{ .AppUrl }}/signup?inviteToken={{ .Token }}
@@ -74,7 +74,7 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 	}
 
 	// Create multipart message
-	subject := "GRUENT Invitation"
+	subject := "Gruent Invitation"
 	message, err := gruenthttputil.BuildEmail(from, to, subject, plainBodyTemplate, htmlBodyTemplate, bodyData)
 	if err != nil {
 		smtpSpan.SetAttributes(

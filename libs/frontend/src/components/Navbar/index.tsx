@@ -16,7 +16,7 @@ const Navbar: FC = () => {
           <Link href="/">
             <Image
               src="/img/logos/wordmark-secondary.png"
-              alt="GRUENT logo"
+              alt="Gruent logo"
               width={100}
               height={100}
             />
