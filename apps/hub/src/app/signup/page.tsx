@@ -2,15 +2,15 @@ import { verifyInvitationToken } from '@gruent/hub/actions/members'
 import SignUpForm from '@gruent/hub/components/organisms/SignUpForm'
 
 export const metadata = {
-  title: 'Sign up | GRUENT',
+  title: 'Sign up | Gruent',
   description:
     'The internet of things just got easier. Drag-and-drop connections to automate tasks and scale within minutes. Create an account to get started for free.',
   openGraph: {
     type: 'website',
-    url: `https://app.gruent.com/signup`,
+    url: `https://app.gruent.io/signup`,
     description:
       'The internet of things just got easier. Drag-and-drop connections to automate tasks and scale within minutes. Create an account to get started for free.',
-    images: ['https://gruent.com/img/logos/app-icon-primary.png'],
+    images: ['https://gruent.io/img/logos/app-icon-primary.png'],
   },
 }
 

@@ -32,7 +32,7 @@ describe('channels/validate', () => {
       },
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await validate(
       'tea_fake',
       config,
@@ -41,7 +41,7 @@ describe('channels/validate', () => {
     )
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/channels/validate')
+    const expectedUrl = new URL('https://api.gruent.io/v1/channels/validate')
     expectedUrl.searchParams.set('spaceId', mockRequestData.spaceId)
 
     expect(global.fetch).toHaveBeenCalledTimes(1)

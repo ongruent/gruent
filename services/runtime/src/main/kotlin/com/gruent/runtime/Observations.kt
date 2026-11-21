@@ -15,41 +15,50 @@ import java.time.Instant
  */
 @Serializable
 data class Observation(
-  val apiVersion: String = "gruent.com/v1",
-  val kind: String = "RuntimeObservation",
-  val channelId: String,
-  val planVersion: String,
-  /** [APPLIED], [FAILED] or [STOPPED]. */
-  val status: String,
-  val message: String = "",
-  @Serializable(with = InstantSerializer::class)
-  val observedAt: Instant,
+    val apiVersion: String = "gruent.io/v1",
+    val kind: String = "RuntimeObservation",
+    val channelId: String,
+    val planVersion: String,
+    /** [APPLIED], [FAILED] or [STOPPED]. */
+    val status: String,
+    val message: String = "",
+    @Serializable(with = InstantSerializer::class)
+    val observedAt: Instant,
 ) {
-  companion object {
-    const val APPLIED = "applied"
-    const val FAILED = "failed"
-    const val STOPPED = "stopped"
+    companion object {
+        const val APPLIED = "applied"
+        const val FAILED = "failed"
+        const val STOPPED = "stopped"
 
-    fun subject(channelId: String) = "gruent.v1.runtime.observations.$channelId"
-  }
+        fun subject(channelId: String) = "gruent.v1.runtime.observations.$channelId"
+    }
 }
 
 /** Publishes observations. Reporting is best effort: the runtime keeps serving if the controller is away. */
 class ObservationReporter(
-  private val bus: MessageBus,
-  private val channelId: String,
-  private val planVersion: String,
-  private val clock: Clock = Clock.systemUTC(),
+    private val bus: MessageBus,
+    private val channelId: String,
+    private val planVersion: String,
+    private val clock: Clock = Clock.systemUTC(),
 ) {
-  private val log = LoggerFactory.getLogger(ObservationReporter::class.java)
+    private val log = LoggerFactory.getLogger(ObservationReporter::class.java)
 
-  fun report(status: String, message: String = "") {
-    val observation = Observation(channelId = channelId, planVersion = planVersion, status = status, message = message, observedAt = clock.instant())
-    try {
-      bus.publish(Observation.subject(channelId), InvocationJson.encodeToString(Observation.serializer(), observation).toByteArray())
-      bus.flush()
-    } catch (e: Exception) {
-      log.warn("Could not report status {} of channel {}: {}", status, channelId, e.message)
+    fun report(status: String, message: String = "") {
+        val observation = Observation(
+            channelId = channelId,
+            planVersion = planVersion,
+            status = status,
+            message = message,
+            observedAt = clock.instant()
+        )
+        try {
+            bus.publish(
+                Observation.subject(channelId),
+                InvocationJson.encodeToString(Observation.serializer(), observation).toByteArray()
+            )
+            bus.flush()
+        } catch (e: Exception) {
+            log.warn("Could not report status {} of channel {}: {}", status, channelId, e.message)
+        }
     }
-  }
 }

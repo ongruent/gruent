@@ -34,7 +34,7 @@ describe('permissions/add', () => {
       permissions: ['*'],
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await add(
       'tea_fake',
       config,
@@ -44,7 +44,7 @@ describe('permissions/add', () => {
     )
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/permissions')
+    const expectedUrl = new URL('https://api.gruent.io/v1/permissions')
     expectedUrl.searchParams.set('orgId', mockResponseData.organizationId)
 
     expect(global.fetch).toHaveBeenCalledTimes(1)

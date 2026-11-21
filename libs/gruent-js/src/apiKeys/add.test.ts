@@ -35,7 +35,7 @@ describe('apiKeys/add', () => {
       permissionSetId: 'permission-set-id-fake',
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await add(
       'tea_fake',
       config,
@@ -45,7 +45,7 @@ describe('apiKeys/add', () => {
     )
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/api-keys')
+    const expectedUrl = new URL('https://api.gruent.io/v1/api-keys')
     expectedUrl.searchParams.set('orgId', mockRequestData.organizationId)
 
     expect(global.fetch).toHaveBeenCalledWith(expectedUrl.toString(), {

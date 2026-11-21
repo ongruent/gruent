@@ -24,7 +24,7 @@ describe('organizations/members/changeRole', () => {
       role: 'ADMIN' as 'ADMIN' | 'MEMBER',
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await changeRole(
       'tea_fake',
       config,
@@ -34,7 +34,7 @@ describe('organizations/members/changeRole', () => {
     )
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/organizations/members/changeRole')
+    const expectedUrl = new URL('https://api.gruent.io/v1/organizations/members/changeRole')
     expectedUrl.searchParams.set('orgId', mockRequestData.organizationId)
     expect(global.fetch).toHaveBeenCalledTimes(1)
     expect(global.fetch).toHaveBeenCalledWith(expectedUrl.toString(), {

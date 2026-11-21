@@ -26,18 +26,18 @@ const val PLAN_VERSION = "sha256:00000000000000000000000000000000000000000000000
  * encoding, including nulls for empty slices.
  */
 fun timerToLogPlanJson(
-  cron: String = "*/1 * * * * *",
-  logConfig: String = """{"level":"info","message":"Tick"}""",
-  maxConcurrent: Int = 1,
-  maxQueued: Int = 0,
-  maxInvocationMs: Long = 0,
-  extraSteps: String = "",
-  extraEdges: String = "",
-  logDigest: String = LogConfig.definitionDigest,
-  logRedaction: String = "",
+    cron: String = "*/1 * * * * *",
+    logConfig: String = """{"level":"info","message":"Tick"}""",
+    maxConcurrent: Int = 1,
+    maxQueued: Int = 0,
+    maxInvocationMs: Long = 0,
+    extraSteps: String = "",
+    extraEdges: String = "",
+    logDigest: String = LogConfig.definitionDigest,
+    logRedaction: String = "",
 ): String = """
 {
-  "apiVersion": "gruent.com/v1",
+  "apiVersion": "gruent.io/v1",
   "kind": "Plan",
   "metadata": {"orgId": "org1", "spaceId": "space1", "channelId": "$CHANNEL_ID", "channelName": "Ticks"},
   "publishStrategy": {"mode": "replace"},
@@ -104,55 +104,62 @@ fun timerToLogPlanJson(
 
 fun timerToLogPlan(json: String = timerToLogPlanJson()): Plan = Plan.parse(json.toByteArray())
 
-data class LogEntry(val executionId: String, val stepId: String, val level: LogLevel, val message: String, val attributes: Map<String, String>)
+data class LogEntry(
+    val executionId: String,
+    val stepId: String,
+    val level: LogLevel,
+    val message: String,
+    val attributes: Map<String, String>
+)
 
 /** Telemetry that records log entries and execution results in memory. */
 class RecordingTelemetry : ExecutionTelemetry {
-  val logs: MutableList<LogEntry> = Collections.synchronizedList(mutableListOf())
-  val executions: MutableList<Pair<String, ExecutionStatus>> = Collections.synchronizedList(mutableListOf())
-  val steps: MutableList<Pair<String, String>> = Collections.synchronizedList(mutableListOf())
-  private val ids = AtomicInteger()
+    val logs: MutableList<LogEntry> = Collections.synchronizedList(mutableListOf())
+    val executions: MutableList<Pair<String, ExecutionStatus>> = Collections.synchronizedList(mutableListOf())
+    val steps: MutableList<Pair<String, String>> = Collections.synchronizedList(mutableListOf())
+    private val ids = AtomicInteger()
 
-  override fun startExecution(info: ExecutionInfo): ExecutionRecorder {
-    val executionId = "exec-${ids.incrementAndGet()}"
-    return object : ExecutionRecorder {
-      override val executionId: String = executionId
+    override fun startExecution(info: ExecutionInfo): ExecutionRecorder {
+        val executionId = "exec-${ids.incrementAndGet()}"
+        return object : ExecutionRecorder {
+            override val executionId: String = executionId
 
-      override fun startStep(stepId: String, stepName: String, stepType: String): StepRecorder = object : StepRecorder {
-        override val logger = ExecutionLogger { level, message, attributes ->
-          logs += LogEntry(executionId, stepId, level, message, attributes)
+            override fun startStep(stepId: String, stepName: String, stepType: String): StepRecorder =
+                object : StepRecorder {
+                    override val logger = ExecutionLogger { level, message, attributes ->
+                        logs += LogEntry(executionId, stepId, level, message, attributes)
+                    }
+
+                    override fun end(error: Throwable?) {
+                        steps += executionId to stepId
+                    }
+                }
+
+            override fun end(status: ExecutionStatus, error: Throwable?) {
+                executions += executionId to status
+            }
         }
-
-        override fun end(error: Throwable?) {
-          steps += executionId to stepId
-        }
-      }
-
-      override fun end(status: ExecutionStatus, error: Throwable?) {
-        executions += executionId to status
-      }
     }
-  }
 }
 
 /** A processing step factory for tests, pinned by the digest "sha256:<type>". */
 fun testFactory(type: String, create: () -> Step): StepFactory = object : StepFactory {
-  override val pluginType = type
-  override val pluginVersion = 1
-  override val definitionDigest = "sha256:$type"
-  override val category = StepCategory.PROCESSING
+    override val pluginType = type
+    override val pluginVersion = 1
+    override val definitionDigest = "sha256:$type"
+    override val category = StepCategory.PROCESSING
 
-  override fun create(spec: StepSpec): Step = create()
+    override fun create(spec: StepSpec): Step = create()
 }
 
 /** The steps on the classpath (timer-source@1 and log@1) plus [extra] test steps. */
 fun testRegistry(vararg extra: StepFactory): StepRegistry {
-  val discovered = StepRegistry.discover()
-  val plan = timerToLogPlan()
-  return StepRegistry(plan.channel.graph.steps.map { discovered.factory(it) } + extra)
+    val discovered = StepRegistry.discover()
+    val plan = timerToLogPlan()
+    return StepRegistry(plan.channel.graph.steps.map { discovered.factory(it) } + extra)
 }
 
 fun processingStepJson(id: String, type: String) =
-  """,{"id":"$id","type":"processing.$type","name":"$id","definition":{"pluginType":"$type","pluginVersion":1,"digest":"sha256:$type"},"config":{}}"""
+    """,{"id":"$id","type":"processing.$type","name":"$id","definition":{"pluginType":"$type","pluginVersion":1,"digest":"sha256:$type"},"config":{}}"""
 
 fun edgeJson(from: String, to: String) = """,{"from":"$from","to":"$to"}"""

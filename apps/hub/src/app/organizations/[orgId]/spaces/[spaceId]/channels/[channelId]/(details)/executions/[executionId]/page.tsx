@@ -1,12 +1,12 @@
 import gruentClient from '@gruent/hub/lib/gruent'
-import StepExecutionLogEntry from '@gruent/libs/frontend/components/StepExecutionLogEntry'
-import Link from 'next/link'
-import dayjs from 'dayjs'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
 import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
+import StepExecutionLogEntry from '@gruent/libs/frontend/components/StepExecutionLogEntry'
+import dayjs from 'dayjs'
 import { CircleXIcon, TriangleAlertIcon } from 'lucide-react'
+import Link from 'next/link'
 export const metadata = {
-  title: 'Channel execution details | GRUENT',
+  title: 'Channel execution details | Gruent',
 }
 
 const ChannelExecutionByIdPage = async ({ params }) => {
@@ -21,7 +21,7 @@ const ChannelExecutionByIdPage = async ({ params }) => {
 
   if (getChannelExecutionErrors && getChannelExecutionErrors.length > 0)
     return (
-      <div className="mt-4 px-8 py-2 max-w-full mb-10">
+      <div className="mx-auto w-full max-w-6xl">
         <Alert variant="destructive" className="w-fit max-w-xl">
           <CircleXIcon />
           <AlertTitle>Could not retrieve the channel execution</AlertTitle>
@@ -32,7 +32,7 @@ const ChannelExecutionByIdPage = async ({ params }) => {
 
   if (!channelExecution)
     return (
-      <div className="mt-4 px-8 py-2 max-w-full mb-10">
+      <div className="mx-auto w-full max-w-6xl">
         <Alert className="w-fit max-w-xl">
           <TriangleAlertIcon />
           <AlertTitle>Invalid channel execution</AlertTitle>
@@ -60,10 +60,11 @@ const ChannelExecutionByIdPage = async ({ params }) => {
   })()
 
   return (
-    <div className="mt-4 px-8 py-2 max-w-full mb-10">
-      <div className="mb-4 text-gray-600 dark:text-gray-500">
+    <div className="mx-auto w-full max-w-6xl">
+      <div className="mb-4 text-muted-foreground">
         <small>
-          <Link href={`/organizations/${orgId}/spaces/${spaceId}`}>Space</Link> &gt;&nbsp;
+          <Link href={`/organizations/${orgId}/spaces/${spaceId}/channels`}>Channels</Link>{' '}
+          &gt;&nbsp;
           <Link href={`/organizations/${orgId}/spaces/${spaceId}/channels/${channelId}`}>
             Channel
           </Link>{' '}
@@ -84,7 +85,7 @@ const ChannelExecutionByIdPage = async ({ params }) => {
           <small>{status}</small>
         </p>
       )}
-      <div style={{ width: '100%', maxWidth: 'calc(100vw - 150px)' }}>{stepExecutionLogsJsx}</div>
+      <div className="w-full min-w-0">{stepExecutionLogsJsx}</div>
     </div>
   )
 }

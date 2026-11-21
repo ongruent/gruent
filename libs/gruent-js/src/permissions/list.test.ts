@@ -35,11 +35,11 @@ describe('permissions/list', () => {
       spaceId: 'space-id-fake',
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await list('tea_fake', config, mockRequestData.spaceId)
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/permissions')
+    const expectedUrl = new URL('https://api.gruent.io/v1/permissions')
     expectedUrl.searchParams.set('page', '1')
     expectedUrl.searchParams.set('resultsPerPage', '10')
     expectedUrl.searchParams.set('spaceId', mockRequestData.spaceId)

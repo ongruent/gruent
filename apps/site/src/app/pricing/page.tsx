@@ -28,16 +28,16 @@ import { Metadata } from 'next'
 import RuntimeSelector from './RuntimeSelector'
 
 export const metadata: Metadata = {
-  title: 'Usage-based pricing for your IoT & automation needs | GRUENT',
+  title: 'Usage-based pricing for your IoT & automation needs | Gruent',
   description:
     'Pay only for what you use. Predictable pricing without hidden fees. Get started in minutes.',
   openGraph: {
     type: 'website',
-    url: `https://gruent.com/pricing`,
-    title: 'Usage-based pricing for your IoT & automation needs | GRUENT',
+    url: `https://gruent.io/pricing`,
+    title: 'Usage-based pricing for your IoT & automation needs | Gruent',
     description:
       'Pay only for what you use. Predictable pricing without hidden fees. Get started in minutes.',
-    images: ['https://gruent.com/img/logos/app-icon-primary.png'],
+    images: ['https://gruent.io/img/logos/app-icon-primary.png'],
   },
 }
 
@@ -436,7 +436,7 @@ const Pricing = async ({ searchParams }) => {
                       <ArrowDownUpIcon size="1.3333em" className="text-green-700" /> API
                     </h4>
                     <p className="text-gray-500 max-w-lg">
-                      Programmatic access to all GRUENT API routes.
+                      Programmatic access to all Gruent API routes.
                     </p>
                   </div>
                   <div

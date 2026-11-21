@@ -1,6 +1,13 @@
 'use client'
 
-import { FC, useCallback, useRef, useState } from 'react'
+import ListTable from '@gruent/hub/components/atoms/ListTable'
+import RelativeTime from '@gruent/hub/components/atoms/RelativeTime'
+import ChannelContextMenu from '@gruent/hub/components/organisms/ChannelsTable/ChannelContextMenu'
+import apiField from '@gruent/hub/util/apiField'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { openModal } from '@gruent/libs/frontend/hooks/useModal'
+import { AppliedTag, Channel, Tag } from '@prisma/client'
+import { useClickOutside } from '@react-hooks-library/core'
 import {
   ColumnDef,
   createColumnHelper,
@@ -8,23 +15,20 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { AppliedTag, Channel, Tag } from '@prisma/client'
-import ChannelContextMenu from '@gruent/hub/components/organisms/ChannelsTable/ChannelContextMenu'
-import ListTable from '@gruent/hub/components/atoms/ListTable'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import {
   CirclePlusIcon,
+  ClockIcon,
   CloudIcon,
   InfoIcon,
   LibraryIcon,
   PlusIcon,
   SlidersHorizontalIcon,
+  SquarePenIcon,
 } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { FC, useCallback, useRef, useState } from 'react'
 import TagMenu from '../../modals/TagMenu'
-import { Button } from '@gruent/libs/frontend/components/core/button'
-import { openModal } from '@gruent/libs/frontend/hooks/useModal'
-import { useClickOutside } from '@react-hooks-library/core'
 import SearchBar from '../../molecules/SearchBar'
 
 type Props = {
@@ -81,14 +85,18 @@ const ChannelsTable: FC<Props> = ({
         </div>
       ),
       cell: (info) => (
-        <Link href={`/organizations/${orgId}/spaces/${spaceId}/channels/${info.row.id}/edit`}>
+        <Link
+          className="font-medium hover:underline"
+          href={`/organizations/${orgId}/spaces/${spaceId}/channels/${info.row.id}`}
+        >
           {info.getValue()}
         </Link>
       ),
       size: 200,
       enableSorting: true,
     }),
-    columnHelper.accessor('publishedAt', {
+    columnHelper.display({
+      id: 'published',
       header: () => (
         <div className="flex items-center">
           <CloudIcon size="1em" className="mr-1" />
@@ -96,22 +104,32 @@ const ChannelsTable: FC<Props> = ({
         </div>
       ),
       cell: (info) => {
-        const publishedAt = info.getValue()
-        if (publishedAt) {
-          return (
-            <div className="flex flex-col items-center w-full">
-              <div style={{ width: 8, height: 8 }} className="rounded-full bg-green-500" />
-            </div>
-          )
-        }
+        const publishedAt = apiField<string | null>(info.row.original, 'publishedAt')
         return (
-          <div className="flex flex-col items-center w-full">
-            <div style={{ width: 8, height: 8 }} className="rounded-full bg-gray-300" />
-          </div>
+          <span
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground"
+            title={publishedAt ? new Date(publishedAt).toLocaleString() : undefined}
+          >
+            <span
+              aria-hidden
+              className={`size-2 rounded-full ${publishedAt ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}
+            />
+            {publishedAt ? 'Published' : 'Draft'}
+          </span>
         )
       },
-      size: 125,
-      enableSorting: true,
+      size: 140,
+    }),
+    columnHelper.display({
+      id: 'updated',
+      header: () => (
+        <div className="flex items-center">
+          <ClockIcon size="1em" className="mr-1" />
+          <span>Updated</span>
+        </div>
+      ),
+      cell: (info) => <RelativeTime value={apiField<string>(info.row.original, 'updatedAt')} />,
+      size: 140,
     }),
     columnHelper.accessor('tags', {
       header: () => (
@@ -191,17 +209,16 @@ const ChannelsTable: FC<Props> = ({
     columnHelper.display({
       id: 'contextMenu',
       cell: (info) => (
-        <div className="flex items-center justify-center w-full">
-          {/* <Link
-            className="hover:text-green-700 mr-2"
-            href={`/organizations/${orgId}/spaces/${spaceId}/channels/${info.row.id}/edit`}
-          >
-            <SquarePenIcon size="1.3333em" />
-          </Link> */}
+        <div className="flex items-center justify-end gap-1 w-full">
+          <Button variant="ghost" size="icon-sm" aria-label="Edit channel" title="Edit" asChild>
+            <Link href={`/organizations/${orgId}/spaces/${spaceId}/channels/${info.row.id}/edit`}>
+              <SquarePenIcon />
+            </Link>
+          </Button>
           <ChannelContextMenu spaceId={spaceId} channel={info.row.original} />
         </div>
       ),
-      size: 25,
+      size: 90,
       meta: {
         align: 'right',
       },
@@ -258,8 +275,6 @@ const ChannelsTable: FC<Props> = ({
   return (
     <>
       <ListTable
-        title="Channels"
-        description="Build connections to power your ideas."
         table={table}
         page={page}
         totalPages={totalPages}
@@ -267,11 +282,7 @@ const ChannelsTable: FC<Props> = ({
         headerContent={
           <>
             <div className="flex flex-wrap items-end gap-2 mb-1 relative">
-              <SearchBar
-                paramKey="q"
-                initialFilter={searchFilter}
-                placeholder="Search connections"
-              />
+              <SearchBar paramKey="q" initialFilter={searchFilter} placeholder="Search channels" />
               <div className="grow" />
               <Button
                 variant="outline"
@@ -289,9 +300,9 @@ const ChannelsTable: FC<Props> = ({
               {showFilterOptions && (
                 <div
                   ref={filterOptionsRef}
-                  className="absolute max-w-[500px] z-10 top-10 right-0 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md p-4 flex flex-col gap-2 overflow-hidden"
+                  className="absolute max-w-[500px] z-10 top-10 right-0 bg-popover text-popover-foreground border rounded-md shadow-md p-4 flex flex-col gap-2 overflow-hidden"
                 >
-                  <div className="border-b border-gray-200 dark:border-gray-800 pb-2">
+                  <div className="border-b pb-2">
                     <h2 className="text-sm font-medium mb-1">Tags</h2>
                     <div className="flex flex-wrap items-center gap-2">
                       {tags.map((tag) => {
@@ -322,7 +333,7 @@ const ChannelsTable: FC<Props> = ({
                     </div>
                   </div>
                   <span
-                    className="cursor-pointer transition text-xs text-gray-600 hover:text-red-500"
+                    className="cursor-pointer transition text-xs text-muted-foreground hover:text-red-500"
                     onClick={clearFilters}
                   >
                     Clear filters

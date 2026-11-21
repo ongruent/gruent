@@ -28,11 +28,11 @@ describe('users/search', () => {
     createApiCallMock<ResponseData>(mockResponseCode, mockResponseBody)
 
     // When
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await search('tea_fake', config, 'email-fake')
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/users/search')
+    const expectedUrl = new URL('https://api.gruent.io/v1/users/search')
     expectedUrl.searchParams.set('q', 'email-fake')
 
     expect(global.fetch).toHaveBeenCalledTimes(1)

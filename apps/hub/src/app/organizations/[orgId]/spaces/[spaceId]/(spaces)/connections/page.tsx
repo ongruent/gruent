@@ -1,16 +1,16 @@
-import gruentClient from '@gruent/hub/lib/gruent'
 import CreateConnectionModal from '@gruent/hub/components/modals/CreateConnectionModal'
-import ConnectionsTable from '@gruent/hub/components/organisms/ConnectionsTable'
-import getAccessToken from '@gruent/hub/util/getAccessToken'
-import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
-import { CirclePlusIcon, CircleXIcon, WaypointsIcon } from 'lucide-react'
-import Container from '@gruent/libs/frontend/components/Container'
 import ListTablePlaceholder from '@gruent/hub/components/molecules/ListTablePlaceholder'
+import PageHeader, { PageContent } from '@gruent/hub/components/molecules/PageHeader'
+import ConnectionsTable from '@gruent/hub/components/organisms/ConnectionsTable'
+import gruentClient from '@gruent/hub/lib/gruent'
+import getAccessToken from '@gruent/hub/util/getAccessToken'
 import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
+import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
 import { Tag } from '@prisma/client'
+import { CirclePlusIcon, CircleXIcon, WaypointsIcon } from 'lucide-react'
 
 export const metadata = {
-  title: 'Connections | GRUENT',
+  title: 'Connections | Gruent',
 }
 
 const ConnectionsPage = async ({ params, searchParams }) => {
@@ -36,7 +36,7 @@ const ConnectionsPage = async ({ params, searchParams }) => {
 
   if (connectionListErrors && connectionListErrors.length > 0) {
     return (
-      <div className="mt-4 px-8 py-2">
+      <div>
         <Alert variant="destructive" className="w-fit max-w-xl">
           <CircleXIcon />
           <AlertTitle>Could not list the connections for this space</AlertTitle>
@@ -48,7 +48,7 @@ const ConnectionsPage = async ({ params, searchParams }) => {
 
   if (!connections) {
     return (
-      <div className="mt-4 px-8 py-2">
+      <div>
         <Alert variant="destructive" className="w-fit max-w-xl">
           <CircleXIcon />
           <AlertTitle>Could not list the connections for this space</AlertTitle>
@@ -63,7 +63,7 @@ const ConnectionsPage = async ({ params, searchParams }) => {
 
   if (tagListErrors && tagListErrors.length > 0) {
     return (
-      <div className="mt-4 px-8 py-2">
+      <div>
         <Alert variant="destructive" className="w-fit max-w-xl">
           <CircleXIcon />
           <AlertTitle>Could not list the tags for this space</AlertTitle>
@@ -75,7 +75,7 @@ const ConnectionsPage = async ({ params, searchParams }) => {
 
   if (!tagListResponse) {
     return (
-      <div className="mt-4 px-8 py-2">
+      <div>
         <Alert variant="destructive" className="w-fit max-w-xl">
           <CircleXIcon />
           <AlertTitle>Could not list the tags for this space</AlertTitle>
@@ -90,40 +90,44 @@ const ConnectionsPage = async ({ params, searchParams }) => {
     tags.push(v.tag)
   }
 
+  const isEmpty = Number(totalResults) <= 0 && !filter && !tagFilter
+
   return (
-    <>
+    <PageContent>
       <CreateConnectionModal orgId={orgId} spaceId={spaceId} />
-      <Container>
-        <section className="relative bg-gray-50 rounded-sm py-5 px-10 border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
-          {((Number(totalResults) > 0 && !filter) || filter || tagFilter) && (
-            <ConnectionsTable
-              tags={tags ?? []}
-              searchFilter={filter}
-              tagFilter={tagFilter}
-              orgId={orgId}
-              connections={connections}
-              spaceId={spaceId}
-              page={page!}
-              totalPages={totalPages!}
-              totalResults={totalResults ?? 0}
-            />
-          )}
-          {Number(totalResults) <= 0 && !filter && !tagFilter && (
-            <ListTablePlaceholder
-              title="Connections"
-              description="Devices, APIs, databases, message queues - anything you need to connect."
-            >
-              <WaypointsIcon size="3em" className="text-gray-600 mb-2" />
-              <p className="text-gray-600 text-center mb-2">No connections... yet!</p>
-              <OpenModalButton modalId="createConnection">
-                <CirclePlusIcon />
-                <span>Create your first connection</span>
-              </OpenModalButton>
-            </ListTablePlaceholder>
-          )}
-        </section>
-      </Container>
-    </>
+      <PageHeader
+        icon={WaypointsIcon}
+        title="Connections"
+        description="Devices, APIs, databases, message queues - anything you need to connect."
+      />
+      {!isEmpty && (
+        <ConnectionsTable
+          tags={tags ?? []}
+          searchFilter={filter}
+          tagFilter={tagFilter}
+          orgId={orgId}
+          connections={connections}
+          spaceId={spaceId}
+          page={page!}
+          totalPages={totalPages!}
+          totalResults={totalResults ?? 0}
+        />
+      )}
+      {isEmpty && (
+        <ListTablePlaceholder
+          hideTitle
+          title="Connections"
+          description="Devices, APIs, databases, message queues - anything you need to connect."
+        >
+          <WaypointsIcon className="mb-2 size-10 text-muted-foreground" />
+          <p className="mb-2 text-center text-muted-foreground">No connections... yet!</p>
+          <OpenModalButton modalId="createConnection">
+            <CirclePlusIcon />
+            <span>Create your first connection</span>
+          </OpenModalButton>
+        </ListTablePlaceholder>
+      )}
+    </PageContent>
   )
 }
 

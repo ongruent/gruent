@@ -1,116 +1,16 @@
-import gruentClient from '@gruent/hub/lib/gruent'
-import Image from 'next/image'
-import Link from 'next/link'
-import {
-  CircleIcon,
-  CogIcon,
-  HouseIcon,
-  KeyRoundIcon,
-  ShapesIcon,
-  ShieldUserIcon,
-  UsersIcon,
-  WaypointsIcon,
-} from 'lucide-react'
-import SpaceSelectDropdown from '@gruent/hub/components/organisms/SpaceSelectDropdown'
-import styles from './layout.module.css'
-import getAccessToken from '@gruent/hub/util/getAccessToken'
-import FeedbackButton from '@gruent/hub/components/molecules/FeedbackButton'
+import SpaceShell from '@gruent/hub/components/layouts/AppShell/SpaceShell'
 
 export const metadata = {
-  title: 'Space dashboard | GRUENT',
+  title: 'Space dashboard | Gruent',
 }
 
 const Layout = async ({ children, params }) => {
   const { orgId, spaceId } = await params
 
-  const accessToken = await getAccessToken()
-  if (!accessToken) return null
-
-  // the organization comes with its spaces, which the space selector needs
-  const { data: organization, errors: _organizationErrors } =
-    await gruentClient(accessToken).organizations.get(orgId)
-
   return (
-    <>
-      <div className="flex grow">
-        <FeedbackButton />
-        <aside
-          id="spacesNavbar"
-          className="px-5 py-4 border-r border-gray-200 dark:border-gray-800"
-        >
-          <nav>
-            <Link href={`/dashboard`}>
-              <Image
-                src="/img/logos/app-icon-primary.png"
-                alt="GRUENT logo"
-                width={25}
-                height={25}
-              />
-            </Link>
-            <ul className="flex flex-col gap-4 mt-4">
-              <li id="spaceHome">
-                <Link href={`/organizations/${orgId}/spaces/${spaceId}`}>
-                  <HouseIcon size="1.5em" className={styles.sidebarLink} />
-                </Link>
-              </li>
-              <li id="spaceConnections">
-                <Link href={`/organizations/${orgId}/spaces/${spaceId}/connections`}>
-                  <WaypointsIcon size="1.5em" className={styles.sidebarLink} />
-                </Link>
-              </li>
-              <li id="spaceModels">
-                <Link href={`/organizations/${orgId}/spaces/${spaceId}/models`}>
-                  <ShapesIcon size="1.5em" className={styles.sidebarLink} />
-                </Link>
-              </li>
-              <li id="spaceSecrets">
-                <Link href={`/organizations/${orgId}/spaces/${spaceId}/secrets`}>
-                  <KeyRoundIcon size="1.5em" className={styles.sidebarLink} />
-                </Link>
-              </li>
-              <hr />
-              <li id="spaceTeam">
-                <Link href={`/organizations/${orgId}/spaces/${spaceId}/team`}>
-                  <ShieldUserIcon size="1.5em" className={styles.sidebarLink} />
-                </Link>
-              </li>
-              <li id="spaceSettings">
-                <Link href={`/organizations/${orgId}/spaces/${spaceId}/settings`}>
-                  <CogIcon size="1.5em" className={styles.sidebarLink} />
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </aside>
-        <main className="flex flex-col grow">
-          <header className="flex border-b border-gray-200 dark:border-gray-800 px-8 py-4 h-14">
-            <div className="flex gap-2 items-center w-full text-gray-700 dark:text-gray-300 text-sm">
-              <Link
-                href={`/organizations/${orgId}`}
-                className="flex items-center gap-1 transition text-gray-700 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-200"
-              >
-                <div className="w-5 h-5 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xs">
-                  <UsersIcon size=".875em" />
-                </div>
-                {organization?.name ?? 'Error'}
-              </Link>
-              <span>/</span>
-              {/* not a link: the space selector is a dropdown button */}
-              <div className="flex items-center gap-1">
-                <div className="w-5 h-5 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xs">
-                  <CircleIcon size=".875em" />
-                </div>
-                <SpaceSelectDropdown
-                  organization={organization ?? undefined}
-                  currentSpaceId={spaceId}
-                />
-              </div>
-            </div>
-          </header>
-          <div className="grow px-8 pt-10 pb-20">{children}</div>
-        </main>
-      </div>
-    </>
+    <SpaceShell orgId={orgId} spaceId={spaceId}>
+      <div className="px-8 pt-8 pb-20">{children}</div>
+    </SpaceShell>
   )
 }
 

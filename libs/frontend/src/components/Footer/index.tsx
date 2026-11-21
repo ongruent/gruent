@@ -22,7 +22,7 @@ const Footer = async () => {
           <section className="flex flex-col">
             <Image
               src="/img/logos/mark-cutout-secondary.png"
-              alt="GRUENT logo"
+              alt="Gruent logo"
               width={30}
               height={30}
             />
@@ -59,7 +59,7 @@ const Footer = async () => {
                 </Link>
               </li>
             </ul>
-            <p className="mt-2 text-gray-500">&copy; {new Date().getFullYear()} GRUENT, Inc.</p>
+            <p className="mt-2 text-gray-500">&copy; {new Date().getFullYear()} IOTEA, Inc.</p>
             <p className="text-gray-400 text-sm">
               Made with <HeartIcon size="1em" className="text-red-700" /> and plenty of{' '}
               <CoffeeIcon size="1em" className="text-green-700" />
@@ -78,7 +78,7 @@ const Footer = async () => {
                 <Link href="/pricing">Pricing</Link>
               </li>
               <li>
-                <Link href="mailto:careers@gruent.com?subject=I'd like to work at GRUENT">
+                <Link href="mailto:careers@gruent.io?subject=I'd like to work at Gruent">
                   Careers
                 </Link>
               </li>

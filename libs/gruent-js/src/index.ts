@@ -304,7 +304,7 @@ export class Client {
 export const createClient = (key: string, options?: Partial<ClientOptions>) => {
   // Create default config
   const defaultConfig: ClientConfig = {
-    url: new URL('https://api.gruent.com'),
+    url: new URL('https://api.gruent.io'),
   }
 
   // Replace defaults with provided options
