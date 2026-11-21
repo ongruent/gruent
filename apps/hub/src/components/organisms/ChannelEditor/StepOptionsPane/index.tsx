@@ -5,9 +5,13 @@ import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
 import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 import NodeConfig, { NodeDefinitionsProvider } from '@gruent/libs/frontend/components/NodeConfig'
 import type { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
-import { CircleXIcon } from 'lucide-react'
+import { cn } from 'cn'
+import { CircleAlertIcon, CircleXIcon } from 'lucide-react'
 import { FC, useCallback, useMemo } from 'react'
 import { nodeConfig, type PluginIdentity, pluginIdentity } from '../pluginNodes'
+import { StepCategoryIcon } from '../flow/stepIcons'
+import { stepCategoryStyle } from '../flow/stepStyles'
+import InspectorSection from '../InspectorSection'
 import useNamedOptions from './useNamedOptions'
 
 type Props = {
@@ -44,47 +48,73 @@ const PluginStepOptions: FC<{ step: ChannelNode; identity: PluginIdentity; space
 const StepOptionsPane: FC<Props> = ({ spaceId }) => {
   const currentStep = useChannelEditorStore((state) => state.currentStep)
   const validationErrors = useChannelEditorStore((state) => state.validationErrors)
-  const identity = currentStep ? pluginIdentity(currentStep) : undefined
-  const stepErrors = currentStep ? validationErrors?.stepErrors?.[currentStep.id] : undefined
+  if (!currentStep) return null
+
+  const identity = pluginIdentity(currentStep)
+  const stepErrors = validationErrors?.stepErrors?.[currentStep.id]
+  const { name, type, description } = currentStep.metadata
+  const style = stepCategoryStyle(type)
 
   return (
-    <div className="px-8 py-4 text-sm">
-      <h2 className="uppercase text-gray-500 font-bold text-xs mb-2">Step Options</h2>
-      {currentStep && identity && (
-        <NodeDefinitionsProvider source={nodeDefinitions}>
-          {/* Keyed by step so option state never leaks between steps that share field paths */}
-          <PluginStepOptions
-            key={currentStep.id}
-            step={currentStep}
-            identity={identity}
-            spaceId={spaceId}
-          />
-        </NodeDefinitionsProvider>
-      )}
-      {currentStep && !identity && (
-        <Alert variant="destructive" data-testid="step-config-unsupported">
-          <CircleXIcon />
-          <AlertTitle>Unsupported step definition: {currentStep.metadata.name}</AlertTitle>
-          <AlertDescription>
-            <p>
-              This step has no plugin type and version, so it does not match any definition in the
-              step library.
-            </p>
-            <p>The saved configuration is kept unchanged.</p>
-          </AlertDescription>
-        </Alert>
-      )}
-      {stepErrors && stepErrors.length > 0 && (
-        <div className="mt-4">
-          <h2 className="uppercase text-gray-500 font-bold text-xs mb-2">Step Errors</h2>
-          <ul className="list-disc list-inside">
-            {stepErrors.map((error) => (
-              <li key={error}>{error}</li>
-            ))}
-          </ul>
+    <InspectorSection
+      data-testid="step-options"
+      title={name}
+      description={
+        identity
+          ? `${style.label} · ${identity.pluginType} v${identity.pluginVersion}`
+          : style.label
+      }
+      media={
+        <div
+          className={cn('flex size-9 shrink-0 items-center justify-center rounded-md', style.chip)}
+        >
+          <StepCategoryIcon type={type} className="size-[18px]" />
         </div>
-      )}
-    </div>
+      }
+    >
+      <div className="flex flex-col gap-4 text-sm">
+        {description && <p className="-mt-1 text-xs text-muted-foreground">{description}</p>}
+        {stepErrors && stepErrors.length > 0 && (
+          <Alert variant="destructive" data-testid="step-errors">
+            <CircleAlertIcon />
+            <AlertTitle>
+              {stepErrors.length === 1 ? '1 issue' : `${stepErrors.length} issues`} with this step
+            </AlertTitle>
+            <AlertDescription>
+              <ul className="list-inside list-disc">
+                {stepErrors.map((error) => (
+                  <li key={error}>{error}</li>
+                ))}
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
+        {identity && (
+          <NodeDefinitionsProvider source={nodeDefinitions}>
+            {/* Keyed by step so option state never leaks between steps that share field paths */}
+            <PluginStepOptions
+              key={currentStep.id}
+              step={currentStep}
+              identity={identity}
+              spaceId={spaceId}
+            />
+          </NodeDefinitionsProvider>
+        )}
+        {!identity && (
+          <Alert variant="destructive" data-testid="step-config-unsupported">
+            <CircleXIcon />
+            <AlertTitle>Unsupported step definition: {name}</AlertTitle>
+            <AlertDescription>
+              <p>
+                This step has no plugin type and version, so it does not match any definition in the
+                step library.
+              </p>
+              <p>The saved configuration is kept unchanged.</p>
+            </AlertDescription>
+          </Alert>
+        )}
+      </div>
+    </InspectorSection>
   )
 }
 

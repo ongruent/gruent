@@ -8,21 +8,20 @@ import { useQuery } from '@tanstack/react-query'
 import gruentClient from '@gruent/hub/lib/gruent'
 import {
   CircleIcon,
-  CirclePlusIcon,
   CircleXIcon,
   ClipboardIcon,
-  CloudIcon,
   EllipsisVerticalIcon,
   FileSearchIcon,
   GitForkIcon,
   HistoryIcon,
   LoaderCircleIcon,
-  PanelsTopLeftIcon,
+  MousePointerClickIcon,
+  PlusIcon,
   SaveIcon,
   ShareIcon,
+  SplineIcon,
   Trash2Icon,
   UsersIcon,
-  XIcon,
 } from 'lucide-react'
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
 import StepLibraryPane from '@gruent/hub/components/organisms/ChannelEditor/StepLibraryPane'
@@ -30,15 +29,14 @@ import StepOptionsPane from '@gruent/hub/components/organisms/ChannelEditor/Step
 import ChannelOptionsPane from '@gruent/hub/components/organisms/ChannelEditor/ChannelOptionsPane'
 import NoteOptionsPane from '@gruent/hub/components/organisms/ChannelEditor/NoteOptionsPane'
 import Modal from '@gruent/libs/frontend/components/Modal'
-import ChannelExecutionsTable from '@gruent/hub/components/organisms/ChannelExecutionsTable'
+import ExecutionHistory from '@gruent/hub/components/organisms/ChannelEditor/ExecutionHistory'
+import InspectorSection from '@gruent/hub/components/organisms/ChannelEditor/InspectorSection'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import useChannelConfig from '@gruent/libs/frontend/hooks/useChannelConfig'
 import copyToClipboard from '@gruent/libs/frontend/util/copyToClipboard'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import Link from 'next/link'
 import dayjs from 'dayjs'
-import Loading from '../../loading'
-import StepExecutionLogEntry from '@gruent/libs/frontend/components/StepExecutionLogEntry'
 import { Space } from '@prisma/client'
 import { Organization } from '@prisma/client'
 import { handleDeleteChannel } from '@gruent/hub/actions/channels'
@@ -81,12 +79,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
     'PUBLISHED' | 'INITIALIZING' | 'UNPUBLISHED'
   >()
 
-  const [channelExecutionsPage, setChannelExecutionsPage] = useState(1)
-  const [channelExecutionsTotalPages, setChannelExecutionsTotalPages] = useState(1)
-  const [channelExecutionsTotalResults, setChannelExecutionsTotalResults] = useState(0)
-  const [channelExecutionsStatusFilter, setChannelExecutionsStatusFilter] = useState<string>()
-  const [currentExecutionId, setCurrentExecutionId] = useState<string>()
-  const [stepLibraryOpen, setStepLibraryOpen] = useState(false)
+  const [stepLibraryOpen, setStepLibraryOpen] = useState(true)
   const { accessToken } = useAuth()
 
   const currentStep = useChannelEditorStore((state) => state.currentStep)
@@ -138,104 +131,6 @@ const ChannelByIdEditClientPage: FC<Props> = ({
     },
   })
 
-  const {
-    data: channelExecutionList,
-    error: getChannelExecutionsError,
-    refetch: refetchChannelExecutions,
-    isFetching: isChannelExecutionsFetching,
-    isRefetching: isChannelExecutionsRefetching,
-  } = useQuery({
-    queryKey: [
-      'channelExecutions',
-      spaceId,
-      channelId,
-      channelExecutionsPage,
-      channelExecutionsStatusFilter,
-    ],
-    queryFn: async () => {
-      if (!accessToken) throw new Error('Invalid auth session.')
-
-      const {
-        data: channelExecutions,
-        errors,
-        totalPages,
-        totalResults,
-      } = await gruentClient(accessToken).channels.executions.list(spaceId, channelId, {
-        page: channelExecutionsPage,
-        statusFilter: channelExecutionsStatusFilter,
-      })
-
-      if (errors && errors.length > 0) throw new Error(errors[0])
-
-      if (!channelExecutions) throw new Error('Invalid channel executions.')
-
-      setChannelExecutionsTotalPages(totalPages!)
-      setChannelExecutionsTotalResults(totalResults!)
-
-      return channelExecutions
-    },
-  })
-
-  const {
-    data: currentExecution,
-    error: getCurrentExecutionError,
-    isLoading: isCurrentExecutionLoading,
-    refetch: refetchCurrentExecution,
-  } = useQuery({
-    queryKey: ['channelExecution', spaceId, channelId, currentExecutionId],
-    enabled: !!currentExecutionId && !!accessToken,
-    queryFn: async () => {
-      if (!accessToken) throw new Error('Invalid auth session.')
-      if (!currentExecutionId) return undefined
-
-      const { data: execution, errors } = await gruentClient(accessToken).channels.executions.get(
-        spaceId,
-        currentExecutionId,
-      )
-
-      if (errors && errors.length > 0) throw new Error(errors[0])
-      if (!execution) throw new Error('Invalid execution.')
-
-      return execution
-    },
-  })
-
-  // Refetch the current execution when the current execution ID changes
-  useEffect(() => {
-    if (!currentExecutionId) return
-    refetchCurrentExecution()
-  }, [currentExecutionId, refetchCurrentExecution])
-
-  const currentExecutionDetailsJsx = useMemo(() => {
-    if (isCurrentExecutionLoading) return <Loading />
-    if (getCurrentExecutionError)
-      return (
-        <Alert variant="destructive" className="w-fit max-w-xl">
-          <CircleXIcon />
-          <AlertTitle>Could not get the selected channel execution</AlertTitle>
-          <AlertDescription>{`${getCurrentExecutionError.message}`}</AlertDescription>
-        </Alert>
-      )
-    if (!currentExecution) return
-
-    const { stepExecutionLogs } = currentExecution
-
-    return stepExecutionLogs.map((stepExecutionLog, index) => {
-      const { level, timestamp, logAttributes } = stepExecutionLog
-      const { node: step } = logAttributes
-
-      return (
-        <StepExecutionLogEntry
-          key={`${step}-${level}-${timestamp}-${index}`}
-          stepExecutionLog={stepExecutionLog}
-        />
-      )
-    })
-
-    return <></>
-  }, [currentExecution, isCurrentExecutionLoading, getCurrentExecutionError])
-
-
   // Reset the channel editor store on initial load
   useEffect(() => {
     resetChannelEditorStore()
@@ -274,20 +169,6 @@ const ChannelByIdEditClientPage: FC<Props> = ({
     // Set name
     setChannelName(channel.name)
   }, [channel, setChannelName, upsertStep, upsertEdge, upsertNote, setRuntime])
-
-  const handleChannelExecutionsPageChange = (newPage: number) => {
-    setChannelExecutionsPage(newPage)
-    refetchChannelExecutions()
-  }
-
-  const handleChannelExecutionsStatusFilterChange = (status: string | null) => {
-    if (status === channelExecutionsStatusFilter || status === null) {
-      setChannelExecutionsStatusFilter(undefined)
-    } else {
-      setChannelExecutionsStatusFilter(status)
-    }
-    refetchChannelExecutions()
-  }
 
   // When channel status changes, refetch the channel and alert the user
   useEffect(() => {
@@ -440,6 +321,18 @@ const ChannelByIdEditClientPage: FC<Props> = ({
     }
   }, [channelId, spaceId, accessToken])
 
+  const hasSelection = !!(currentStep || currentEdge || currentNote)
+  const selectionLabel = currentStep ? 'step' : currentNote ? 'note' : 'connection'
+
+  const handleDeleteSelection = () => {
+    if (currentStep) removeStep(currentStep.id)
+    if (currentEdge) removeEdge(currentEdge.id)
+    if (currentNote) removeNote(currentNote.id)
+    setCurrentStep(null)
+    setCurrentEdge(null)
+    setCurrentNote(null)
+  }
+
   if (getChannelConfigStatus === 'pending') {
     return (
       <div className="w-full h-full flex justify-center items-center">
@@ -577,14 +470,22 @@ const ChannelByIdEditClientPage: FC<Props> = ({
             <Button variant="outline" className="text-xs" onClick={handleSave}>
               Save
             </Button>
-            <FileSearchIcon
-              size="1.5em"
-              className="transition cursor-pointer hover:text-green-700"
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="hover:text-green-700"
+              aria-label="Execution history"
+              title={`Execution history (${modifierKeySymbol}I)`}
               onClick={() => openModal('channelExecutionsTable')}
-            />
-            <HistoryIcon
-              size="1.5em"
-              className="transition cursor-pointer hover:text-green-700"
+            >
+              <FileSearchIcon className="size-[1.5em]!" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="hover:text-green-700"
+              aria-label="Channel versions"
+              title="Channel versions"
               onClick={() =>
                 addToast({
                   title: 'Coming soon',
@@ -592,7 +493,9 @@ const ChannelByIdEditClientPage: FC<Props> = ({
                   level: 'info',
                 })
               }
-            />
+            >
+              <HistoryIcon className="size-[1.5em]!" />
+            </Button>
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon-sm" aria-label="Open actions menu">
@@ -609,7 +512,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
                   <DropdownMenuShortcut>{modifierKeySymbol}S</DropdownMenuShortcut>
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => openModal('channelExecutionsTable')}>
-                  <PanelsTopLeftIcon /> Switch modes
+                  <FileSearchIcon /> Execution history
                   <DropdownMenuShortcut>{modifierKeySymbol}I</DropdownMenuShortcut>
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -641,190 +544,59 @@ const ChannelByIdEditClientPage: FC<Props> = ({
       </header>
       <div
         id="channelEditor"
-        className="flex overflow-y-hidden bg-gray-50 text-gray-700 dark:bg-gray-900 dark:text-gray-200 relative w-[calc(100vw-65px)] h-[calc(100vh-57px)]"
+        className="flex overflow-hidden bg-background text-foreground relative w-[calc(100vw-65px)] h-[calc(100vh-57px)]"
       >
-        <Modal id="channelExecutionsTable" title="Channel executions" showAccept={false}>
-          <p>
-            <CloudIcon size="1em" className="mr-1" />
-            {channelStatus === 'PUBLISHED' && (
-              <span className="py-1 px-3 text-sm rounded-full bg-green-600 dark:bg-green-300 text-white dark:text-green-900">
-                Published
-              </span>
-            )}
-            {channelStatus === 'INITIALIZING' && (
-              <span className="py-1 px-3 text-sm bg-orange-600 dark:bg-orange-300 text-white dark:text-orange-900 rounded-full">
-                Initializing
-              </span>
-            )}
-            {channelStatus === 'UNPUBLISHED' && (
-              <span className="py-1 px-3 text-sm rounded-full bg-gray-100 dark:bg-gray-800">
-                Draft
-              </span>
-            )}
-          </p>
-          {getChannelExecutionsError && (
-            <>
-              <Alert variant="destructive" className="w-fit max-w-xl">
-                <CircleXIcon />
-                <AlertTitle>Could not get channel executions</AlertTitle>
-                <AlertDescription>{`${getChannelExecutionsError.message}`}</AlertDescription>
-              </Alert>
-            </>
-          )}
-          {!getChannelExecutionsError && (
-            <>
-              <ChannelExecutionsTable
-                orgId={orgId}
-                spaceId={spaceId}
-                channelExecutionList={channelExecutionList ?? []}
-                page={channelExecutionsPage}
-                totalPages={channelExecutionsTotalPages}
-                totalResults={channelExecutionsTotalResults}
-                onPageChange={(newPage) => {
-                  handleChannelExecutionsPageChange(newPage)
-                }}
-                onStatusFilterChange={(status) => {
-                  handleChannelExecutionsStatusFilterChange(status)
-                }}
-                statusFilter={channelExecutionsStatusFilter}
-                isLoading={isChannelExecutionsFetching || isChannelExecutionsRefetching}
-                autoRefresh={3e3}
-                onExecutionClick={(executionId) => {
-                  setCurrentExecutionId(executionId)
-                  openModal('channelExecutionDetails')
-                }}
-              />
-            </>
-          )}
+        <Modal
+          id="channelExecutionsTable"
+          title="Execution history"
+          showAccept={false}
+          showClose={false}
+          className="sm:max-w-xl"
+        >
+          <div className="-mx-7 -my-8">
+            <ExecutionHistory
+              spaceId={spaceId}
+              channelId={channelId}
+              channelStatus={channelStatus}
+            />
+          </div>
         </Modal>
-        {currentExecutionDetailsJsx && (
-          <Modal id="channelExecutionDetails" title="Channel execution details" showAccept={false}>
-            <div style={{ width: '50vw' }}>
-              <div className="mb-4 text-gray-600 dark:text-gray-500">
-                <small>
-                  <Link
-                    className="transition hover:text-gray-800"
-                    href={`/organizations/${orgId}/spaces/${spaceId}`}
-                  >
-                    Space
-                  </Link>{' '}
-                  &gt;&nbsp;
-                  <span
-                    className="transition cursor-pointer hover:text-gray-800"
-                    onClick={() => {
-                      setCurrentExecutionId(undefined)
-                      openModal('channelExecutionsTable')
-                    }}
-                  >
-                    Channel
-                  </span>
-                  &gt;&nbsp;
-                  {currentExecutionId}
-                </small>
-              </div>
-              <h2 className="mb-2">Channel Execution Details</h2>
-              {currentExecution ? (
-                <p>
-                  <small>
-                    {currentExecution.status} - Started at{' '}
-                    {dayjs(currentExecution.startTime).format('MM/DD/YYYY HH:mm:ss.SSS')}, ended at{' '}
-                    {dayjs(currentExecution.endTime).format('MM/DD/YYYY HH:mm:ss.SSS')}
-                  </small>
-                </p>
-              ) : (
-                <p>
-                  <small>Unknown</small>
-                </p>
-              )}
-              {currentExecutionDetailsJsx}
-            </div>
-          </Modal>
-        )}
-        <Modal id="exportChannel" title="Export channel" showAccept={false}>
-          <div
-            style={{ maxWidth: 500, maxHeight: 500 }}
-            className="overflow-scroll bg-gray-900 text-sm text-gray-200 rounded-sm p-3"
-          >
-            <pre className="relative">
-              <ClipboardIcon
-                size="1.3333em"
-                className="absolute top-0 right-0 cursor-pointer hover:text-gray-100"
-                onClick={handleCopyChannelConfig}
-              />
+        <Modal
+          id="exportChannel"
+          title="Export channel"
+          description="The channel configuration as JSON."
+          showTitle
+          showAccept={false}
+        >
+          <div className="relative rounded-lg border bg-muted/40">
+            <Button
+              variant="outline"
+              size="sm"
+              className="absolute top-2 right-2 bg-background"
+              onClick={handleCopyChannelConfig}
+            >
+              <ClipboardIcon /> Copy
+            </Button>
+            <pre className="max-h-[60vh] overflow-auto p-4 font-mono text-xs">
               {JSON.stringify(channelConfig, null, 2)}
             </pre>
           </div>
         </Modal>
 
-        <div className="absolute top-5 left-5 flex flex-col gap-1">
-          <div className="p-2 cursor-pointer z-30">
-            <AnimatePresence initial={false} mode="wait">
-              <motion.div
-                key={stepLibraryOpen ? 'close' : 'open'}
-                initial={{ opacity: 0, rotate: -90 }}
-                animate={{ opacity: 1, rotate: 0 }}
-                exit={{ opacity: 0, rotate: 90 }}
-                transition={{ duration: 0.1 }}
-              >
-                {stepLibraryOpen ? (
-                  <XIcon
-                    size="1.5em"
-                    className="transition text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
-                    onClick={() => setStepLibraryOpen(false)}
-                  />
-                ) : (
-                  <CirclePlusIcon
-                    size="1.5em"
-                    className="transition text-gray-700 dark:text-gray-300 hover:text-brand-primary bg-gray-50 dark:bg-gray-900"
-                    onClick={() => setStepLibraryOpen(true)}
-                  />
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-          <div className="px-2 cursor-pointer z-20">
-            <AnimatePresence initial={false} mode="wait">
-              <motion.div
-                key={
-                  currentStep || currentEdge || currentNote
-                    ? 'showDeleteSelection'
-                    : 'hideDeleteSelection'
-                }
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.1 }}
-              >
-                {(currentStep || currentEdge || currentNote) && (
-                  <Trash2Icon
-                    size="1.5em"
-                    className="hover:text-red-500"
-                    onClick={() => {
-                      if (currentStep) removeStep(currentStep.id)
-                      if (currentEdge) removeEdge(currentEdge.id)
-                      if (currentNote) removeNote(currentNote.id)
-                      setCurrentStep(null)
-                      setCurrentEdge(null)
-                      setCurrentNote(null)
-                    }}
-                  />
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </div>
-        <AnimatePresence>
+        <AnimatePresence initial={false}>
           {stepLibraryOpen && (
-            <motion.div
-              className="absolute top-5 left-5 pl-8 pr-2 py-3 w-fit max-w-[300px] bg-gray-50 dark:bg-gray-900 rounded-sm border border-green-700 dark:border-green-300 z-20 overflow-y-scroll"
-              style={{ boxShadow: '3px 3px 6px 0 rgba(0, 0, 0, 0.03)', maxHeight: '80%' }}
-              initial={{ opacity: 0, scale: 0, transformOrigin: 'top left' }}
-              animate={{ opacity: 1, scale: 1, transformOrigin: 'top left' }}
-              exit={{ opacity: 0, scale: 0, transformOrigin: 'top left' }}
+            <motion.aside
+              key="stepLibrary"
+              className="shrink-0 overflow-hidden border-r bg-background"
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 288, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
               transition={{ duration: 0.2, ease: 'easeInOut' }}
             >
-              <StepLibraryPane />
-            </motion.div>
+              <div className="h-full w-72">
+                <StepLibraryPane onClose={() => setStepLibraryOpen(false)} />
+              </div>
+            </motion.aside>
           )}
         </AnimatePresence>
 
@@ -834,17 +606,73 @@ const ChannelByIdEditClientPage: FC<Props> = ({
             onExport: () => openModal('exportChannel'),
             onChangeMode: () => openModal('channelExecutionsTable'),
           }}
+          toolbar={
+            <>
+              {!stepLibraryOpen && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-background shadow-xs"
+                  onClick={() => setStepLibraryOpen(true)}
+                >
+                  <PlusIcon /> Add step
+                </Button>
+              )}
+              <AnimatePresence initial={false}>
+                {hasSelection && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.1 }}
+                  >
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-background shadow-xs hover:text-destructive"
+                      aria-label={`Delete selected ${selectionLabel}`}
+                      title={`Delete selected ${selectionLabel} (Delete)`}
+                      onClick={handleDeleteSelection}
+                    >
+                      <Trash2Icon /> Delete {selectionLabel}
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </>
+          }
         />
 
-        <div
-          className="border-l border-gray-200 dark:border-gray-800 flex flex-col overflow-y-scroll"
-          style={{ width: '35%', minWidth: 350 }}
+        <aside
+          className="w-[360px] xl:w-[400px] shrink-0 border-l bg-background flex flex-col overflow-y-auto"
+          data-testid="channel-inspector"
         >
           {currentStep && <StepOptionsPane spaceId={spaceId} />}
           {currentNote && <NoteOptionsPane />}
-          {(currentStep || currentNote) && <hr className="border-gray-200 dark:border-gray-800" />}
+          {currentEdge && (
+            <InspectorSection
+              title="Connection"
+              description={`${steps.get(currentEdge.from.nodeId)?.metadata.name ?? 'Unknown step'} → ${steps.get(currentEdge.to.nodeId)?.metadata.name ?? 'Unknown step'}`}
+              media={
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                  <SplineIcon className="size-[18px]" />
+                </div>
+              }
+            />
+          )}
+          {!hasSelection && (
+            <InspectorSection
+              title="Nothing selected"
+              description="Select a step or note on the canvas to configure it."
+              media={
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-dashed text-muted-foreground">
+                  <MousePointerClickIcon className="size-[18px]" />
+                </div>
+              }
+            />
+          )}
           <ChannelOptionsPane spaceId={spaceId} channel={channel} />
-        </div>
+        </aside>
       </div>
     </>
   )

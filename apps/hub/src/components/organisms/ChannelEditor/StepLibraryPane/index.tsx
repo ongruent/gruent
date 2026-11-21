@@ -4,15 +4,23 @@ import nodeDefinitions from '@gruent/hub/lib/nodeDefinitions'
 import type { Category, Definition, ManifestEntry } from '@gruent/libs/engine/steps/ts'
 import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 import { useQuery } from '@tanstack/react-query'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import { cn } from 'cn'
 import {
   ChevronRightIcon,
   CircleXIcon,
+  GripVerticalIcon,
   LoaderCircleIcon,
-  ScrollTextIcon,
+  PanelLeftCloseIcon,
   SearchIcon,
+  SearchXIcon,
+  StickyNoteIcon,
   XIcon,
 } from 'lucide-react'
 import { DragEvent, FC, useMemo, useState } from 'react'
+import { StepTypeIcon } from '../flow/stepIcons'
+import { stepCategoryStyle } from '../flow/stepStyles'
 import StepLibrarySectionStep from './StepLibrarySectionStep'
 
 const CATEGORIES: Category[] = ['source', 'processing', 'conditional', 'action', 'custom']
@@ -52,9 +60,13 @@ const matches = ({ entry, definition }: LibraryEntry, query: string) => {
   ].some((s) => s?.toLowerCase().includes(q))
 }
 
-const StepLibraryPane: FC = () => {
+type Props = {
+  onClose?: () => void
+}
+
+const StepLibraryPane: FC<Props> = ({ onClose }) => {
   const [searchQuery, setSearchQuery] = useState('')
-  const [openSections, setOpenSections] = useState<Category[]>([])
+  const [collapsedSections, setCollapsedSections] = useState<Category[]>([])
 
   const {
     data: library,
@@ -70,9 +82,10 @@ const StepLibraryPane: FC = () => {
     () => (library ?? []).filter((e) => matches(e, searchQuery)),
     [library, searchQuery],
   )
+  const isSearching = searchQuery.trim().length > 0
 
   const toggleSection = (category: Category) =>
-    setOpenSections((current) =>
+    setCollapsedSections((current) =>
       current.includes(category) ? current.filter((c) => c !== category) : [...current, category],
     )
 
@@ -89,98 +102,145 @@ const StepLibraryPane: FC = () => {
   }
 
   return (
-    <div className="flex flex-col w-full min-w-56 overflow-y-scroll overflow-x-hidden">
-      <h2 className="uppercase text-gray-500 dark:text-gray-100 font-bold text-xs mb-2 pt-px">
-        Steps
-      </h2>
-      <div className="flex relative w-full items-bottom mb-2">
-        <SearchIcon size=".875em" className="mr-1 text-gray-700" />
-        <input
-          name="stepSearch"
-          type="text"
-          autoComplete="off"
-          autoCorrect="off"
-          spellCheck="false"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="outline-hidden border-0 border-b bg-transparent transition border-gray-400 hover:border-gray-800 focus:border-gray-800 text-xs mt-0 grow"
-        />
-        {searchQuery.length > 0 && (
-          <XIcon
-            size="1em"
-            onClick={() => setSearchQuery('')}
-            className="absolute right-0 t-1/2 cursor-pointer"
-          />
+    <div className="flex h-full w-full flex-col" data-testid="step-library">
+      <div className="flex items-start gap-2 px-4 pt-4 pb-3">
+        <div className="min-w-0 grow">
+          <h2 className="text-sm font-semibold">Steps</h2>
+          <p className="text-xs text-muted-foreground">Drag a step onto the canvas</p>
+        </div>
+        {onClose && (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="-mt-1 -mr-2 text-muted-foreground"
+            aria-label="Hide step library"
+            title="Hide step library"
+            onClick={onClose}
+          >
+            <PanelLeftCloseIcon />
+          </Button>
         )}
       </div>
-
-      {isLoading && (
-        <p className="flex items-center gap-2 text-xs text-gray-500" role="status">
-          <LoaderCircleIcon size="1em" className="animate-spin" /> Loading step library…
-        </p>
-      )}
-      {error && (
-        <Alert variant="destructive">
-          <CircleXIcon />
-          <AlertTitle>Could not load the step library</AlertTitle>
-          <AlertDescription>{error.message}</AlertDescription>
-        </Alert>
-      )}
-
-      {CATEGORIES.map((category) => {
-        const entries = available.filter((e) => e.entry.category === category)
-        if (entries.length === 0) return null
-        const open = openSections.includes(category) || available.length <= 5
-
-        return (
-          <section key={category}>
-            <div
-              className="flex items-center cursor-pointer select-none"
-              onClick={() => toggleSection(category)}
+      <div className="px-4 pb-3">
+        <div className="relative">
+          <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            name="stepSearch"
+            type="text"
+            placeholder="Search steps"
+            aria-label="Search steps"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck="false"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-8 pr-8 pl-8"
+          />
+          {isSearching && (
+            <button
+              type="button"
+              aria-label="Clear search"
+              onClick={() => setSearchQuery('')}
+              className="absolute top-1/2 right-2.5 flex -translate-y-1/2 cursor-pointer items-center text-muted-foreground transition-colors hover:text-foreground"
             >
-              <ChevronRightIcon
-                size="1em"
-                className={`mr-1 transition transform duration-200 ${open ? 'rotate-90 text-gray-700 dark:text-gray-500' : 'text-gray-600 dark:text-gray-400'}`}
-              />
-              <h3
-                className={`transition text-sm font-semibold capitalize ${open ? 'text-gray-700' : ''}`}
-              >
-                {category}
-              </h3>
-            </div>
-            {open && (
-              <div>
-                {entries.map(({ entry, definition, error }) =>
-                  definition ? (
-                    <StepLibrarySectionStep key={definition.key} definition={definition} />
-                  ) : (
-                    <p
-                      key={`${entry.pluginType}@${entry.pluginVersion}`}
-                      className="my-1 text-xs text-destructive"
-                      role="alert"
-                    >
-                      {entry.pluginType} v{entry.pluginVersion}: {error}
-                    </p>
-                  ),
-                )}
-              </div>
-            )}
-          </section>
-        )
-      })}
+              <XIcon className="size-4" />
+            </button>
+          )}
+        </div>
+      </div>
 
-      <div className="grow" />
-      <hr className="my-2" />
-      <section>
+      <div className="min-h-0 grow overflow-y-auto px-2 pb-2">
+        {isLoading && (
+          <p
+            className="flex items-center gap-2 px-2 py-2 text-xs text-muted-foreground"
+            role="status"
+          >
+            <LoaderCircleIcon className="size-4 animate-spin" /> Loading step library…
+          </p>
+        )}
+        {error && (
+          <Alert variant="destructive" className="mx-2 w-auto">
+            <CircleXIcon />
+            <AlertTitle>Could not load the step library</AlertTitle>
+            <AlertDescription>{error.message}</AlertDescription>
+          </Alert>
+        )}
+        {library && available.length === 0 && (
+          <div className="flex flex-col items-center gap-1 px-4 py-8 text-center">
+            <SearchXIcon className="mb-1 size-5 text-muted-foreground" />
+            <p className="text-sm font-medium">No matching steps</p>
+            <p className="text-xs text-muted-foreground">Try a different name or description.</p>
+          </div>
+        )}
+
+        {CATEGORIES.map((category) => {
+          const entries = available.filter((e) => e.entry.category === category)
+          if (entries.length === 0) return null
+          const open = isSearching || !collapsedSections.includes(category)
+          const style = stepCategoryStyle(category)
+
+          return (
+            <section key={category} className="mb-1">
+              <button
+                type="button"
+                aria-expanded={open}
+                onClick={() => toggleSection(category)}
+                className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left select-none transition-colors hover:bg-accent"
+              >
+                <ChevronRightIcon
+                  className={cn(
+                    'size-3.5 text-muted-foreground transition-transform duration-200',
+                    open && 'rotate-90',
+                  )}
+                />
+                <span
+                  className={cn('flex size-4 items-center justify-center rounded-sm', style.chip)}
+                >
+                  <StepTypeIcon type={category} className="size-2.5" />
+                </span>
+                <h3 className="grow text-xs font-medium">{style.label}</h3>
+                <span className="text-xs text-muted-foreground tabular-nums">{entries.length}</span>
+              </button>
+              {open && (
+                <div className="flex flex-col gap-0.5 py-1">
+                  {entries.map(({ entry, definition, error }) =>
+                    definition ? (
+                      <StepLibrarySectionStep key={definition.key} definition={definition} />
+                    ) : (
+                      <p
+                        key={`${entry.pluginType}@${entry.pluginVersion}`}
+                        className="mx-2 my-1 rounded-md border border-destructive/30 bg-destructive/5 px-2 py-1.5 text-xs text-destructive"
+                        role="alert"
+                      >
+                        {entry.pluginType} v{entry.pluginVersion}: {error}
+                      </p>
+                    ),
+                  )}
+                </div>
+              )}
+            </section>
+          )
+        })}
+      </div>
+
+      <div className="border-t p-2">
         <div
           draggable
-          className="my-1 px-1 select-none dark:text-gray-200 text-sm cursor-grab flex items-center"
           onDragStart={(e) => handleNoteDragStart(e)}
+          title="Drag a note onto the canvas"
+          className="group flex cursor-grab items-center gap-3 rounded-md border border-transparent px-2 py-2 select-none transition-colors hover:border-border hover:bg-card hover:shadow-xs active:cursor-grabbing"
+          data-testid="step-library-note"
         >
-          <ScrollTextIcon size="1em" className="mr-1" />
-          <span>Note</span>
+          <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-400">
+            <StickyNoteIcon className="size-4" />
+          </div>
+          <div className="min-w-0 grow">
+            <h4 className="text-sm leading-5 font-medium">Note</h4>
+            <p className="text-xs leading-4 text-muted-foreground">Annotate the canvas</p>
+          </div>
+          <GripVerticalIcon className="size-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
         </div>
-      </section>
+      </div>
     </div>
   )
 }

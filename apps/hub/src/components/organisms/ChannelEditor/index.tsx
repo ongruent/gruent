@@ -10,6 +10,7 @@ import type { ChannelNode } from '@gruent/libs/engine/nodes/v1'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import { addToast } from '@gruent/libs/frontend/hooks/useToast'
 import { CircleAlertIcon, LocateFixedIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react'
+import { Separator } from '@gruent/libs/frontend/components/core/separator'
 import {
   Background,
   BackgroundVariant,
@@ -22,7 +23,7 @@ import {
   ReactFlowProvider,
   useReactFlow,
 } from '@xyflow/react'
-import { DragEvent, FC, useCallback, useMemo, useRef } from 'react'
+import { DragEvent, FC, ReactNode, useCallback, useMemo, useRef } from 'react'
 import ChannelValidationErrorModal from './ChannelValidationErrorModal'
 import { useChannelEditorKeyboardEvents } from './events/keyboard'
 import ChannelStepView from './flow/ChannelStepView'
@@ -40,9 +41,6 @@ const nodeTypes: NodeTypes = {
   channelNote: ChannelNoteView,
 }
 
-const controlButtonClassName =
-  'p-1! bg-gray-50! dark:bg-gray-900! border-gray-400! hover:border-green-600! text-gray-500! hover:text-green-600!'
-
 export type EditorHooks = {
   onSave?: () => void
   onExport?: () => void
@@ -51,9 +49,11 @@ export type EditorHooks = {
 
 type Props = {
   hooks?: EditorHooks
+  /** Controls floated over the top-left corner of the canvas */
+  toolbar?: ReactNode
 }
 
-const ChannelEditorCanvas: FC<Props> = ({ hooks }) => {
+const ChannelEditorCanvas: FC<Props> = ({ hooks, toolbar }) => {
   const editorRef = useRef<HTMLDivElement>(null)
   const { screenToFlowPosition, zoomIn, zoomOut, setViewport } = useReactFlow()
 
@@ -209,25 +209,32 @@ const ChannelEditorCanvas: FC<Props> = ({ hooks }) => {
     [screenToFlowPosition, upsertStep, setCurrentStep, upsertNote, setCurrentNote],
   )
 
+  const channelErrorCount = validationErrors?.channelErrors?.length ?? 0
+
   return (
     <div
       ref={editorRef}
       tabIndex={0}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      className="relative grow flex flex-col focus:outline-hidden bg-gray-50 dark:bg-[#1c1d1c] [--channel-editor-idle-color:var(--color-gray-400)] dark:[--channel-editor-idle-color:var(--color-gray-100)]"
+      className="relative grow flex flex-col min-w-0 focus:outline-hidden bg-muted/40 dark:bg-background [--channel-editor-idle-color:var(--color-gray-400)] dark:[--channel-editor-idle-color:var(--color-gray-600)]"
       data-testid="channel-editor"
     >
       <ChannelValidationErrorModal />
-      {validationErrors &&
-        validationErrors.channelErrors &&
-        validationErrors.channelErrors.length > 0 && (
-          <CircleAlertIcon
-            size="1.5em"
-            className="text-error absolute right-7 top-7 cursor-pointer select-none z-10"
-            onClick={() => openModal('channelValidationErrors')}
-          />
-        )}
+      {toolbar && (
+        <div className="absolute top-3 left-3 z-10 flex items-center gap-2">{toolbar}</div>
+      )}
+      {channelErrorCount > 0 && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="absolute top-3 right-3 z-10 bg-background text-destructive shadow-xs hover:text-destructive"
+          onClick={() => openModal('channelValidationErrors')}
+        >
+          <CircleAlertIcon />
+          {channelErrorCount} channel {channelErrorCount === 1 ? 'issue' : 'issues'}
+        </Button>
+      )}
 
       <ReactFlow<ChannelFlowElement>
         nodes={flowSteps}
@@ -256,42 +263,41 @@ const ChannelEditorCanvas: FC<Props> = ({ hooks }) => {
           <Background
             variant={BackgroundVariant.Dots}
             gap={GRID_SIZE}
-            size={2}
-            color={userTheme === 'dark' ? '#3a3a3a' : '#e8e8e8'}
+            size={1.5}
+            color={userTheme === 'dark' ? '#2e2e30' : '#dbdbde'}
           />
         )}
       </ReactFlow>
 
-      <div className="absolute left-8 bottom-6 flex flex-col gap-1 z-10">
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            aria-label="Zoom in"
-            className={controlButtonClassName}
-            onClick={() => zoomIn({ duration: 150 })}
-          >
-            <ZoomInIcon />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            aria-label="Zoom out"
-            className={controlButtonClassName}
-            onClick={() => zoomOut({ duration: 150 })}
-          >
-            <ZoomOutIcon />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            aria-label="Reset view"
-            className={controlButtonClassName}
-            onClick={() => setViewport(DEFAULT_VIEWPORT, { duration: 150 })}
-          >
-            <LocateFixedIcon />
-          </Button>
-        </div>
+      <div className="absolute bottom-4 left-4 z-10 flex items-center gap-0.5 rounded-lg border bg-background p-0.5 shadow-xs">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Zoom in"
+          title="Zoom in"
+          onClick={() => zoomIn({ duration: 150 })}
+        >
+          <ZoomInIcon />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Zoom out"
+          title="Zoom out"
+          onClick={() => zoomOut({ duration: 150 })}
+        >
+          <ZoomOutIcon />
+        </Button>
+        <Separator orientation="vertical" className="mx-0.5 h-4!" />
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Reset view"
+          title="Reset view"
+          onClick={() => setViewport(DEFAULT_VIEWPORT, { duration: 150 })}
+        >
+          <LocateFixedIcon />
+        </Button>
       </div>
     </div>
   )
