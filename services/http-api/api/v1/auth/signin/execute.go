@@ -7,14 +7,14 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5"
+	gonanoid "github.com/matoous/go-nanoid/v2"
 	sqldb "github.com/ongruent/gruent/db/sqlc"
 	gruenthttp "github.com/ongruent/gruent/libs/http"
 	gruenthttputil "github.com/ongruent/gruent/libs/http/util"
 	"github.com/ongruent/gruent/services/http-api/config"
 	"github.com/ongruent/gruent/services/http-api/services/smtp"
 	"github.com/ongruent/gruent/services/http-api/services/sqlc"
-	"github.com/jackc/pgx/v5"
-	gonanoid "github.com/matoous/go-nanoid/v2"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -141,7 +141,7 @@ func handleMagicLinkLogin(user sqldb.AppUser, appUrl string, ctx context.Context
 
 	// Send an email with the token
 	_, smtpSpan := otel.Tracer("smtp").Start(ctx, "Send magic link email")
-	from := "auth@gruent.com"
+	from := "auth@gruent.io"
 
 	to := []string{*user.Email}
 

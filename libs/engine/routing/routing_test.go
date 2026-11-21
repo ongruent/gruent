@@ -326,3 +326,11 @@ func TestIngressResponses(t *testing.T) {
 		})
 	}
 }
+
+// APIVersion is embedded in signed, stored artifacts and checked by deployed runtimes
+// (services/runtime Plan.API_VERSION), so it must not follow the marketing domain.
+func TestAPIVersionIsStable(t *testing.T) {
+	if APIVersion != "gruent.com/v1" {
+		t.Fatalf("APIVersion changed to %q; stored artifacts and deployed runtimes expect gruent.com/v1", APIVersion)
+	}
+}

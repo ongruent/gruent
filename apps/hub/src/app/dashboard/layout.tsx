@@ -1,52 +1,18 @@
-import { HouseIcon, UserIcon } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import styles from './layout.module.css'
-import getAccessToken, { getSession } from '@gruent/hub/util/getAccessToken'
-import FeedbackButton from '@gruent/hub/components/molecules/FeedbackButton'
+import AppShell from '@gruent/hub/components/layouts/AppShell'
+import getAccessToken from '@gruent/hub/util/getAccessToken'
 
 export const metadata = {
-  title: 'Dashboard | GRUENT',
+  title: 'Dashboard | Gruent',
 }
 
 const Layout = async ({ children }) => {
   const accessToken = await getAccessToken()
-  const { userId } = await getSession(accessToken)
   if (!accessToken) return null
 
   return (
-    <>
-      <div className="flex grow">
-        <FeedbackButton />
-        <aside className="px-5 py-4 border-r border-gray-200 dark:border-gray-800">
-          <nav>
-            <Link href={`/dashboard`}>
-              <Image
-                src="/img/logos/app-icon-primary.png"
-                alt="GRUENT logo"
-                width={25}
-                height={25}
-              />
-            </Link>
-            <ul className="flex flex-col gap-4 mt-4">
-              <li>
-                <Link href={`/dashboard`}>
-                  <HouseIcon size="1.5em" className={styles.sidebarLink} />
-                </Link>
-              </li>
-              <li>
-                <Link href={`/profiles/${userId}`}>
-                  <UserIcon size="1.3333em" className={styles.sidebarLink} />
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </aside>
-        <main className="overflow-y-scroll overflow-y-scroll grow">
-          <div className="mt-4 px-8 py-2">{children}</div>
-        </main>
-      </div>
-    </>
+    <AppShell>
+      <div className="px-8 pt-8 pb-20">{children}</div>
+    </AppShell>
   )
 }
 

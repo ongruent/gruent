@@ -4,7 +4,7 @@ import getAccessToken from '@gruent/hub/util/getAccessToken'
 import gruentClient from '@gruent/hub/lib/gruent'
 import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 export const metadata = {
-  title: 'Import a model | GRUENT',
+  title: 'Import a model | Gruent',
 }
 
 const ImportModelPage = async ({ params }) => {

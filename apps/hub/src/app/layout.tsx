@@ -5,8 +5,11 @@ import Providers from '@gruent/hub/contexts/Providers'
 import { cookies } from 'next/headers'
 export const dynamic = 'force-dynamic'
 
+// Applies the saved theme before the first paint, so dark mode doesn't flash light on load.
+const themeScript = `try{var t=JSON.parse(localStorage.getItem('settings')||'{}').theme;if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');document.documentElement.style.colorScheme='dark'}}catch(e){}`
+
 export const metadata = {
-  title: 'Hub | GRUENT',
+  title: 'Hub | Gruent',
 }
 
 const RootLayout = async ({ children }: { children: React.ReactNode }) => {
@@ -14,8 +17,10 @@ const RootLayout = async ({ children }: { children: React.ReactNode }) => {
   const accessToken = cookieStore.get('access_token')?.value
 
   return (
-    <html>
-      <head />
+    <html suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>
         <div className="flex flex-col min-h-screen">
           <Providers accessToken={accessToken ?? null}>

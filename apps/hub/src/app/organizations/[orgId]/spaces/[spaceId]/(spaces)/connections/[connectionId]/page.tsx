@@ -13,7 +13,7 @@ import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
 import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 
 export const metadata = {
-  title: 'Connection details | GRUENT',
+  title: 'Connection details | Gruent',
 }
 
 const ConnectionDetailsPage = async ({ params }) => {

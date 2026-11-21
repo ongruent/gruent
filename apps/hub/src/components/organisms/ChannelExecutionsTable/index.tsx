@@ -1,6 +1,8 @@
 'use client'
 
-import { FC, useRef, useState } from 'react'
+import ListTable from '@gruent/hub/components/atoms/ListTable'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { useClickOutside } from '@react-hooks-library/core'
 import {
   ColumnDef,
   createColumnHelper,
@@ -8,14 +10,12 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import ListTable from '@gruent/hub/components/atoms/ListTable'
-import Link from 'next/link'
 import dayjs from 'dayjs'
-import { useRouter } from 'next/navigation'
-import ListTablePlaceholder from '../../molecules/ListTablePlaceholder'
 import { SettingsIcon, SlidersHorizontalIcon } from 'lucide-react'
-import { Button } from '@gruent/libs/frontend/components/core/button'
-import { useClickOutside } from '@react-hooks-library/core'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { FC, useRef, useState } from 'react'
+import ListTablePlaceholder from '../../molecules/ListTablePlaceholder'
 
 type ChannelExecutionListItem = {
   executionId: string
@@ -94,7 +94,21 @@ const ChannelExecutionsTable: FC<Props> = ({
     }),
     columnHelper.accessor('status', {
       header: () => 'Status',
-      cell: (info) => info.getValue(),
+      cell: (info) => {
+        const status = info.getValue()
+        const dot =
+          {
+            Completed: 'bg-green-500',
+            'Fatal Error': 'bg-red-500',
+            Timeout: 'bg-yellow-500',
+          }[status] ?? 'bg-gray-300 dark:bg-gray-600'
+        return (
+          <span className="inline-flex items-center gap-1.5">
+            <span aria-hidden className={`size-2 rounded-full ${dot}`} />
+            {status}
+          </span>
+        )
+      },
       enableSorting: true,
     }),
     columnHelper.accessor('startTime', {
@@ -193,9 +207,9 @@ const ChannelExecutionsTable: FC<Props> = ({
                 {showFilterOptions && (
                   <div
                     ref={filterOptionsRef}
-                    className="absolute max-w-[500px] z-10 top-10 right-0 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md p-4 flex flex-col gap-2 overflow-hidden"
+                    className="absolute max-w-[500px] z-10 top-10 right-0 bg-popover text-popover-foreground border rounded-md shadow-md p-4 flex flex-col gap-2 overflow-hidden"
                   >
-                    <div className="border-b border-gray-200 dark:border-gray-800 pb-2">
+                    <div className="border-b pb-2">
                       <h2 className="text-sm font-medium mb-1">Tags</h2>
                       <div className="flex flex-wrap items-center gap-2">
                         {['info', 'error'].map((status) => {
@@ -226,7 +240,7 @@ const ChannelExecutionsTable: FC<Props> = ({
                       </div>
                     </div>
                     <span
-                      className="cursor-pointer transition text-xs text-gray-600 hover:text-red-500"
+                      className="cursor-pointer transition text-xs text-muted-foreground hover:text-red-500"
                       onClick={clearFilters}
                     >
                       Clear filters

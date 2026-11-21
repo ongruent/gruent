@@ -31,11 +31,11 @@ describe('spaces/create', () => {
       name: 'test',
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await create('tea_fake', config, 'org-id-fake', mockRequestData.name)
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/spaces')
+    const expectedUrl = new URL('https://api.gruent.io/v1/spaces')
     expectedUrl.searchParams.set('orgId', 'org-id-fake')
 
     expect(global.fetch).toHaveBeenCalledTimes(1)

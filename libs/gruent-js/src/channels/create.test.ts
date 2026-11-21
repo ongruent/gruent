@@ -37,11 +37,11 @@ describe('channels/create', () => {
       edges: [],
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await create('tea_fake', config, mockRequestData.spaceId, mockRequestData)
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/channels')
+    const expectedUrl = new URL('https://api.gruent.io/v1/channels')
     expectedUrl.searchParams.set('spaceId', mockRequestData.spaceId)
 
     expect(global.fetch).toHaveBeenCalledTimes(1)

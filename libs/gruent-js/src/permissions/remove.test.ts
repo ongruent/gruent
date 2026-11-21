@@ -23,7 +23,7 @@ describe('permissions/remove', () => {
       permissionSetId: 'permission-set-id-fake',
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await remove(
       'tea_fake',
       config,
@@ -32,7 +32,7 @@ describe('permissions/remove', () => {
     )
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/permissions')
+    const expectedUrl = new URL('https://api.gruent.io/v1/permissions')
     expectedUrl.searchParams.set('orgId', mockRequestData.orgId)
 
     expect(global.fetch).toHaveBeenCalledTimes(1)

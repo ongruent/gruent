@@ -33,7 +33,7 @@ describe('channels/executions/list', () => {
       channelId: 'channel-id-fake',
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await list(
       'tea_fake',
       config,
@@ -42,7 +42,7 @@ describe('channels/executions/list', () => {
     )
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/channels/executions')
+    const expectedUrl = new URL('https://api.gruent.io/v1/channels/executions')
     expectedUrl.searchParams.set('spaceId', mockRequestData.spaceId)
     expectedUrl.searchParams.set('channelId', mockRequestData.channelId)
     expectedUrl.searchParams.set('page', '1')

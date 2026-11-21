@@ -23,7 +23,7 @@ describe('spaces/delete', () => {
       spaceId: 'space-id-fake',
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await spacesDelete(
       'tea_fake',
       config,
@@ -32,7 +32,7 @@ describe('spaces/delete', () => {
     )
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/spaces/space-id-fake')
+    const expectedUrl = new URL('https://api.gruent.io/v1/spaces/space-id-fake')
     expectedUrl.searchParams.set('orgId', mockRequestData.organizationId)
 
     expect(global.fetch).toHaveBeenCalledTimes(1)

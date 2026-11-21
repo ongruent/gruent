@@ -26,7 +26,7 @@ func TestHandler(t *testing.T) {
 		"successfully searches users",
 		func(t *testing.T, mocks *apitest.HandlerMocks) {
 			// define prisma mock server response
-			testUserEmail := "test@gruent.com"
+			testUserEmail := "test@gruent.io"
 			testOrgId, _ := id.Generator.NewOrganizationId()
 
 			expectedDatabaseOutput := []db.UserModel{
@@ -99,7 +99,7 @@ func TestHandler(t *testing.T) {
 		func(t *testing.T, mocks *apitest.HandlerMocks) {
 			// define prisma mock server response
 			testOrgId, _ := id.Generator.NewOrganizationId()
-			testUserEmail := "test@gruent.com"
+			testUserEmail := "test@gruent.io"
 
 			mocks.DB.Server.User.Expect(
 				mocks.DB.Client.User.FindMany(

@@ -152,7 +152,7 @@ const ApiKeysTable: FC<Props> = ({
   return (
     <ListTable
       title="API Keys"
-      description={`Programmatically access the GRUENT platform.`}
+      description={`Programmatically access the Gruent platform.`}
       table={table}
       page={page}
       totalPages={totalPages}

@@ -23,11 +23,11 @@ describe('organizations/members/remove', () => {
       userId: 'user-id-fake',
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await remove('tea_fake', config, mockRequestData.orgId, mockRequestData.userId)
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/organizations/members')
+    const expectedUrl = new URL('https://api.gruent.io/v1/organizations/members')
     expectedUrl.searchParams.set('orgId', mockRequestData.orgId)
     expect(global.fetch).toHaveBeenCalledTimes(1)
     expect(global.fetch).toHaveBeenCalledWith(expectedUrl.toString(), {

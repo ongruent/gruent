@@ -34,14 +34,14 @@ describe('models/create', () => {
       attributes: {},
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await create('tea_fake', config, mockRequestData.spaceId, {
       name: mockRequestData.name,
       attributes: mockRequestData.attributes,
     })
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/models')
+    const expectedUrl = new URL('https://api.gruent.io/v1/models')
     expectedUrl.searchParams.set('spaceId', mockRequestData.spaceId)
 
     expect(global.fetch).toHaveBeenCalledTimes(1)

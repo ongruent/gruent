@@ -21,7 +21,7 @@ describe('secrets/create', () => {
       value: 'test',
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await create(
       'tea_fake',
       config,
@@ -31,7 +31,7 @@ describe('secrets/create', () => {
     )
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/secrets')
+    const expectedUrl = new URL('https://api.gruent.io/v1/secrets')
     expectedUrl.searchParams.set('spaceId', 'space-id-fake')
     expect(global.fetch).toHaveBeenCalledTimes(1)
     expect(global.fetch).toHaveBeenCalledWith(expectedUrl.toString(), {

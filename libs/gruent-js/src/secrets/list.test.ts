@@ -21,11 +21,11 @@ describe('spaces/get', () => {
       spaceId: 'space-id-fake',
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await list('tea_fake', config, mockRequestData.spaceId)
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/secrets')
+    const expectedUrl = new URL('https://api.gruent.io/v1/secrets')
     expectedUrl.searchParams.set('spaceId', mockRequestData.spaceId)
 
     expect(global.fetch).toHaveBeenCalledTimes(1)

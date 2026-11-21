@@ -11,40 +11,41 @@ import kotlinx.serialization.json.JsonElement
  */
 @Serializable
 data class Plan(
-  val apiVersion: String,
-  val kind: String,
-  val metadata: Metadata,
-  val publishStrategy: PublishStrategy = PublishStrategy(),
-  val channel: Channel,
-  val bindings: Bindings = Bindings(),
-  val policies: Policies,
+    val apiVersion: String,
+    val kind: String,
+    val metadata: Metadata,
+    val publishStrategy: PublishStrategy = PublishStrategy(),
+    val channel: Channel,
+    val bindings: Bindings = Bindings(),
+    val policies: Policies,
 ) {
-  companion object {
-    const val API_VERSION = "gruent.com/v1"
-    const val KIND = "Plan"
+    companion object {
+        /** Stable wire identity of signed plans (`routing.APIVersion`), independent of the marketing domain. */
+        const val API_VERSION = "gruent.com/v1"
+        const val KIND = "Plan"
 
-    /** Go encodes empty slices as null, so nulls fall back to the property defaults. */
-    val json = Json {
-      ignoreUnknownKeys = true
-      coerceInputValues = true
-    }
+        /** Go encodes empty slices as null, so nulls fall back to the property defaults. */
+        val json = Json {
+            ignoreUnknownKeys = true
+            coerceInputValues = true
+        }
 
-    fun parse(data: ByteArray): Plan {
-      val plan = json.decodeFromString(serializer(), data.decodeToString())
-      require(plan.apiVersion == API_VERSION && plan.kind == KIND) {
-        "unsupported plan ${plan.apiVersion}/${plan.kind}; expected $API_VERSION/$KIND"
-      }
-      return plan
+        fun parse(data: ByteArray): Plan {
+            val plan = json.decodeFromString(serializer(), data.decodeToString())
+            require(plan.apiVersion == API_VERSION && plan.kind == KIND) {
+                "unsupported plan ${plan.apiVersion}/${plan.kind}; expected $API_VERSION/$KIND"
+            }
+            return plan
+        }
     }
-  }
 }
 
 @Serializable
 data class Metadata(
-  val orgId: String = "",
-  val spaceId: String = "",
-  val channelId: String,
-  val channelName: String = "",
+    val orgId: String = "",
+    val spaceId: String = "",
+    val channelId: String,
+    val channelName: String = "",
 )
 
 @Serializable
@@ -58,18 +59,18 @@ data class Graph(val steps: List<Step> = emptyList(), val edges: List<Edge> = em
 
 @Serializable
 data class Step(
-  val id: String,
-  /** "<category>.<label>", e.g. "source.timer-source". */
-  val type: String,
-  val version: String = "",
-  val name: String = "",
-  val definition: StepDefinition? = null,
-  /** Canonical JSON of the step configuration. */
-  val config: JsonElement? = null,
-  val bindingRef: String = "",
-  val redaction: Redaction? = null,
+    val id: String,
+    /** "<category>.<label>", e.g. "source.timer-source". */
+    val type: String,
+    val version: String = "",
+    val name: String = "",
+    val definition: StepDefinition? = null,
+    /** Canonical JSON of the step configuration. */
+    val config: JsonElement? = null,
+    val bindingRef: String = "",
+    val redaction: Redaction? = null,
 ) {
-  val category: String get() = type.substringBefore('.')
+    val category: String get() = type.substringBefore('.')
 }
 
 @Serializable
@@ -83,9 +84,9 @@ data class Edge(val from: String, val fromPort: String = "", val to: String, val
 
 @Serializable
 data class Bindings(
-  val http: List<HttpBinding> = emptyList(),
-  val timer: List<TimerBinding> = emptyList(),
-  val messageQueue: List<MessageQueueBinding> = emptyList(),
+    val http: List<HttpBinding> = emptyList(),
+    val timer: List<TimerBinding> = emptyList(),
+    val messageQueue: List<MessageQueueBinding> = emptyList(),
 )
 
 @Serializable
@@ -93,34 +94,34 @@ data class Overflow(val action: String, val httpStatus: Int = 0)
 
 @Serializable
 data class HttpBinding(
-  val bindingId: String,
-  val stepId: String,
-  val method: String,
-  val path: String,
-  val responseMode: String,
-  val timeoutMs: Long,
-  val subject: String,
-  val overflow: Overflow,
+    val bindingId: String,
+    val stepId: String,
+    val method: String,
+    val path: String,
+    val responseMode: String,
+    val timeoutMs: Long,
+    val subject: String,
+    val overflow: Overflow,
 )
 
 @Serializable
 data class TimerBinding(
-  val bindingId: String,
-  val stepId: String,
-  val cronExpression: String,
-  val subject: String,
-  val overflow: Overflow,
+    val bindingId: String,
+    val stepId: String,
+    val cronExpression: String,
+    val subject: String,
+    val overflow: Overflow,
 )
 
 @Serializable
 data class MessageQueueBinding(
-  val bindingId: String,
-  val stepId: String,
-  val broker: String,
-  val connectionRef: String = "",
-  val topic: String,
-  val subject: String,
-  val overflow: Overflow,
+    val bindingId: String,
+    val stepId: String,
+    val broker: String,
+    val connectionRef: String = "",
+    val topic: String,
+    val subject: String,
+    val overflow: Overflow,
 )
 
 @Serializable
@@ -128,9 +129,9 @@ data class Policies(val runtime: RuntimePolicy)
 
 @Serializable
 data class RuntimePolicy(
-  val executionClass: String = "standard",
-  val concurrency: Concurrency,
-  val timeouts: Timeouts = Timeouts(),
+    val executionClass: String = "standard",
+    val concurrency: Concurrency,
+    val timeouts: Timeouts = Timeouts(),
 )
 
 @Serializable

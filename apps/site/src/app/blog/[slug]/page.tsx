@@ -99,8 +99,8 @@ const buildMetadataCache = async (slug: string) => {
   const authorName = (() => {
     return page.properties.Author.type === 'people' &&
       (page.properties.Author.people[0] as UserObjectResponse).name
-      ? ((page.properties.Author.people[0] as UserObjectResponse).name ?? 'GRUENT')
-      : 'GRUENT'
+      ? ((page.properties.Author.people[0] as UserObjectResponse).name ?? 'Gruent')
+      : 'Gruent'
   })()
 
   const metadataCache: MetadataCache = {
@@ -135,7 +135,7 @@ export async function generateMetadata({ params }, _parent: ResolvingMetadata): 
       description: metadataCache.description,
       openGraph: {
         type: 'article',
-        url: `https://gruent.com/blog/${slug}`,
+        url: `https://gruent.io/blog/${slug}`,
         title: metadataCache.title,
         description: metadataCache.description,
         images: metadataCache.coverImageUrl ? [metadataCache.coverImageUrl] : [],

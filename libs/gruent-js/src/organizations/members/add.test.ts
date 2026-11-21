@@ -23,7 +23,7 @@ describe('organizations/members/add', () => {
       userId: 'user-id-fake',
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await add(
       'tea_fake',
       config,
@@ -32,7 +32,7 @@ describe('organizations/members/add', () => {
     )
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/organizations/members')
+    const expectedUrl = new URL('https://api.gruent.io/v1/organizations/members')
     expectedUrl.searchParams.set('orgId', mockRequestData.organizationId)
     expect(global.fetch).toHaveBeenCalledTimes(1)
     expect(global.fetch).toHaveBeenCalledWith(expectedUrl.toString(), {

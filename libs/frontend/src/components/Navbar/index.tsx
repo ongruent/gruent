@@ -51,7 +51,7 @@ const Navbar: FC = () => {
             <ul className="flex gap-4">
               {/* <li>
                 <Button variant="link" asChild>
-                  <Link href="https://app.gruent.com/sign-in">Sign In</Link>
+                  <Link href="https://app.gruent.io/sign-in">Sign In</Link>
                 </Button>
               </li>
               */}

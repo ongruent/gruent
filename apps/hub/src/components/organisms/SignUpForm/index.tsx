@@ -1,16 +1,17 @@
 'use client'
 
-import Image from 'next/image'
-import { FC, FormEventHandler, useEffect, useState } from 'react'
-import { Button } from '@gruent/libs/frontend/components/core/button'
-import { Field, FieldLabel } from '@gruent/libs/frontend/components/core/field'
-import { Input } from '@gruent/libs/frontend/components/core/input'
-import Link from 'next/link'
-import { addToast } from '@gruent/libs/frontend/hooks/useToast'
-import { useRouter } from 'next/navigation'
-import { EyeIcon } from 'lucide-react'
-// import { signIn } from 'next-auth/react'
 import { signup } from '@gruent/hub/actions/auth'
+import PasswordInput from '@gruent/hub/components/atoms/PasswordInput'
+import AuthCard from '@gruent/hub/components/molecules/AuthCard'
+import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { Field, FieldGroup, FieldLabel } from '@gruent/libs/frontend/components/core/field'
+import { Input } from '@gruent/libs/frontend/components/core/input'
+import { addToast } from '@gruent/libs/frontend/hooks/useToast'
+import { CircleXIcon, LoaderCircleIcon, MailPlusIcon, TriangleAlertIcon } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { FC, FormEventHandler, useState } from 'react'
 
 type Props = {
   invitation?: {
@@ -22,33 +23,10 @@ type Props = {
 }
 
 const SignUpForm: FC<Props> = ({ invitation, inviteToken, inviteTokenError }) => {
-  const [intialEmail, setIntialEmail] = useState<string>()
-  const [showPassword, setShowPassword] = useState<boolean>(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const router = useRouter()
-
-  useEffect(() => {
-    if (invitation) {
-      setIntialEmail(invitation.email)
-    }
-  }, [invitation])
-
-  useEffect(() => {
-    if (inviteTokenError) {
-      addToast({
-        title: 'Invalid or expired invitation token',
-        body: inviteTokenError,
-        level: 'error',
-        ttl: 5,
-      })
-    }
-  }, [inviteTokenError])
-
-  // const handleGithubOauthClick = async () => {
-  //   await signIn('github', {
-  //     redirectTo: `${window.location.origin}/dashboard`,
-  //   })
-  // }
 
   const handleSignupFormSubmit: FormEventHandler = async (e) => {
     e.preventDefault()
@@ -58,114 +36,103 @@ const SignUpForm: FC<Props> = ({ invitation, inviteToken, inviteTokenError }) =>
     const email = formData.get('email') as string
     const password = formData.get('password') as string
 
-    // Sign up
-    const { error } = await signup({
-      email,
-      password,
-      inviteToken,
-      origin: window.location.origin,
-    })
+    setError(null)
+    setSubmitting(true)
+    try {
+      // Sign up
+      const { error } = await signup({
+        email,
+        password,
+        inviteToken,
+        origin: window.location.origin,
+      })
 
-    if (error) {
+      if (error) {
+        setError(error)
+        return
+      }
+
       addToast({
-        title: 'Could not sign up',
-        body: error,
-        level: 'error',
+        title: 'Account created',
+        body: 'An email has been sent to verify your account. Once verified, sign in to continue.',
+        level: 'success',
         ttl: 5,
       })
-      return
+      router.push(`/verify-email?email=${encodeURIComponent(email)}`)
+    } finally {
+      setSubmitting(false)
     }
-
-    addToast({
-      title: 'Account created',
-      body: 'An email has been sent to verify your account. Once verified, sign in to continue.',
-      level: 'success',
-      ttl: 5,
-    })
-    router.push(`/verify-email?email=${encodeURIComponent(email)}`)
   }
 
   return (
-    <div className="flex flex-col max-w-md w-full">
-      {invitation && (
-        <div className="rounded-lg bg-white px-10 py-8 w-full mb-4">
-          <h2 className="text-gray-800 text-2xl">👋 You've been invited!</h2>
-          <p>
-            Once you sign up, you'll be able to access the organization that you were invited to.
-          </p>
-        </div>
+    <AuthCard
+      title={invitation ? "You've been invited" : 'Create your account'}
+      description={
+        invitation
+          ? 'Sign up to join the organization you were invited to.'
+          : 'Connect devices and services, and automate them with channels.'
+      }
+      icon={invitation ? MailPlusIcon : undefined}
+      iconClassName="text-primary"
+      footer={
+        <>
+          Already have an account?{' '}
+          <Link id="signin" href={'/signin'} className="font-medium text-primary hover:underline">
+            Sign in
+          </Link>
+        </>
+      }
+    >
+      {inviteTokenError && (
+        <Alert>
+          <TriangleAlertIcon />
+          <AlertTitle>Invalid or expired invitation</AlertTitle>
+          <AlertDescription>
+            {inviteTokenError}. Ask whoever invited you to send a new invitation.
+          </AlertDescription>
+        </Alert>
       )}
-      <div className="bg-gray-50 rounded-xl py-8 px-9 shadow-xl">
-        <Image
-          src={'/img/logos/app-icon-primary.png'}
-          height={35}
-          width={35}
-          alt="GRUENT logo"
-          className="mb-5"
-        />
-        <h2 className="text-gray-800 text-2xl">Sign Up</h2>
-        <h3 className="text-gray-500 text-lg font-normal">to start using GRUENT</h3>
-        {/* {process.env.NEXT_PUBLIC_GITHUB_ENABLED === 'true' && (
-          <>
-            <div className="my-6">
-              <Button
-                className="flex items-center w-full py-2"
-                variant="transparent"
-                onClick={handleGithubOauthClick}
-              >
-                <Image src="/img/icons/github.svg" alt="Github logo" height={18} width={18} />
-                <span className="text-sm ml-2">Sign up with Github</span>
-              </Button>
-            </div>
-            <div className="flex items-center my-6">
-              <hr className="grow border-gray-400" />
-              <p className="text-sm px-4">or</p>
-              <hr className="grow border-gray-400" />
-            </div>
-          </>
-        )} */}
-        <form onSubmit={handleSignupFormSubmit}>
-          <Field className="my-3">
+      <form onSubmit={handleSignupFormSubmit} className="flex flex-col gap-5">
+        <FieldGroup className="gap-4">
+          <Field>
             <FieldLabel htmlFor="email">Email</FieldLabel>
             <Input
               id="email"
               name="email"
               type="email"
-              defaultValue={intialEmail}
-              autoComplete="off"
+              required
+              placeholder="you@company.com"
+              defaultValue={invitation?.email}
+              autoComplete="email"
               spellCheck={false}
+              aria-invalid={error ? true : undefined}
             />
           </Field>
-          <Field className="my-3 w-full">
+          <Field>
             <FieldLabel htmlFor="password">Password</FieldLabel>
-            <div className="relative flex items-center">
-              <Input
-                id="password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                className="pr-9"
-                autoComplete="off"
-                spellCheck={false}
-              />
-              <EyeIcon
-                size="1em"
-                className="absolute right-3 transition text-gray-500 hover:text-gray-600 cursor-pointer"
-                onClick={() => setShowPassword((current) => !current)}
-              />
-            </div>
+            <PasswordInput
+              id="password"
+              name="password"
+              required
+              autoComplete="new-password"
+              spellCheck={false}
+              aria-invalid={error ? true : undefined}
+            />
           </Field>
-          <Button id="submit" className="w-full" type="submit">
-            Sign up
-          </Button>
-        </form>
-        <p className="text-sm mt-6">
-          Already have an account?{' '}
-          <Link id="signin" href={'/signin'} className="text-green-700">
-            Sign in
-          </Link>
-        </p>
-      </div>
-    </div>
+        </FieldGroup>
+        {error && (
+          <Alert variant="destructive">
+            <CircleXIcon />
+            <AlertTitle>Could not sign up</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        <Button id="submit" className="w-full" type="submit" disabled={submitting}>
+          {submitting && <LoaderCircleIcon className="animate-spin" />}
+          Create account
+        </Button>
+      </form>
+    </AuthCard>
   )
 }
 

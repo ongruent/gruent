@@ -34,7 +34,7 @@ func TestHandler(t *testing.T) {
 			testSpaceId, _ := id.Generator.NewSpaceId()
 			testConnectionId, _ := id.Generator.NewConnectionId()
 			testAttributes := things.HttpServer{
-				Host:     "gruent.com",
+				Host:     "gruent.io",
 				Protocol: "https",
 				Port:     443,
 				Paths: []string{

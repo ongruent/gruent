@@ -32,7 +32,7 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 
 	// Send an email with the token
 	_, smtpSpan := otel.Tracer("smtp").Start(request.Context, "Send invite email")
-	from := "auth@gruent.com"
+	from := "auth@gruent.io"
 
 	to := []string{request.Input.Email}
 

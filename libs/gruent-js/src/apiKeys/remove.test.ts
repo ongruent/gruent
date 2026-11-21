@@ -23,11 +23,11 @@ describe('apiKeys/remove', () => {
       apiKeyId: 'api-key-id-fake',
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await remove('tea_fake', config, mockRequestData.orgId, mockRequestData.apiKeyId)
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/api-keys')
+    const expectedUrl = new URL('https://api.gruent.io/v1/api-keys')
     expectedUrl.searchParams.set('orgId', mockRequestData.orgId)
 
     expect(global.fetch).toHaveBeenCalledTimes(1)

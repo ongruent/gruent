@@ -14,7 +14,7 @@ const NotFound = () => {
       <Container className="text-center items-center mt-24 py-20 justify-center">
         <Image
           src="/img/logos/app-icon-primary.png"
-          alt="GRUENT logo"
+          alt="Gruent logo"
           width={200}
           height={200}
           className="mx-auto"

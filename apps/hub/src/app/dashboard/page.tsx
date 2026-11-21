@@ -1,12 +1,13 @@
 import CreateOrganizationModal from '@gruent/hub/components/modals/CreateOrganizationModal'
-import { ArrowRightIcon, CirclePlusIcon, CircleXIcon } from 'lucide-react'
-import Link from 'next/link'
+import PageHeader, { PageContent } from '@gruent/hub/components/molecules/PageHeader'
 import gruentClient from '@gruent/hub/lib/gruent'
 import getAccessToken, { getSession } from '@gruent/hub/util/getAccessToken'
-import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
 import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
+import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
+import { ArrowRightIcon, CirclePlusIcon, CircleXIcon, HouseIcon } from 'lucide-react'
+import Link from 'next/link'
 export const metadata = {
-  title: 'Dashboard | GRUENT',
+  title: 'Dashboard | Gruent',
 }
 
 const DashboardPage = async () => {
@@ -42,47 +43,49 @@ const DashboardPage = async () => {
   }
 
   return (
-    <div>
+    <PageContent>
       <CreateOrganizationModal />
-      <h1 className="text-2xl mb-6">Welcome to GRUENT</h1>
-      <section id="spaces">
-        <div className="flex items-end mb-4">
-          <div>
-            <h2>Organizations</h2>
-            <p>
-              <small>Collaborate with your team across spaces.</small>
-            </p>
-          </div>
-          <div className="grow" />
+      <PageHeader
+        icon={HouseIcon}
+        title="Welcome to Gruent"
+        description="Pick an organization to get to its spaces."
+        actions={
           <OpenModalButton variant="outline" modalId="createOrganization">
             <CirclePlusIcon />
             <span>Create</span>
           </OpenModalButton>
-        </div>
+        }
+      />
+      <section id="spaces">
+        <h2 className="mb-3 text-sm font-semibold text-muted-foreground">Organizations</h2>
         {user.organizations && user.organizations.length > 0 && (
-          <div className="grid grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {user.organizations.map((organizationMembership) => {
+              const { organization } = organizationMembership
               return (
                 <Link
-                  key={organizationMembership.organization.id}
-                  className="spaceCard"
-                  href={`/organizations/${organizationMembership.organization.id}`}
+                  key={organization.id}
+                  className="spaceCard group flex items-center gap-3 rounded-lg border bg-card p-4 transition-colors hover:bg-muted/40"
+                  href={`/organizations/${organization.id}`}
                 >
-                  <div className="flex px-4 py-6 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition rounded-md">
-                    <h2>{organizationMembership.organization.name}</h2>
-                    <div className="grow" />
-                    <ArrowRightIcon size="1em" className="text-gray-600" />
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-md border bg-muted/50 text-sm font-semibold text-muted-foreground">
+                    {organization.name.slice(0, 1).toUpperCase()}
                   </div>
+                  <span className="truncate font-medium">{organization.name}</span>
+                  <div className="grow" />
+                  <ArrowRightIcon className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
                 </Link>
               )
             })}
           </div>
         )}
         {(!user.organizations || user.organizations.length <= 0) && (
-          <p>You're not a member of any organizations... yet!</p>
+          <p className="text-sm text-muted-foreground">
+            You're not a member of any organizations... yet!
+          </p>
         )}
       </section>
-    </div>
+    </PageContent>
   )
 }
 

@@ -1,21 +1,11 @@
-import {
-  CogIcon,
-  HouseIcon,
-  type LucideIcon,
-  ShieldUserIcon,
-  UserIcon,
-  UsersIcon,
-} from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import getAccessToken, { getSession } from '@gruent/hub/util/getAccessToken'
-import FeedbackButton from '@gruent/hub/components/molecules/FeedbackButton'
-import gruentClient from '@gruent/hub/lib/gruent'
+import AppShell from '@gruent/hub/components/layouts/AppShell'
+import OrganizationSidebar from '@gruent/hub/components/layouts/AppShell/OrganizationSidebar'
 import OrgSelectDropdown from '@gruent/hub/components/organisms/OrgSelectDropdown'
-import { FC } from 'react'
+import gruentClient from '@gruent/hub/lib/gruent'
+import getAccessToken, { getSession } from '@gruent/hub/util/getAccessToken'
 
 export const metadata = {
-  title: 'Organization dashboard | GRUENT',
+  title: 'Organization dashboard | Gruent',
 }
 
 const Layout = async ({ children, params }) => {
@@ -30,61 +20,15 @@ const Layout = async ({ children, params }) => {
   const organizations = user?.organizations.map((orgMembership) => orgMembership.organization)
   const organization = organizations?.find((org) => org.id === orgId)
 
-  const SidebarLink: FC<{ href: string; icon: LucideIcon }> = ({ href, icon: Icon }) => {
-    return (
-      <Link href={href}>
-        <Icon
-          size="1.5em"
-          className="text-gray-500 hover:text-gray-900 dark:text-gray-500 dark:hover:text-gray-100 transition"
-        />
-      </Link>
-    )
-  }
-
   return (
-    <>
-      <div className="flex grow">
-        <FeedbackButton />
-        <aside className="px-5 py-4 border-r border-gray-200 dark:border-gray-800">
-          <nav>
-            <Link href={`/dashboard`}>
-              <Image
-                src="/img/logos/app-icon-primary.png"
-                alt="GRUENT logo"
-                width={25}
-                height={25}
-              />
-            </Link>
-            <ul className="flex flex-col gap-4 mt-4">
-              <li>
-                <SidebarLink href={`/organizations/${orgId}`} icon={HouseIcon} />
-              </li>
-              <li>
-                <SidebarLink href={`/organizations/${orgId}/team`} icon={ShieldUserIcon} />
-              </li>
-              <li>
-                <SidebarLink href={`/organizations/${orgId}/settings`} icon={CogIcon} />
-              </li>
-            </ul>
-          </nav>
-        </aside>
-        <main className="overflow-y-scroll overflow-y-scroll grow">
-          <header className="flex border-b border-gray-200 dark:border-gray-800 px-8 py-4 h-14">
-            <div className="flex gap-2 items-center w-full text-gray-700 dark:text-gray-300 text-sm">
-              <div className="w-5 h-5 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xs">
-                <UsersIcon size=".875em" />
-              </div>
-              <OrgSelectDropdown organizations={organizations ?? []} currentOrg={organization} />
-              <div className="grow" />
-              <div className="flex gap-4">
-                <SidebarLink href={`/profiles/${userId}`} icon={UserIcon} />
-              </div>
-            </div>
-          </header>
-          <div className="grow px-8 pt-10 pb-20">{children}</div>
-        </main>
-      </div>
-    </>
+    <AppShell
+      sidebar={<OrganizationSidebar orgId={orgId} />}
+      breadcrumbs={
+        <OrgSelectDropdown organizations={organizations ?? []} currentOrg={organization} />
+      }
+    >
+      <div className="px-8 pt-8 pb-20">{children}</div>
+    </AppShell>
   )
 }
 

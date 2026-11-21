@@ -10,14 +10,25 @@ import { PropsWithChildren } from 'react'
 type Props = {
   title: string
   description: string
+  /** Hide the visible heading when the page header already names the list. */
+  hideTitle?: boolean
 }
 
-const ListTablePlaceholder = ({ title, description, children }: PropsWithChildren<Props>) => {
+const ListTablePlaceholder = ({
+  title,
+  description,
+  hideTitle,
+  children,
+}: PropsWithChildren<Props>) => {
   return (
     <>
-      <h2 className="text-lg font-extrabold">{title}</h2>
-      <p className="text-gray-500 text-xs mb-4">{description}</p>
-      <Empty className="h-72 flex-none bg-gray-100 dark:bg-gray-800 border border-solid border-gray-200 dark:border-gray-700 rounded-md">
+      {!hideTitle && (
+        <>
+          <h2 className="text-lg font-extrabold">{title}</h2>
+          <p className="mb-4 text-xs text-muted-foreground">{description}</p>
+        </>
+      )}
+      <Empty className="h-72 flex-none rounded-lg border border-dashed bg-muted/30">
         <EmptyHeader className="sr-only">
           <EmptyTitle>{title}</EmptyTitle>
           <EmptyDescription>{description}</EmptyDescription>

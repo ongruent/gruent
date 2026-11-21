@@ -1,6 +1,12 @@
 'use client'
 
-import { FC, useCallback, useRef, useState } from 'react'
+import ListTable from '@gruent/hub/components/atoms/ListTable'
+import RelativeTime from '@gruent/hub/components/atoms/RelativeTime'
+import apiField from '@gruent/hub/util/apiField'
+import { Button } from '@gruent/libs/frontend/components/core/button'
+import { openModal } from '@gruent/libs/frontend/hooks/useModal'
+import { AppliedTag, Connection, Tag } from '@prisma/client'
+import { useClickOutside } from '@react-hooks-library/core'
 import {
   ColumnDef,
   createColumnHelper,
@@ -8,23 +14,20 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { AppliedTag, Tag, Connection } from '@prisma/client'
-import ListTable from '@gruent/hub/components/atoms/ListTable'
-import Link from 'next/link'
-import ConnectionContextMenu from './ConnectionContextMenu'
-import { useRouter } from 'next/navigation'
 import {
   CirclePlusIcon,
+  ClockIcon,
   InfoIcon,
   LibraryIcon,
   PlusIcon,
   SlidersHorizontalIcon,
 } from 'lucide-react'
-import { Button } from '@gruent/libs/frontend/components/core/button'
-import { openModal } from '@gruent/libs/frontend/hooks/useModal'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { FC, useCallback, useRef, useState } from 'react'
 import TagMenu from '../../modals/TagMenu'
 import SearchBar from '../../molecules/SearchBar'
-import { useClickOutside } from '@react-hooks-library/core'
+import ConnectionContextMenu from './ConnectionContextMenu'
 
 type Props = {
   connections: (Connection & {
@@ -83,21 +86,41 @@ const ConnectionsTable: FC<Props> = ({
       ),
       cell: (info) => (
         <Link href={`/organizations/${orgId}/spaces/${spaceId}/connections/${info.row.id}`}>
-          {info.getValue()}
+          <span className="font-medium hover:underline">{info.getValue()}</span>
         </Link>
       ),
       enableSorting: true,
     }),
-    columnHelper.accessor('connectionCategory', {
+    columnHelper.display({
+      id: 'connectionCategory',
       header: () => (
         <div className="flex items-center">
           <LibraryIcon size="1em" className="mr-1" />
           <span>Category</span>
         </div>
       ),
-      cell: (info) => info.getValue(),
-      enableSorting: true,
+      cell: (info) => {
+        const category = apiField<string>(info.row.original, 'connectionCategory')
+        return category ? (
+          <span className="rounded-md border bg-muted/50 px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
+            {category}
+          </span>
+        ) : (
+          <span className="text-sm text-muted-foreground">—</span>
+        )
+      },
       size: 200,
+    }),
+    columnHelper.display({
+      id: 'updated',
+      header: () => (
+        <div className="flex items-center">
+          <ClockIcon size="1em" className="mr-1" />
+          <span>Updated</span>
+        </div>
+      ),
+      cell: (info) => <RelativeTime value={apiField<string>(info.row.original, 'updatedAt')} />,
+      size: 140,
     }),
     columnHelper.accessor('tags', {
       header: () => (
@@ -238,8 +261,6 @@ const ConnectionsTable: FC<Props> = ({
 
   return (
     <ListTable
-      title="Connections"
-      description="Devices, APIs, databases, message queues - anything you need to connect."
       table={table}
       page={page}
       totalPages={totalPages}
@@ -265,9 +286,9 @@ const ConnectionsTable: FC<Props> = ({
             {showFilterOptions && (
               <div
                 ref={filterOptionsRef}
-                className="absolute max-w-[500px] z-10 top-10 right-0 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md p-4 flex flex-col gap-2 overflow-hidden"
+                className="absolute max-w-[500px] z-10 top-10 right-0 bg-popover text-popover-foreground border rounded-md shadow-md p-4 flex flex-col gap-2 overflow-hidden"
               >
-                <div className="border-b border-gray-200 dark:border-gray-800 pb-2">
+                <div className="border-b pb-2">
                   <h2 className="text-sm font-medium mb-1">Tags</h2>
                   <div className="flex flex-wrap items-center gap-2">
                     {tags.map((tag) => {
@@ -298,7 +319,7 @@ const ConnectionsTable: FC<Props> = ({
                   </div>
                 </div>
                 <span
-                  className="cursor-pointer transition text-xs text-gray-600 hover:text-red-500"
+                  className="cursor-pointer transition text-xs text-muted-foreground hover:text-red-500"
                   onClick={clearFilters}
                 >
                   Clear filters

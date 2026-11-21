@@ -32,7 +32,7 @@ describe('channels/executions/get', () => {
       channelExecutionId: 'channel-execution-id-fake',
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await get(
       'tea_fake',
       config,
@@ -42,7 +42,7 @@ describe('channels/executions/get', () => {
 
     // Then
     const expectedUrl = new URL(
-      'https://api.gruent.com/v1/channels/executions/channel-execution-id-fake',
+      'https://api.gruent.io/v1/channels/executions/channel-execution-id-fake',
     )
     expectedUrl.searchParams.set('spaceId', mockRequestData.spaceId)
 

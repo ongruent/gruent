@@ -13,7 +13,7 @@ import ListTablePlaceholder from '@gruent/hub/components/molecules/ListTablePlac
 import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 
 export const metadata = {
-  title: 'Team | GRUENT',
+  title: 'Team | Gruent',
 }
 
 const TeamPage = async ({ params, searchParams }) => {
@@ -193,7 +193,7 @@ const TeamPage = async ({ params, searchParams }) => {
           {Number(totalApiKeys) <= 0 && (
             <ListTablePlaceholder
               title="API Keys"
-              description="Programmatically access the GRUENT platform."
+              description="Programmatically access the Gruent platform."
             >
               <SquareTerminalIcon size="3em" className="text-gray-600 mb-2" />
               <p className="text-gray-600 text-center mb-2">No API keys... yet!</p>
