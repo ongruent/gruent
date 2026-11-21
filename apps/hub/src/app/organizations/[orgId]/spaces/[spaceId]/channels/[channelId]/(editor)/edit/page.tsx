@@ -1,4 +1,4 @@
-import getAccessToken from '@gruent/hub/util/getAccessToken'
+import getAccessToken, { getSession } from '@gruent/hub/util/getAccessToken'
 import ChannelByIdEditClientPage from './client'
 import gruentClient from '@gruent/hub/lib/gruent'
 import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
@@ -46,8 +46,11 @@ const ChannelByIdEditPage = async ({ params }) => {
     )
   }
 
+  const { userId } = await getSession(accessToken)
+
   return (
     <ChannelByIdEditClientPage
+      userId={userId}
       orgId={orgId}
       spaceId={spaceId}
       channelId={channelId}

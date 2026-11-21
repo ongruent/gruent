@@ -7,12 +7,10 @@ import type { ChannelConfig } from '@gruent/libs/legacy/engine/channels/index'
 import { useQuery } from '@tanstack/react-query'
 import gruentClient from '@gruent/hub/lib/gruent'
 import {
-  CircleIcon,
   CircleXIcon,
   ClipboardIcon,
   EllipsisVerticalIcon,
   FileSearchIcon,
-  GitForkIcon,
   HistoryIcon,
   LoaderCircleIcon,
   MousePointerClickIcon,
@@ -21,7 +19,6 @@ import {
   ShareIcon,
   SplineIcon,
   Trash2Icon,
-  UsersIcon,
 } from 'lucide-react'
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
 import StepLibraryPane from '@gruent/hub/components/organisms/ChannelEditor/StepLibraryPane'
@@ -36,6 +33,9 @@ import useChannelConfig from '@gruent/libs/frontend/hooks/useChannelConfig'
 import copyToClipboard from '@gruent/libs/frontend/util/copyToClipboard'
 import { openModal } from '@gruent/libs/frontend/hooks/useModal'
 import Link from 'next/link'
+import Image from 'next/image'
+import UserMenu from '@gruent/hub/components/layouts/AppShell/UserMenu'
+import { BreadcrumbSeparator } from '@gruent/hub/components/layouts/AppShell/Topbar'
 import dayjs from 'dayjs'
 import { Space } from '@prisma/client'
 import { Organization } from '@prisma/client'
@@ -52,7 +52,11 @@ import {
   DropdownMenuTrigger,
 } from '@gruent/libs/frontend/components/core/dropdown-menu'
 
+const breadcrumbLinkClassName =
+  'truncate rounded-md px-2 py-1 text-muted-foreground transition hover:bg-sidebar-accent hover:text-foreground'
+
 type Props = {
+  userId: string | null
   orgId: string
   spaceId: string
   channelId: string
@@ -61,6 +65,7 @@ type Props = {
 }
 
 const ChannelByIdEditClientPage: FC<Props> = ({
+  userId,
   orgId,
   spaceId,
   channelId,
@@ -335,7 +340,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
 
   if (getChannelConfigStatus === 'pending') {
     return (
-      <div className="w-full h-full flex justify-center items-center">
+      <div className="flex grow items-center justify-center border-t border-sidebar-border bg-background">
         <LoaderCircleIcon size="3em" className="animate-spin" />
       </div>
     )
@@ -343,7 +348,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
 
   if (getChannelConfigStatus === 'error') {
     return (
-      <div className="w-full h-full flex justify-center items-center">
+      <div className="flex grow items-center justify-center border-t border-sidebar-border bg-background">
         <Alert variant="destructive" className="w-fit max-w-xl">
           <CircleXIcon />
           <AlertTitle>Could not get the channel config</AlertTitle>
@@ -355,196 +360,191 @@ const ChannelByIdEditClientPage: FC<Props> = ({
 
   return (
     <>
-      <header className="flex border-b border-gray-200 dark:border-gray-800 px-8 py-4 h-14">
-        <div className="flex gap-2 items-center w-full text-gray-700 dark:text-gray-300 text-sm">
-          <Link
-            href={`/organizations/${orgId}`}
-            className="flex items-center gap-1 transition text-gray-700 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-200"
-          >
-            <div className="w-5 h-5 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xs">
-              <UsersIcon size=".875em" />
-            </div>
-            {organization?.name}
+      <header className="flex h-12 shrink-0 items-center gap-2 px-3 text-sm">
+        <Link
+          href="/dashboard"
+          aria-label="Gruent home"
+          className="flex size-8 shrink-0 items-center justify-center rounded-md transition hover:bg-sidebar-accent"
+        >
+          <Image src="/img/logos/app-icon-primary.png" alt="Gruent logo" width={20} height={20} />
+        </Link>
+        <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-0.5">
+          <Link href={`/organizations/${orgId}`} className={breadcrumbLinkClassName}>
+            {organization?.name ?? 'Organization'}
           </Link>
-          <span>/</span>
+          <BreadcrumbSeparator />
           <Link
             href={`/organizations/${orgId}/spaces/${spaceId}`}
-            className="flex items-center gap-1 transition text-gray-700 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-200"
+            title={`Back to ${space?.name ?? 'the space'}`}
+            className={breadcrumbLinkClassName}
           >
-            <div className="w-5 h-5 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xs">
-              <CircleIcon size=".875em" />
-            </div>
-            {space?.name}
+            {space?.name ?? 'Space'}
           </Link>
-          <span>/</span>
+          <BreadcrumbSeparator />
+          <Link
+            href={`/organizations/${orgId}/spaces/${spaceId}/channels/${channelId}`}
+            className="truncate rounded-md px-2 py-1 font-medium text-foreground transition hover:bg-sidebar-accent"
+          >
+            {channel?.name}
+          </Link>
+        </nav>
+        <div className="grow" />
+        <div className="flex shrink-0 items-center gap-3">
           <div className="flex items-center gap-1">
-            <div className="w-5 h-5 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xs">
-              <GitForkIcon size=".875em" className="rotate-180" />
+            <div className="inset-0 flex items-center justify-center text-xs font-medium">
+              <AnimatePresence initial={false} mode="wait">
+                {!channelStatus && (
+                  <motion.span
+                    className="py-1 px-3 rounded-full bg-gray-100 dark:bg-gray-800"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.1 }}
+                  >
+                    Unknown
+                  </motion.span>
+                )}
+                {channelStatus === 'INITIALIZING' && (
+                  <motion.div
+                    className="flex items-center gap-1"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.1 }}
+                  >
+                    <LoaderCircleIcon size="1.3333em" className="animate-spin" />
+                    <span className="py-1 px-3 bg-orange-600 text-white rounded-full">
+                      Initializing
+                    </span>
+                  </motion.div>
+                )}
+                {channelStatus === 'PUBLISHED' && (
+                  <motion.span
+                    className="py-1 px-3 rounded-full bg-green-600 text-white"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.1 }}
+                  >
+                    Published
+                  </motion.span>
+                )}
+                {channelStatus === 'UNPUBLISHED' && (
+                  <motion.span
+                    className="py-1 px-3 rounded-full bg-gray-100 dark:bg-gray-800"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.1 }}
+                  >
+                    Draft
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </div>
-            <Link
-              href={`/organizations/${orgId}/spaces/${spaceId}/channels/${channelId}`}
-              className="flex items-center gap-1 transition text-gray-700 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-200 font-semibold"
-            >
-              {channel?.name}
-            </Link>
-          </div>
-          <div className="grow" />
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
-              <div className="inset-0 flex items-center justify-center text-xs font-medium">
-                <AnimatePresence initial={false} mode="wait">
-                  {!channelStatus && (
-                    <motion.span
-                      className="py-1 px-3 rounded-full bg-gray-100 dark:bg-gray-800"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.1 }}
-                    >
-                      Unknown
-                    </motion.span>
-                  )}
-                  {channelStatus === 'INITIALIZING' && (
-                    <motion.div
-                      className="flex items-center gap-1"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.1 }}
-                    >
-                      <LoaderCircleIcon size="1.3333em" className="animate-spin" />
-                      <span className="py-1 px-3 bg-orange-600 text-white rounded-full">
-                        Initializing
-                      </span>
-                    </motion.div>
-                  )}
-                  {channelStatus === 'PUBLISHED' && (
-                    <motion.span
-                      className="py-1 px-3 rounded-full bg-green-600 text-white"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.1 }}
-                    >
-                      Published
-                    </motion.span>
-                  )}
-                  {channelStatus === 'UNPUBLISHED' && (
-                    <motion.span
-                      className="py-1 px-3 rounded-full bg-gray-100 dark:bg-gray-800"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.1 }}
-                    >
-                      Draft
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </div>
-              <button
-                className={`
+            <button
+              className={`
                   relative w-9 h-6 rounded-full transition-colors duration-300
                   ${channelStatus === 'PUBLISHED' ? 'bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}
                   ${!channelStatus || channelStatus === 'INITIALIZING' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 `}
-                onClick={() => {
-                  if (!channelStatus || channelStatus === 'INITIALIZING') return
-                  channelStatus === 'PUBLISHED' ? handleUnpublish() : handlePublish()
+              onClick={() => {
+                if (!channelStatus || channelStatus === 'INITIALIZING') return
+                channelStatus === 'PUBLISHED' ? handleUnpublish() : handlePublish()
+              }}
+              disabled={!channelStatus || channelStatus === 'INITIALIZING'}
+            >
+              <motion.div
+                className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full"
+                animate={{
+                  x: channelStatus === 'PUBLISHED' ? 12 : 0,
                 }}
-                disabled={!channelStatus || channelStatus === 'INITIALIZING'}
-              >
-                <motion.div
-                  className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full"
-                  animate={{
-                    x: channelStatus === 'PUBLISHED' ? 12 : 0,
-                  }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                />
-              </button>
-            </div>
-            <p className="text-xs text-gray-500">
-              Last saved: {dayjs(channel?.updatedAt).format('M/D/YY')} at{' '}
-              {dayjs(channel?.updatedAt).format('hh:mm a')}
-            </p>
-            <Button variant="outline" className="text-xs" onClick={handleSave}>
-              Save
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="hover:text-green-700"
-              aria-label="Execution history"
-              title={`Execution history (${modifierKeySymbol}I)`}
-              onClick={() => openModal('channelExecutionsTable')}
-            >
-              <FileSearchIcon className="size-[1.5em]!" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="hover:text-green-700"
-              aria-label="Channel versions"
-              title="Channel versions"
-              onClick={() =>
-                addToast({
-                  title: 'Coming soon',
-                  body: 'Channel versions are coming soon!',
-                  level: 'info',
-                })
-              }
-            >
-              <HistoryIcon className="size-[1.5em]!" />
-            </Button>
-            <DropdownMenu modal={false}>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon-sm" aria-label="Open actions menu">
-                  <EllipsisVerticalIcon />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-44">
-                <DropdownMenuItem onSelect={() => openModal('exportChannel')}>
-                  <ShareIcon /> Export
-                  <DropdownMenuShortcut>{modifierKeySymbol}E</DropdownMenuShortcut>
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={handleSave}>
-                  <SaveIcon /> Save
-                  <DropdownMenuShortcut>{modifierKeySymbol}S</DropdownMenuShortcut>
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => openModal('channelExecutionsTable')}>
-                  <FileSearchIcon /> Execution history
-                  <DropdownMenuShortcut>{modifierKeySymbol}I</DropdownMenuShortcut>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  variant="destructive"
-                  onSelect={async () => {
-                    const { error } = await handleDeleteChannel(spaceId, channelId)
-                    if (error) {
-                      addToast({
-                        title: 'Could not delete the channel',
-                        body: `The channel could not be deleted: ${error}`,
-                        level: 'error',
-                      })
-                    } else {
-                      addToast({
-                        title: 'Successfully deleted channel',
-                        body: 'Successfully deleted the channel from your space.',
-                        level: 'success',
-                      })
-                      router.push(`/organizations/${orgId}/spaces/${spaceId}`)
-                    }
-                  }}
-                >
-                  <Trash2Icon /> Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+              />
+            </button>
           </div>
+          <p className="hidden text-xs text-muted-foreground lg:block">
+            Last saved: {dayjs(channel?.updatedAt).format('M/D/YY')} at{' '}
+            {dayjs(channel?.updatedAt).format('hh:mm a')}
+          </p>
+          <Button variant="outline" size="sm" onClick={handleSave}>
+            Save
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="text-muted-foreground"
+            aria-label="Execution history"
+            title={`Execution history (${modifierKeySymbol}I)`}
+            onClick={() => openModal('channelExecutionsTable')}
+          >
+            <FileSearchIcon />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="text-muted-foreground"
+            aria-label="Channel versions"
+            title="Channel versions"
+            onClick={() =>
+              addToast({
+                title: 'Coming soon',
+                body: 'Channel versions are coming soon!',
+                level: 'info',
+              })
+            }
+          >
+            <HistoryIcon />
+          </Button>
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon-sm" aria-label="Open actions menu">
+                <EllipsisVerticalIcon />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-44">
+              <DropdownMenuItem onSelect={() => openModal('exportChannel')}>
+                <ShareIcon /> Export
+                <DropdownMenuShortcut>{modifierKeySymbol}E</DropdownMenuShortcut>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={handleSave}>
+                <SaveIcon /> Save
+                <DropdownMenuShortcut>{modifierKeySymbol}S</DropdownMenuShortcut>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => openModal('channelExecutionsTable')}>
+                <FileSearchIcon /> Execution history
+                <DropdownMenuShortcut>{modifierKeySymbol}I</DropdownMenuShortcut>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                variant="destructive"
+                onSelect={async () => {
+                  const { error } = await handleDeleteChannel(spaceId, channelId)
+                  if (error) {
+                    addToast({
+                      title: 'Could not delete the channel',
+                      body: `The channel could not be deleted: ${error}`,
+                      level: 'error',
+                    })
+                  } else {
+                    addToast({
+                      title: 'Successfully deleted channel',
+                      body: 'Successfully deleted the channel from your space.',
+                      level: 'success',
+                    })
+                    router.push(`/organizations/${orgId}/spaces/${spaceId}`)
+                  }
+                }}
+              >
+                <Trash2Icon /> Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {userId && <UserMenu userId={userId} />}
         </div>
       </header>
       <div
         id="channelEditor"
-        className="flex overflow-hidden bg-background text-foreground relative w-[calc(100vw-65px)] h-[calc(100vh-57px)]"
+        className="relative flex min-h-0 grow overflow-hidden border-t border-sidebar-border bg-background text-foreground"
       >
         <Modal
           id="channelExecutionsTable"

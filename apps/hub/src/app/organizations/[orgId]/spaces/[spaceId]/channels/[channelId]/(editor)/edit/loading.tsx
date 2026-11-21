@@ -3,14 +3,15 @@ import { Skeleton } from '@gruent/libs/frontend/components/core/skeleton'
 /** Mirrors the editor layout: topbar, step library, canvas and inspector. */
 export default function Loading() {
   return (
-    <div className="flex h-screen flex-col">
-      <div className="flex h-14 items-center gap-4 border-b px-8">
+    <>
+      <div className="flex h-12 shrink-0 items-center gap-3 px-3">
+        <Skeleton className="size-8" />
         <Skeleton className="h-5 w-64" />
         <div className="grow" />
         <Skeleton className="h-6 w-24 rounded-full" />
         <Skeleton className="h-8 w-16" />
       </div>
-      <div className="flex grow">
+      <div className="flex min-h-0 grow border-t border-sidebar-border bg-background">
         <div className="flex w-72 flex-col gap-3 border-r p-4">
           <Skeleton className="h-4 w-20" />
           <Skeleton className="h-8 w-full" />
@@ -25,6 +26,6 @@ export default function Loading() {
           <Skeleton className="h-9 w-full" />
         </div>
       </div>
-    </div>
+    </>
   )
 }
