@@ -135,7 +135,7 @@ export async function generateMetadata({ params }, _parent: ResolvingMetadata): 
       description: metadataCache.description,
       openGraph: {
         type: 'article',
-        url: `https://gruent.com/blog/${slug}`,
+        url: `https://gruent.io/blog/${slug}`,
         title: metadataCache.title,
         description: metadataCache.description,
         images: metadataCache.coverImageUrl ? [metadataCache.coverImageUrl] : [],

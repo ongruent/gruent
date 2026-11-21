@@ -28,11 +28,11 @@ describe('organizations/update', () => {
     // When
     const mockRequestData = mockResponseData
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await update('tea_fake', config, mockRequestData)
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/organizations/id-fake')
+    const expectedUrl = new URL('https://api.gruent.io/v1/organizations/id-fake')
 
     expect(global.fetch).toHaveBeenCalledTimes(1)
     expect(global.fetch).toHaveBeenCalledWith(expectedUrl.toString(), {

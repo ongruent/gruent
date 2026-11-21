@@ -13,11 +13,11 @@ describe('healthcheck', () => {
     createApiCallMock<null>(mockResponseCode, mockResponseBody)
 
     // When
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await healthcheck(config)
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/healthcheck')
+    const expectedUrl = new URL('https://api.gruent.io/healthcheck')
 
     expect(global.fetch).toHaveBeenCalledTimes(1)
     expect(global.fetch).toHaveBeenCalledWith(expectedUrl.toString(), {
@@ -32,7 +32,7 @@ describe('healthcheck', () => {
     createApiCallMock<null>(mockResponseCode, mockResponseBody)
 
     // When
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await healthcheck(config)
 
     // Then

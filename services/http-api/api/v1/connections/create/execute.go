@@ -173,7 +173,7 @@ func handleCreateMqttClient(request *gruenthttp.Request[Input], connectionId str
 	// Request a new certificate
 	certRequest := secrets.CertRequest{
 		CommonName: "localhost",
-		AltNames:   "localhost,emqx,emqx-mqtts.services.svc.cluster.local,mqtts.gruent.com",
+		AltNames:   "localhost,emqx,emqx-mqtts.services.svc.cluster.local,mqtts.gruent.io",
 		IpSans:     "127.0.0.1",
 		Ttl:        "8760h",
 		KeyType:    "ec",

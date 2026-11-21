@@ -23,7 +23,7 @@ describe('models/delete', () => {
       modelId: 'model-id-fake',
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await deleteModel(
       'tea_fake',
       config,
@@ -32,7 +32,7 @@ describe('models/delete', () => {
     )
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/models/model-id-fake')
+    const expectedUrl = new URL('https://api.gruent.io/v1/models/model-id-fake')
     expectedUrl.searchParams.set('spaceId', mockRequestData.spaceId)
 
     expect(global.fetch).toHaveBeenCalledTimes(1)

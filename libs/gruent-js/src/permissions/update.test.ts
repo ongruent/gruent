@@ -31,7 +31,7 @@ describe('permissions/update', () => {
       updatedBy: 'user-id-fake',
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await update(
       'tea_fake',
       config,
@@ -42,7 +42,7 @@ describe('permissions/update', () => {
     )
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/permissions/permission-set-id-fake')
+    const expectedUrl = new URL('https://api.gruent.io/v1/permissions/permission-set-id-fake')
     expectedUrl.searchParams.set('orgId', mockRequestData.organizationId)
 
     expect(global.fetch).toHaveBeenCalledTimes(1)

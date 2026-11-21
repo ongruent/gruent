@@ -35,11 +35,11 @@ describe('apiKeys/list', () => {
       organizationId: 'organization-id-fake',
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await list('tea_fake', config, mockRequestData.organizationId)
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/api-keys')
+    const expectedUrl = new URL('https://api.gruent.io/v1/api-keys')
     expectedUrl.searchParams.set('page', '1')
     expectedUrl.searchParams.set('resultsPerPage', '10')
     expectedUrl.searchParams.set('orgId', mockRequestData.organizationId)

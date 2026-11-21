@@ -30,11 +30,11 @@ export const metadata: Metadata = {
     'Integrating devices and services just got a lot easier. Drag-and-drop connections to automate tasks and scale within minutes. Try GRUENT during our beta launch.',
   openGraph: {
     type: 'website',
-    url: `https://gruent.com`,
+    url: `https://gruent.io`,
     title: 'Make your next IoT project faster and easier | GRUENT',
     description:
       'Integrating devices and services just got a lot easier. Drag-and-drop connections to automate tasks and scale within minutes. Try GRUENT during our beta launch.',
-    images: ['https://gruent.com/img/logos/app-icon-primary.png'],
+    images: ['https://gruent.io/img/logos/app-icon-primary.png'],
   },
 }
 

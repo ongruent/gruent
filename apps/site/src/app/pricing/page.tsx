@@ -33,11 +33,11 @@ export const metadata: Metadata = {
     'Pay only for what you use. Predictable pricing without hidden fees. Get started in minutes.',
   openGraph: {
     type: 'website',
-    url: `https://gruent.com/pricing`,
+    url: `https://gruent.io/pricing`,
     title: 'Usage-based pricing for your IoT & automation needs | GRUENT',
     description:
       'Pay only for what you use. Predictable pricing without hidden fees. Get started in minutes.',
-    images: ['https://gruent.com/img/logos/app-icon-primary.png'],
+    images: ['https://gruent.io/img/logos/app-icon-primary.png'],
   },
 }
 

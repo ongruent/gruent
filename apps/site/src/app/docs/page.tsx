@@ -15,11 +15,11 @@ export const metadata: Metadata = {
     'Learn how to use GRUENT to seamlessly integrate devices and services. Get tutorials, API reference, and more.',
   openGraph: {
     type: 'website',
-    url: `https://gruent.com/docs`,
+    url: `https://gruent.io/docs`,
     title: 'Documentation, tutorials, and API reference | GRUENT',
     description:
       'Learn how to use GRUENT to seamlessly integrate devices and services. Get tutorials, API reference, and more.',
-    images: ['https://gruent.com/img/logos/app-icon-primary.png'],
+    images: ['https://gruent.io/img/logos/app-icon-primary.png'],
   },
 }
 

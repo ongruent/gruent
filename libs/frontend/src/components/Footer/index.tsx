@@ -78,7 +78,7 @@ const Footer = async () => {
                 <Link href="/pricing">Pricing</Link>
               </li>
               <li>
-                <Link href="mailto:careers@gruent.com?subject=I'd like to work at GRUENT">
+                <Link href="mailto:careers@gruent.io?subject=I'd like to work at GRUENT">
                   Careers
                 </Link>
               </li>

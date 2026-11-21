@@ -20,11 +20,11 @@ describe('secrets/update', () => {
       value: 'test',
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await update('tea_fake', config, 'space-id-fake', 'test', mockRequestData.value)
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/secrets/test')
+    const expectedUrl = new URL('https://api.gruent.io/v1/secrets/test')
     expectedUrl.searchParams.set('spaceId', 'space-id-fake')
     expect(global.fetch).toHaveBeenCalledTimes(1)
     expect(global.fetch).toHaveBeenCalledWith(expectedUrl.toString(), {

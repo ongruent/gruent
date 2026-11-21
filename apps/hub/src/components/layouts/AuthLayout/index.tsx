@@ -29,8 +29,8 @@ const AuthLayout = async ({ children }) => {
         <div className="w-full max-w-sm">{children}</div>
       </main>
       <footer className="pb-6 text-center text-xs text-muted-foreground">
-        <a href="https://gruent.com" className="hover:text-foreground hover:underline">
-          gruent.com
+        <a href="https://gruent.io" className="hover:text-foreground hover:underline">
+          gruent.io
         </a>
       </footer>
     </div>

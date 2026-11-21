@@ -24,8 +24,8 @@ import (
 const (
 	LabelComponent = "app.kubernetes.io/component"
 	LabelManagedBy = "app.kubernetes.io/managed-by"
-	LabelChannel   = "gruent.com/channel-id"
-	LabelSpace     = "gruent.com/space-id"
+	LabelChannel   = "gruent.io/channel-id"
+	LabelSpace     = "gruent.io/space-id"
 	ComponentName  = "runtime-worker"
 )
 
@@ -162,7 +162,7 @@ func (d *Deployer) deployment(worker Worker) object {
 			"namespace": d.Config.Namespace,
 			"labels":    labels,
 			"annotations": object{
-				"gruent.com/plan-version": worker.PlanVersion,
+				"gruent.io/plan-version": worker.PlanVersion,
 			},
 		},
 		"spec": object{
@@ -173,7 +173,7 @@ func (d *Deployer) deployment(worker Worker) object {
 			"template": object{
 				"metadata": object{
 					"labels":      labels,
-					"annotations": object{"gruent.com/plan-version": worker.PlanVersion},
+					"annotations": object{"gruent.io/plan-version": worker.PlanVersion},
 				},
 				"spec": object{
 					"terminationGracePeriodSeconds": d.Config.TerminationGraceSeconds,

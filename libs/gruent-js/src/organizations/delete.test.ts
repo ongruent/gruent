@@ -22,11 +22,11 @@ describe('organizations/delete', () => {
       orgId: 'org-id-fake',
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await organizationsDelete('tea_fake', config, mockRequestData.orgId)
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/organizations/org-id-fake')
+    const expectedUrl = new URL('https://api.gruent.io/v1/organizations/org-id-fake')
 
     expect(global.fetch).toHaveBeenCalledTimes(1)
     expect(global.fetch).toHaveBeenCalledWith(expectedUrl.toString(), {

@@ -35,7 +35,7 @@ describe('connections/get', () => {
       connectionId: 'connection-id-fake',
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await get(
       'tea_fake',
       config,
@@ -44,7 +44,7 @@ describe('connections/get', () => {
     )
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/connections/connection-id-fake')
+    const expectedUrl = new URL('https://api.gruent.io/v1/connections/connection-id-fake')
     expectedUrl.searchParams.set('spaceId', mockRequestData.spaceId)
 
     expect(global.fetch).toHaveBeenCalledTimes(1)

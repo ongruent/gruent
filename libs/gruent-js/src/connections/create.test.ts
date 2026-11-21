@@ -37,7 +37,7 @@ describe('connections/create', () => {
       attributes: {},
     }
 
-    const config: ClientConfig = { url: new URL('https://api.gruent.com') }
+    const config: ClientConfig = { url: new URL('https://api.gruent.io') }
     const result = await create(
       'tea_fake',
       config,
@@ -48,7 +48,7 @@ describe('connections/create', () => {
     )
 
     // Then
-    const expectedUrl = new URL('https://api.gruent.com/v1/connections')
+    const expectedUrl = new URL('https://api.gruent.io/v1/connections')
     expectedUrl.searchParams.set('spaceId', mockRequestData.spaceId)
     expect(global.fetch).toHaveBeenCalledTimes(1)
     expect(global.fetch).toHaveBeenCalledWith(expectedUrl.toString(), {

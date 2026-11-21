@@ -1,6 +1,6 @@
 # GRUENT
 
-<a href="https://gruent.com" target="_blank" rel="noreferrer">
+<a href="https://gruent.io" target="_blank" rel="noreferrer">
     <img alt="GRUENT logo" src="https://avatars.githubusercontent.com/u/129687839?s=200" width="75">
 </a>
 

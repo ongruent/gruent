@@ -20,10 +20,10 @@ export const metadata: Metadata = {
   description: 'Explore the latest developments in the internet of things in the GRUENT blog.',
   openGraph: {
     type: 'website',
-    url: `https://gruent.com/blog`,
+    url: `https://gruent.io/blog`,
     title: 'Updates, announcements, and guides | GRUENT Blog',
     description: 'Explore the latest developments in the internet of things in the GRUENT blog.',
-    images: ['https://gruent.com/img/logos/app-icon-primary.png'],
+    images: ['https://gruent.io/img/logos/app-icon-primary.png'],
   },
 }
 

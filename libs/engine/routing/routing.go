@@ -15,7 +15,7 @@ package routing
 import "fmt"
 
 // APIVersion identifies the artifact schema. Breaking changes to the schema need a new version.
-const APIVersion = "gruent.com/v1"
+const APIVersion = "gruent.io/v1"
 
 // Document kinds, stored in each document's "kind" field.
 const (
