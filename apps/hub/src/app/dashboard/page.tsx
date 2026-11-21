@@ -7,7 +7,7 @@ import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
 import { ArrowRightIcon, CirclePlusIcon, CircleXIcon, HouseIcon } from 'lucide-react'
 import Link from 'next/link'
 export const metadata = {
-  title: 'Dashboard | GRUENT',
+  title: 'Dashboard | Gruent',
 }
 
 const DashboardPage = async () => {
@@ -47,7 +47,7 @@ const DashboardPage = async () => {
       <CreateOrganizationModal />
       <PageHeader
         icon={HouseIcon}
-        title="Welcome to GRUENT"
+        title="Welcome to Gruent"
         description="Pick an organization to get to its spaces."
         actions={
           <OpenModalButton variant="outline" modalId="createOrganization">

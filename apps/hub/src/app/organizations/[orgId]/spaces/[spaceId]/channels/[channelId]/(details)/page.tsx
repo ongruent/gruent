@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 export const metadata = {
-  title: 'Channel details | GRUENT',
+  title: 'Channel details | Gruent',
 }
 
 const ChannelDetailsPage = async ({ params, searchParams }) => {

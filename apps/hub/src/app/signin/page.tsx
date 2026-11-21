@@ -1,14 +1,14 @@
 import SignInForm from '@gruent/hub/components/organisms/SignInForm'
 
 export const metadata = {
-  title: 'Sign in | GRUENT',
+  title: 'Sign in | Gruent',
   description:
-    'Integrating devices and services just got a lot easier. Drag-and-drop connections to automate tasks and scale within minutes. Try GRUENT during our beta launch.',
+    'Integrating devices and services just got a lot easier. Drag-and-drop connections to automate tasks and scale within minutes. Try Gruent during our beta launch.',
   openGraph: {
     type: 'website',
     url: `https://app.gruent.io/signin`,
     description:
-      'Integrating devices and services just got a lot easier. Drag-and-drop connections to automate tasks and scale within minutes. Try GRUENT during our beta launch.',
+      'Integrating devices and services just got a lot easier. Drag-and-drop connections to automate tasks and scale within minutes. Try Gruent during our beta launch.',
     images: ['https://gruent.io/img/logos/app-icon-primary.png'],
   },
 }

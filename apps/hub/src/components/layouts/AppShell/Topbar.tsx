@@ -15,10 +15,10 @@ const Topbar: FC<Props> = ({ userId, breadcrumbs }) => {
     <header className="flex h-12 shrink-0 items-center gap-2 px-3">
       <Link
         href="/dashboard"
-        aria-label="GRUENT home"
+        aria-label="Gruent home"
         className="flex size-8 shrink-0 items-center justify-center rounded-md transition hover:bg-sidebar-accent"
       >
-        <Image src="/img/logos/app-icon-primary.png" alt="GRUENT logo" width={20} height={20} />
+        <Image src="/img/logos/app-icon-primary.png" alt="Gruent logo" width={20} height={20} />
       </Link>
       {breadcrumbs && (
         <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-0.5 text-sm">

@@ -13,7 +13,7 @@ import getAccessToken from '@gruent/hub/util/getAccessToken'
 import FeedbackButton from '@gruent/hub/components/molecules/FeedbackButton'
 
 export const metadata = {
-  title: 'Channels | GRUENT',
+  title: 'Channels | Gruent',
 }
 
 const Layout = async ({ children, params }) => {
@@ -34,7 +34,7 @@ const Layout = async ({ children, params }) => {
             <Link href={`/dashboard`}>
               <Image
                 src="/img/logos/app-icon-primary.png"
-                alt="GRUENT logo"
+                alt="Gruent logo"
                 width={25}
                 height={25}
               />

@@ -10,15 +10,15 @@ import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
 // export const revalidate = 1 * 60 // seconds
 
 export const metadata: Metadata = {
-  title: 'Documentation, tutorials, and API reference | GRUENT',
+  title: 'Documentation, tutorials, and API reference | Gruent',
   description:
-    'Learn how to use GRUENT to seamlessly integrate devices and services. Get tutorials, API reference, and more.',
+    'Learn how to use Gruent to seamlessly integrate devices and services. Get tutorials, API reference, and more.',
   openGraph: {
     type: 'website',
     url: `https://gruent.io/docs`,
-    title: 'Documentation, tutorials, and API reference | GRUENT',
+    title: 'Documentation, tutorials, and API reference | Gruent',
     description:
-      'Learn how to use GRUENT to seamlessly integrate devices and services. Get tutorials, API reference, and more.',
+      'Learn how to use Gruent to seamlessly integrate devices and services. Get tutorials, API reference, and more.',
     images: ['https://gruent.io/img/logos/app-icon-primary.png'],
   },
 }

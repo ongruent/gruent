@@ -16,13 +16,13 @@ import redis from '@gruent/site/lib/upstash'
 const CacheTime = 60 * 60 * 24 // 1 day
 
 export const metadata: Metadata = {
-  title: 'Updates, announcements, and guides | GRUENT Blog',
-  description: 'Explore the latest developments in the internet of things in the GRUENT blog.',
+  title: 'Updates, announcements, and guides | Gruent Blog',
+  description: 'Explore the latest developments in the internet of things in the Gruent blog.',
   openGraph: {
     type: 'website',
     url: `https://gruent.io/blog`,
-    title: 'Updates, announcements, and guides | GRUENT Blog',
-    description: 'Explore the latest developments in the internet of things in the GRUENT blog.',
+    title: 'Updates, announcements, and guides | Gruent Blog',
+    description: 'Explore the latest developments in the internet of things in the Gruent blog.',
     images: ['https://gruent.io/img/logos/app-icon-primary.png'],
   },
 }
@@ -115,7 +115,7 @@ const BlogPage = async ({ searchParams }) => {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-4xl mb-3">GRUENT Blog</h1>
+      <h1 className="text-4xl mb-3">Gruent Blog</h1>
       <nav className="flex gap-4 mb-6">
         {Array.from(postCountByTag.values())
           .sort((a, b) => {

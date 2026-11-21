@@ -10,7 +10,7 @@ import { Tag } from '@prisma/client'
 import { CirclePlusIcon, CircleXIcon, ShapesIcon } from 'lucide-react'
 
 export const metadata = {
-  title: 'Models | GRUENT',
+  title: 'Models | Gruent',
 }
 
 const ModelsPage = async ({ params, searchParams }) => {

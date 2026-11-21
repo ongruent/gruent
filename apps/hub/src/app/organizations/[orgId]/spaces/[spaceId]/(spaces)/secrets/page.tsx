@@ -9,7 +9,7 @@ import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
 import { CirclePlusIcon, CircleXIcon, KeyRoundIcon, LockIcon } from 'lucide-react'
 
 export const metadata = {
-  title: 'Secrets | GRUENT',
+  title: 'Secrets | Gruent',
 }
 
 const SecretsPage = async ({ params }) => {

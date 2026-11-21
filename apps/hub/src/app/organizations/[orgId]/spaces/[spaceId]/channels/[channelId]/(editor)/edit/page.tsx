@@ -4,7 +4,7 @@ import gruentClient from '@gruent/hub/lib/gruent'
 import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 import { CircleXIcon } from 'lucide-react'
 export const metadata = {
-  title: 'Edit channel | GRUENT',
+  title: 'Edit channel | Gruent',
 }
 
 const ChannelByIdEditPage = async ({ params }) => {

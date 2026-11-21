@@ -10,7 +10,7 @@ import { Tag } from '@prisma/client'
 import { CirclePlusIcon, CircleXIcon, WaypointsIcon } from 'lucide-react'
 
 export const metadata = {
-  title: 'Connections | GRUENT',
+  title: 'Connections | Gruent',
 }
 
 const ConnectionsPage = async ({ params, searchParams }) => {

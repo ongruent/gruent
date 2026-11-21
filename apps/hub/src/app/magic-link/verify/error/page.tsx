@@ -5,7 +5,7 @@ import { ArrowLeftIcon, LinkIcon } from 'lucide-react'
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'Verify magic link | GRUENT',
+  title: 'Verify magic link | Gruent',
 }
 
 const UNKNOWN_ERROR = 'An unknown error occurred when verifying the magic link.'

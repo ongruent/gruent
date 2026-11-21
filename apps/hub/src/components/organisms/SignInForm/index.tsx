@@ -34,7 +34,7 @@ type FormError = { title: string; body: string }
 const SignInForm = ({
   allowPassword = true,
   initialEmail,
-  title = 'Sign in to GRUENT',
+  title = 'Sign in to Gruent',
   description = 'Welcome back. Enter your email to continue.',
 }: Props) => {
   const [passwordEnabled, setPasswordEnabled] = useState<boolean>(false)

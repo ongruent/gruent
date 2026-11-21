@@ -9,7 +9,7 @@ import Container from '@gruent/libs/frontend/components/Container'
 import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
 import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 export const metadata = {
-  title: 'Space settings | GRUENT',
+  title: 'Space settings | Gruent',
 }
 
 const SpaceSettingsPage = async ({ params }) => {

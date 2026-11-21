@@ -99,8 +99,8 @@ const buildMetadataCache = async (slug: string) => {
   const authorName = (() => {
     return page.properties.Author.type === 'people' &&
       (page.properties.Author.people[0] as UserObjectResponse).name
-      ? ((page.properties.Author.people[0] as UserObjectResponse).name ?? 'GRUENT')
-      : 'GRUENT'
+      ? ((page.properties.Author.people[0] as UserObjectResponse).name ?? 'Gruent')
+      : 'Gruent'
   })()
 
   const metadataCache: MetadataCache = {

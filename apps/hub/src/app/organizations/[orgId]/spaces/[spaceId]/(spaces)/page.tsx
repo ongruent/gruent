@@ -28,7 +28,7 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 
 export const metadata = {
-  title: 'Space overview | GRUENT',
+  title: 'Space overview | Gruent',
 }
 
 const RECENT_CHANNEL_ROWS = 8

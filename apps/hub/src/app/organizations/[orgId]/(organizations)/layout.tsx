@@ -5,7 +5,7 @@ import gruentClient from '@gruent/hub/lib/gruent'
 import getAccessToken, { getSession } from '@gruent/hub/util/getAccessToken'
 
 export const metadata = {
-  title: 'Organization dashboard | GRUENT',
+  title: 'Organization dashboard | Gruent',
 }
 
 const Layout = async ({ children, params }) => {

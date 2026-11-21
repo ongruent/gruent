@@ -10,7 +10,7 @@ import { Tag } from '@prisma/client'
 import { CirclePlusIcon, GitForkIcon } from 'lucide-react'
 
 export const metadata = {
-  title: 'Channels | GRUENT',
+  title: 'Channels | Gruent',
 }
 
 const ChannelsPage = async ({ params, searchParams }) => {

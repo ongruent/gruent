@@ -25,15 +25,15 @@ import Image from 'next/image'
 // export const revalidate = 1 * 60 // seconds
 
 export const metadata: Metadata = {
-  title: 'Make your next IoT project faster and easier | GRUENT',
+  title: 'Make your next IoT project faster and easier | Gruent',
   description:
-    'Integrating devices and services just got a lot easier. Drag-and-drop connections to automate tasks and scale within minutes. Try GRUENT during our beta launch.',
+    'Integrating devices and services just got a lot easier. Drag-and-drop connections to automate tasks and scale within minutes. Try Gruent during our beta launch.',
   openGraph: {
     type: 'website',
     url: `https://gruent.io`,
-    title: 'Make your next IoT project faster and easier | GRUENT',
+    title: 'Make your next IoT project faster and easier | Gruent',
     description:
-      'Integrating devices and services just got a lot easier. Drag-and-drop connections to automate tasks and scale within minutes. Try GRUENT during our beta launch.',
+      'Integrating devices and services just got a lot easier. Drag-and-drop connections to automate tasks and scale within minutes. Try Gruent during our beta launch.',
     images: ['https://gruent.io/img/logos/app-icon-primary.png'],
   },
 }
@@ -296,7 +296,7 @@ const HomePage = () => {
                   <div className="rounded-xl px-8 py-4 bg-white w-fit mx-auto">
                     <Image
                       src="/img/logos/wordmark-secondary.png"
-                      alt="GRUENT"
+                      alt="Gruent"
                       width={150}
                       height={150}
                     />
@@ -308,7 +308,7 @@ const HomePage = () => {
               <div className={`${styles.performanceSection}`}>
                 <h3>Production Scale</h3>
                 <p>
-                  Have thousands of connections, channels, and requests per second? GRUENT is
+                  Have thousands of connections, channels, and requests per second? Gruent is
                   designed for your high-throughput projects.
                 </p>
                 <div className={styles.throughputGrid}>

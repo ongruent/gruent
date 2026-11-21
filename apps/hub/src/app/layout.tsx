@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 const themeScript = `try{var t=JSON.parse(localStorage.getItem('settings')||'{}').theme;if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');document.documentElement.style.colorScheme='dark'}}catch(e){}`
 
 export const metadata = {
-  title: 'Hub | GRUENT',
+  title: 'Hub | Gruent',
 }
 
 const RootLayout = async ({ children }: { children: React.ReactNode }) => {

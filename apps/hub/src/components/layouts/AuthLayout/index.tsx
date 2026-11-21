@@ -22,7 +22,7 @@ const AuthLayout = async ({ children }) => {
           className="flex items-center gap-2 rounded-md px-1.5 py-1 text-sm font-semibold tracking-wide transition hover:bg-sidebar-accent"
         >
           <Image src="/img/logos/app-icon-primary.png" alt="" width={20} height={20} />
-          GRUENT
+          Gruent
         </Link>
       </header>
       <main className="flex grow items-center justify-center px-4 pt-6 pb-16">

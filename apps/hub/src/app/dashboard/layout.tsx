@@ -2,7 +2,7 @@ import AppShell from '@gruent/hub/components/layouts/AppShell'
 import getAccessToken from '@gruent/hub/util/getAccessToken'
 
 export const metadata = {
-  title: 'Dashboard | GRUENT',
+  title: 'Dashboard | Gruent',
 }
 
 const Layout = async ({ children }) => {

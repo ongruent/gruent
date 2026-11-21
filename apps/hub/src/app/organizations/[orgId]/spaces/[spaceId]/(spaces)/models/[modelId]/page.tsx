@@ -11,7 +11,7 @@ import Container from '@gruent/libs/frontend/components/Container'
 import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 
 export const metadata = {
-  title: 'Model details | GRUENT',
+  title: 'Model details | Gruent',
 }
 
 const ModelDetailsPage = async ({ params }) => {

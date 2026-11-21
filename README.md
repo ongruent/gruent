@@ -1,7 +1,7 @@
-# GRUENT
+# Gruent
 
 <a href="https://gruent.io" target="_blank" rel="noreferrer">
-    <img alt="GRUENT logo" src="https://avatars.githubusercontent.com/u/129687839?s=200" width="75">
+    <img alt="Gruent logo" src="https://avatars.githubusercontent.com/u/129687839?s=200" width="75">
 </a>
 
 Connect systems with clarity.
@@ -12,9 +12,9 @@ Our platform integrates with any network-connected device or service, enabling p
 
 ## Getting started
 
-This monorepo contains all of the code to make GRUENT work! Backend services, browser apps, mobile apps, device code, and internal tools/package all reside here.
+This monorepo contains all of the code to make Gruent work! Backend services, browser apps, mobile apps, device code, and internal tools/package all reside here.
 
-Of course, tooling makes all of this easier to manage. We utilize [Nx](https://nx.dev/) to create, manage, and run all of our projects. For example, if you want to run the GRUENT browser app locally, simply clone this repo and run (after updating environment variables):
+Of course, tooling makes all of this easier to manage. We utilize [Nx](https://nx.dev/) to create, manage, and run all of our projects. For example, if you want to run the Gruent browser app locally, simply clone this repo and run (after updating environment variables):
 
 ```bash
 pnpm install

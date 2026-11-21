@@ -6,7 +6,7 @@ import dayjs from 'dayjs'
 import { CircleXIcon, TriangleAlertIcon } from 'lucide-react'
 import Link from 'next/link'
 export const metadata = {
-  title: 'Channel execution details | GRUENT',
+  title: 'Channel execution details | Gruent',
 }
 
 const ChannelExecutionByIdPage = async ({ params }) => {

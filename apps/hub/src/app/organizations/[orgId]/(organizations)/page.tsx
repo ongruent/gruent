@@ -7,7 +7,7 @@ import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
 import { ArrowRightIcon, CirclePlusIcon, CircleXIcon, LayersIcon } from 'lucide-react'
 import Link from 'next/link'
 export const metadata = {
-  title: 'Organization spaces | GRUENT',
+  title: 'Organization spaces | Gruent',
 }
 
 const DashboardPage = async ({ params }) => {

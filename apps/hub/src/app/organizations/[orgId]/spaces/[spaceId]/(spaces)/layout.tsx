@@ -1,7 +1,7 @@
 import SpaceShell from '@gruent/hub/components/layouts/AppShell/SpaceShell'
 
 export const metadata = {
-  title: 'Space dashboard | GRUENT',
+  title: 'Space dashboard | Gruent',
 }
 
 const Layout = async ({ children, params }) => {
