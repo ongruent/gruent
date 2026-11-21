@@ -12,7 +12,7 @@ class InvocationTest {
     fun `decodes invocations encoded by Go`() {
         // json.Marshal(routing.HTTPInvocation(...))
         val json = """
-      {"apiVersion":"gruent.io/v1","kind":"Invocation","id":"0a1b","metadata":{"orgId":"o","spaceId":"s","channelId":"c","channelName":"n"},
+      {"apiVersion":"gruent.com/v1","kind":"Invocation","id":"0a1b","metadata":{"orgId":"o","spaceId":"s","channelId":"c","channelName":"n"},
        "planVersion":"sha256:1","bindingId":"http-h","stepId":"h","trigger":"http","receivedAt":"2026-11-20T10:00:00.123456789Z",
        "contentType":"application/json","payload":"eyJhIjoxfQ==",
        "http":{"method":"POST","path":"/v1/trigger/http/c","headers":{"Content-Type":["application/json"]}},

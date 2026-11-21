@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -108,5 +109,52 @@ current-context: controller@gruent
 	}
 	if client.Server != "https://gruent-control-plane:6443" || client.Token != "abc" {
 		t.Errorf("unexpected client %+v", client)
+	}
+}
+
+// The selector of an existing Deployment is immutable, so its label keys must never change: a different key
+// would make every apply to an already deployed worker fail.
+func TestDeploymentKeepsStableSelectorAndLabelKeys(t *testing.T) {
+	deployer := &Deployer{Config: Config{Namespace: "gruent-runtime"}}
+	deployment := deployer.deployment(Worker{ChannelID: "AbC123", SpaceID: "s1", PlanVersion: "sha256:1"})
+	encoded, _ := json.Marshal(deployment)
+	var decoded struct {
+		Metadata struct {
+			Labels      map[string]string `json:"labels"`
+			Annotations map[string]string `json:"annotations"`
+		} `json:"metadata"`
+		Spec struct {
+			Selector struct {
+				MatchLabels map[string]string `json:"matchLabels"`
+			} `json:"selector"`
+			Template struct {
+				Metadata struct {
+					Labels      map[string]string `json:"labels"`
+					Annotations map[string]string `json:"annotations"`
+				} `json:"metadata"`
+			} `json:"template"`
+		} `json:"spec"`
+	}
+	if err := json.Unmarshal(encoded, &decoded); err != nil {
+		t.Fatal(err)
+	}
+	wantSelector := map[string]string{"gruent.com/channel-id": "AbC123", "app.kubernetes.io/component": "runtime-worker"}
+	if !maps.Equal(decoded.Spec.Selector.MatchLabels, wantSelector) {
+		t.Errorf("selector changed: got %v, want %v", decoded.Spec.Selector.MatchLabels, wantSelector)
+	}
+	for _, labels := range []map[string]string{decoded.Metadata.Labels, decoded.Spec.Template.Metadata.Labels} {
+		for key, value := range wantSelector {
+			if labels[key] != value {
+				t.Errorf("labels %v do not match selector key %s=%s", labels, key, value)
+			}
+		}
+		if labels["gruent.com/space-id"] != "s1" {
+			t.Errorf("labels %v lack gruent.com/space-id", labels)
+		}
+	}
+	for _, annotations := range []map[string]string{decoded.Metadata.Annotations, decoded.Spec.Template.Metadata.Annotations} {
+		if annotations["gruent.com/plan-version"] != "sha256:1" {
+			t.Errorf("annotations %v lack gruent.com/plan-version", annotations)
+		}
 	}
 }

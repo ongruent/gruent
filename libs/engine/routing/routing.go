@@ -15,7 +15,10 @@ package routing
 import "fmt"
 
 // APIVersion identifies the artifact schema. Breaking changes to the schema need a new version.
-const APIVersion = "gruent.io/v1"
+//
+// It is a stable wire identity, not a URL: it is embedded in signed, stored artifacts and checked by
+// deployed runtimes, so it stays "gruent.com/v1" regardless of the marketing domain.
+const APIVersion = "gruent.com/v1"
 
 // Document kinds, stored in each document's "kind" field.
 const (

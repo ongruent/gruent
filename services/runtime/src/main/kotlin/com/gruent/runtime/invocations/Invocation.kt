@@ -35,7 +35,8 @@ data class Invocation(
     val reply: ReplyPolicy? = null,
 ) {
     companion object {
-        const val API_VERSION = "gruent.io/v1"
+        /** Stable wire identity (`routing.APIVersion`), independent of the marketing domain. */
+        const val API_VERSION = "gruent.com/v1"
         const val KIND = "Invocation"
     }
 }

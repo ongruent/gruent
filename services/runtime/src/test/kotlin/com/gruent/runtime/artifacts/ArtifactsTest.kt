@@ -3,7 +3,9 @@ package com.gruent.runtime.artifacts
 import com.gruent.runtime.CHANNEL_ID
 import com.gruent.runtime.timerToLogPlanJson
 import kotlinx.serialization.json.Json
+import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.io.TempDir
@@ -48,6 +50,31 @@ class ArtifactsTest {
 
     assertThrows<VerificationException> { PlanLoader(DirectoryArtifactStore(dir), keyring).load(key, "sha256:other") }
     assertThrows<VerificationException> { PlanLoader(DirectoryArtifactStore(dir), keyring).load("missing.json", version) }
+  }
+
+  @Test
+  fun `signed plans keep the stable gruent com v1 wire identity`(@TempDir dir: Path) {
+    fun store(data: ByteArray): Pair<String, String> {
+      val version = Keyring.digest(data)
+      val key = "orgs/org1/spaces/space1/channels/$CHANNEL_ID/plan/${version.removePrefix("sha256:")}.json"
+      Files.createDirectories(dir.resolve(key).parent)
+      Files.write(dir.resolve(key), data)
+      Files.writeString(dir.resolve("$key.sig"), Json.encodeToString(SignatureEnvelope.serializer(), envelope("plan", version)))
+      return key to version
+    }
+
+    // Plans the controller has already signed and stored use gruent.com/v1 (routing.APIVersion).
+    val stored = timerToLogPlanJson().toByteArray()
+    assertTrue(stored.decodeToString().contains("\"apiVersion\": \"gruent.com/v1\""))
+    val (key, version) = store(stored)
+    assertEquals("gruent.com/v1", PlanLoader(DirectoryArtifactStore(dir), keyring).load(key, version).apiVersion)
+    // Verification reads the stored bytes as they are.
+    assertArrayEquals(stored, Files.readAllBytes(dir.resolve(key)))
+
+    // The wire identity does not follow the marketing domain.
+    val other = timerToLogPlanJson().replace("gruent.com/v1", "gruent.io/v1").toByteArray()
+    val (otherKey, otherVersion) = store(other)
+    assertThrows<IllegalArgumentException> { PlanLoader(DirectoryArtifactStore(dir), keyring).load(otherKey, otherVersion) }
   }
 
   @Test

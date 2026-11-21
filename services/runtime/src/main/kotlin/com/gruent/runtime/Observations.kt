@@ -15,7 +15,7 @@ import java.time.Instant
  */
 @Serializable
 data class Observation(
-    val apiVersion: String = "gruent.io/v1",
+    val apiVersion: String = "gruent.com/v1",
     val kind: String = "RuntimeObservation",
     val channelId: String,
     val planVersion: String,

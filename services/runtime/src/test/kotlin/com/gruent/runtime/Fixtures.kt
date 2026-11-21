@@ -37,7 +37,7 @@ fun timerToLogPlanJson(
     logRedaction: String = "",
 ): String = """
 {
-  "apiVersion": "gruent.io/v1",
+  "apiVersion": "gruent.com/v1",
   "kind": "Plan",
   "metadata": {"orgId": "org1", "spaceId": "space1", "channelId": "$CHANNEL_ID", "channelName": "Ticks"},
   "publishStrategy": {"mode": "replace"},

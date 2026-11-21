@@ -20,7 +20,8 @@ data class Plan(
     val policies: Policies,
 ) {
     companion object {
-        const val API_VERSION = "gruent.io/v1"
+        /** Stable wire identity of signed plans (`routing.APIVersion`), independent of the marketing domain. */
+        const val API_VERSION = "gruent.com/v1"
         const val KIND = "Plan"
 
         /** Go encodes empty slices as null, so nulls fall back to the property defaults. */

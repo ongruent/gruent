@@ -21,12 +21,18 @@ import (
 )
 
 // Labels of runtime worker objects.
+//
+// The gruent.com/ keys are stable technical identities, independent of the marketing domain. LabelChannel is
+// part of each Deployment's spec.selector, which Kubernetes treats as immutable: changing the key would make
+// every apply to an existing worker Deployment fail.
 const (
 	LabelComponent = "app.kubernetes.io/component"
 	LabelManagedBy = "app.kubernetes.io/managed-by"
-	LabelChannel   = "gruent.io/channel-id"
-	LabelSpace     = "gruent.io/space-id"
-	ComponentName  = "runtime-worker"
+	LabelChannel   = "gruent.com/channel-id"
+	LabelSpace     = "gruent.com/space-id"
+	// AnnotationPlanVersion records the plan version a worker runs.
+	AnnotationPlanVersion = "gruent.com/plan-version"
+	ComponentName         = "runtime-worker"
 )
 
 // StorageSecretName is the Secret with the artifact storage credentials of runtime workers.
@@ -162,7 +168,7 @@ func (d *Deployer) deployment(worker Worker) object {
 			"namespace": d.Config.Namespace,
 			"labels":    labels,
 			"annotations": object{
-				"gruent.io/plan-version": worker.PlanVersion,
+				AnnotationPlanVersion: worker.PlanVersion,
 			},
 		},
 		"spec": object{
@@ -173,7 +179,7 @@ func (d *Deployer) deployment(worker Worker) object {
 			"template": object{
 				"metadata": object{
 					"labels":      labels,
-					"annotations": object{"gruent.io/plan-version": worker.PlanVersion},
+					"annotations": object{AnnotationPlanVersion: worker.PlanVersion},
 				},
 				"spec": object{
 					"terminationGracePeriodSeconds": d.Config.TerminationGraceSeconds,
