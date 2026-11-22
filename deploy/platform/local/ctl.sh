@@ -59,6 +59,22 @@ ensure_env_file() {
     fi
 }
 
+# Appends the settings of $1.example that $1 doesn't have yet, so existing env files pick up new settings
+ensure_env_keys() {
+    local target="$1" line key
+    [ -f "$target" ] && [ -f "$target.example" ] || return 0
+    while IFS= read -r line; do
+        case "$line" in '' | '#'*) continue ;; esac
+        key="${line%%=*}"
+        if ! grep -q "^${key}=" "$target"; then
+            log "Adding $key to ${target#"$REPO_ROOT/"}"
+            # Keep the last line of a file without a trailing newline intact
+            [ -z "$(tail -c 1 "$target")" ] || echo >>"$target"
+            printf '%s\n' "$line" >>"$target"
+        fi
+    done <"$target.example"
+}
+
 start_runtime() {
     log "Starting the runtime cluster"
     "$RUNTIME_CTL" up
@@ -68,6 +84,7 @@ start_backend() {
     local example
     for example in "$SCRIPT_DIR"/.env*.example; do
         ensure_env_file "${example%.example}"
+        ensure_env_keys "${example%.example}"
     done
 
     log "Starting backend supporting services"

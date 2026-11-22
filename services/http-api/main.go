@@ -13,6 +13,7 @@ import (
 	"github.com/ongruent/gruent/libs/telemetry"
 	"github.com/ongruent/gruent/services/http-api/api"
 	"github.com/ongruent/gruent/services/http-api/config"
+	"github.com/ongruent/gruent/services/http-api/services/ingress"
 	sqlcService "github.com/ongruent/gruent/services/http-api/services/sqlc"
 	"github.com/pressly/goose/v3"
 )
@@ -49,6 +50,19 @@ func main() {
 		if err := migrateDatabase(ctx); err != nil {
 			panic(fmt.Errorf("failed to migrate database: %v", err))
 		}
+	}
+
+	// Route HTTP triggers of channels published to the runtime platform. Every process serves requests
+	// (fiber re-executes main() in each child when prefork is enabled), so each runs its own ingress.
+	if ingressConfig := triggerIngressConfig(); ingressConfig.Enabled() {
+		service, err := ingress.Start(ctx, ingressConfig)
+		if err != nil {
+			panic(fmt.Errorf("failed to start the HTTP trigger ingress: %v", err))
+		}
+		defer service.Close()
+		ingress.Use(service)
+	} else if !fiber.IsChild() {
+		fmt.Println("NATS_URL, ARTIFACT_STORAGE_* or ARTIFACT_SIGNING_KEYRING is not set: HTTP triggers only use the legacy proxy")
 	}
 
 	// Create new API server
@@ -90,4 +104,21 @@ func migrateDatabase(ctx context.Context) error {
 	}
 
 	return goose.UpContext(ctx, db, gruentDb.MigrationsDir)
+}
+
+// triggerIngressConfig returns the configuration of the HTTP trigger ingress.
+func triggerIngressConfig() ingress.Config {
+	conf := config.VaultConf
+	return ingress.Config{
+		NATSURL: conf.NatsUrl,
+		Storage: ingress.Storage{
+			Endpoint:        conf.ArtifactStorageEndpoint,
+			AccessKeyID:     conf.ArtifactStorageAccessKeyID,
+			SecretAccessKey: conf.ArtifactStorageSecretAccessKey,
+			Bucket:          conf.ArtifactStorageBucket,
+			Region:          conf.ArtifactStorageRegion,
+			UseSSL:          conf.ArtifactStorageUseSSL,
+		},
+		SigningKeyring: conf.ArtifactSigningKeyring,
+	}
 }

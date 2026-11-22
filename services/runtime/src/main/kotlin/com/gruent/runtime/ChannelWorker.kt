@@ -92,8 +92,11 @@ class ChannelWorker(
       }, clock)
       timers += trigger.start(triggerScope)
     }
-    if (plan.bindings.http.isNotEmpty() || plan.bindings.messageQueue.isNotEmpty()) {
-      log.warn("Channel {} has HTTP or message queue bindings; they run once a source service publishes their invocations", channelId)
+    for (binding in plan.bindings.http) {
+      log.info("HTTP trigger {} {} reaches channel {} through the API's ingress", binding.method, binding.path, channelId)
+    }
+    if (plan.bindings.messageQueue.isNotEmpty()) {
+      log.warn("Channel {} has message queue bindings; they run once a source service publishes their invocations", channelId)
     }
     log.info(
       "Serving channel {} at plan version {} (subjects {}, {} timer(s), {} concurrent / {} queued executions)",

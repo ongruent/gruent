@@ -20,6 +20,10 @@ type Requester interface {
 	Request(ctx context.Context, subject string, data []byte) ([]byte, error)
 }
 
+// ErrNoResponders is wrapped by a Requester's error when nothing serves the subject, e.g. because the
+// channel's runtime worker isn't running (yet).
+var ErrNoResponders = errors.New("no responders")
+
 // Ingress is the HTTP source: it resolves requests through the routing table, publishes an invocation to
 // the matching channel, and answers with the runtime's reply. In async mode the runtime replies when it
 // admits the execution, and the ingress responds with 202 Accepted; in sync mode the runtime replies when
@@ -77,6 +81,10 @@ func (i *Ingress) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	data, err := i.Requester.Request(ctx, route.Binding.Subject, message)
 	if errors.Is(err, context.DeadlineExceeded) {
 		writeError(w, http.StatusGatewayTimeout, "timed out waiting for the channel to respond")
+		return
+	}
+	if errors.Is(err, ErrNoResponders) {
+		writeError(w, http.StatusServiceUnavailable, "the channel is not running")
 		return
 	}
 	if err != nil {

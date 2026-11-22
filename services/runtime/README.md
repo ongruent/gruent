@@ -23,6 +23,45 @@ Kotlin coroutines and channels.
 5. Execution traces and logs go to the shared OTel collector and ClickHouse tables, and the hub lists them
    through `GET /v1/channels/…/executions`.
 
+## End-to-end path (HTTP → existence → HTTP response)
+
+The API hosts the HTTP source ingress (`services/http-api/services/ingress`, which serves
+`routing.Ingress`) at `/v1/trigger/http/<channel ID>`:
+
+1. Publishing a channel whose source is `http-source@1` writes its signed route entry and routing artifact
+   to artifact storage, and deploys its worker as above.
+2. The API reconciles its route table from storage every few seconds. A request for a routed channel is
+   published as an HTTP `Invocation` to `gruent.v1.invocations.<channel ID>` with NATS request/reply. The
+   source step turns the body into the first message, and the HTTP response step that the execution reaches
+   sets the reply's status, headers and body. The API answers with the reply as is, without the legacy
+   `{"data":…}` envelope. In `async` mode the API answers `202 Accepted` with `{"invocationId":…}` once the
+   worker admits the execution.
+3. Requests for channels without a published route still go to the legacy trigger. A routed channel answers
+   `404`/`405` for other paths and methods, `429` when the worker is at capacity, `503` when no worker
+   serves the channel (e.g. while it starts), `504` after the source's response timeout and `502` for
+   other invocation failures.
+
+To try it locally with `pnpm nx start platform` (which adds the ingress settings to an existing
+`deploy/platform/local/.env.api`, seeds Vault and rebuilds the API), publish a channel with an HTTP source
+(`POST`, `sync`) → existence → HTTP response (`200`, body: input) on `success` / HTTP response (`500`) on
+`failure`, wait until it shows `PUBLISHED`, and call it:
+
+```bash
+curl -i -X POST http://localhost:9001/v1/trigger/http/<channel ID> \
+  -H 'Content-Type: application/json' -d '{"deviceId":"d1"}'   # 200 with the request body
+curl -i -X POST http://localhost:9001/v1/trigger/http/<channel ID> \
+  -H 'Content-Type: application/json' -d '{}'                  # 500
+```
+
+The API logs `Routing HTTP triggers to the runtime` when it picks up the channel. After changing the
+runtime, run `pnpm nx run runtime:image` and restart the channel's worker so that it uses the new image
+(the Deployment itself doesn't change):
+
+```bash
+docker exec gruent-control-plane kubectl --kubeconfig /etc/kubernetes/admin.conf \
+  -n gruent-runtime rollout restart deployment/channel-<channel ID>
+```
+
 ## Configuration
 
 | Variable | Meaning |
@@ -148,10 +187,8 @@ Ed25519 signature contract (`libs/engine/signing`) is implemented with the JDK.
 - Payloads are the trigger's raw bytes (JSON for HTTP and queues), not the FlatBuffers encoding the plan
   describes; the dependency bundle is not hydrated yet.
 - HTTP replies: sync invocations answer with the HTTP response step's response, or 200 with no body without
-  one; 504 on timeout and 500 on failure. No deployed service runs `routing.Ingress` yet (the API's
-  `/v1/trigger/http/<channel ID>` route still proxies to the legacy HTTP server), so HTTP requests only
-  reach the runtime through something that publishes invocations to NATS. Nothing consumes queues yet,
-  and downstream events are not produced.
+  one; 504 on timeout and 500 on failure (including a request body the steps can't use). Nothing consumes
+  queues yet, and downstream events are not produced.
 - Deploying happens during `Publish`: if Kubernetes is unreachable, publishing returns an error and must be
   retried; there is no periodic reconciliation of desired state, and the controller doesn't resync workers
   on startup.
