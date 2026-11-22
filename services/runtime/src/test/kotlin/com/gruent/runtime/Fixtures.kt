@@ -162,4 +162,4 @@ fun testRegistry(vararg extra: StepFactory): StepRegistry {
 fun processingStepJson(id: String, type: String) =
     """,{"id":"$id","type":"processing.$type","name":"$id","definition":{"pluginType":"$type","pluginVersion":1,"digest":"sha256:$type"},"config":{}}"""
 
-fun edgeJson(from: String, to: String) = """,{"from":"$from","to":"$to"}"""
+fun edgeJson(from: String, to: String, fromPort: String = "") = """,{"from":"$from","fromPort":"$fromPort","to":"$to"}"""

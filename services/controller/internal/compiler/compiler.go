@@ -186,6 +186,10 @@ func (c *compilation) run(ctx context.Context) (*Result, error) {
 	c.diagnostics = append(c.diagnostics, typeDiagnostics...)
 	result := &Result{Types: sortedResolved(resolved)}
 	c.applyRedactions(graph, result.Types)
+	c.checkConditionalPorts(graph)
+	if err := c.compileExistenceSteps(graph, result.Types); err != nil {
+		return nil, err
+	}
 
 	if !hasErrors(c.diagnostics) {
 		artifacts, err := c.artifacts(graph, bindings, policies, result.Types, connections)

@@ -1,0 +1,4 @@
+{
+  "description": "Selected fields, any of which may be present, with nulls counted as values.",
+  "config": { "modelId": "mdl_123", "fields": ["device.id", "readings[].value"], "match": "any", "nullIsMissing": false }
+}

@@ -69,6 +69,8 @@ data class Step(
     val config: JsonElement? = null,
     val bindingRef: String = "",
     val redaction: Redaction? = null,
+    /** Step-specific data compiled by the controller (see [com.gruent.steps.api.StepSpec.compiledJson]). */
+    val compiled: JsonElement? = null,
 ) {
     val category: String get() = type.substringBefore('.')
 }

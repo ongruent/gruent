@@ -1,0 +1,4 @@
+{
+  "description": "Every field of the model must be present.",
+  "config": { "modelId": "mdl_123", "match": "all" }
+}

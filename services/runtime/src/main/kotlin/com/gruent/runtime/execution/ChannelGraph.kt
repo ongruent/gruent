@@ -9,12 +9,18 @@ import com.gruent.runtime.plan.Step as PlanStep
 /** Thrown when a plan's graph can't be executed. */
 class InvalidGraphException(message: String) : Exception(message)
 
+/** An edge out of a step: the output port it leaves from (empty for the default output) and its target. */
+data class Downstream(val fromPort: String, val to: String) {
+  /** Whether a message sent through [port] (null: no port) travels along this edge. */
+  fun carries(port: String?): Boolean = port == null || port == fromPort
+}
+
 /** A step of an applied plan: its plan entry, its implementation and its edges. */
 class GraphNode(
   val planStep: PlanStep,
   val step: Step,
-  /** IDs of the steps that receive this step's output, one entry per edge. */
-  val downstream: List<String>,
+  /** The edges that receive this step's output, one entry per edge. */
+  val downstream: List<Downstream>,
   /** Number of edges into this step. Its input closes once every upstream step has finished. */
   val upstreamCount: Int,
 ) {
@@ -48,16 +54,16 @@ class ChannelGraph private constructor(val nodes: Map<String, GraphNode>) {
         throw InvalidGraphException("step $it appears more than once")
       }
       val known = ids.toSet()
-      val downstream = mutableMapOf<String, MutableList<String>>()
+      val downstream = mutableMapOf<String, MutableList<Downstream>>()
       val upstreamCount = mutableMapOf<String, Int>()
       for (edge in plan.channel.graph.edges) {
         if (edge.from !in known || edge.to !in known) {
           throw InvalidGraphException("edge ${edge.from} -> ${edge.to} references a step that is not in the plan")
         }
-        downstream.getOrPut(edge.from) { mutableListOf() }.add(edge.to)
+        downstream.getOrPut(edge.from) { mutableListOf() }.add(Downstream(edge.fromPort, edge.to))
         upstreamCount[edge.to] = (upstreamCount[edge.to] ?: 0) + 1
       }
-      checkAcyclic(ids, downstream)
+      checkAcyclic(ids, downstream.mapValues { (_, edges) -> edges.map { it.to } })
 
       val nodes = linkedMapOf<String, GraphNode>()
       for (planStep in steps) {
