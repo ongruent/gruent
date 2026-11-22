@@ -1,0 +1,5 @@
+{
+  "description": "At least one rule is required.",
+  "config": { "inputModelId": "mdl_in", "outputModelId": "mdl_out", "mappings": [] },
+  "errors": ["/mappings"]
+}

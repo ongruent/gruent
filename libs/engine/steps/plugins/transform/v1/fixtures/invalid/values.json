@@ -1,0 +1,5 @@
+{
+  "description": "No output model, no rules, a rule without a value, and the legacy mapping object.",
+  "config": { "inputModelId": "mdl_in", "mappings": ["deviceId ="], "mapping": { "a1": "b1" } },
+  "errors": ["/mapping", "/mappings/0", "/outputModelId"]
+}

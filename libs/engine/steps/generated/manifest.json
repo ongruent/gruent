@@ -105,6 +105,21 @@
         "class": "TimerSourceConfig",
         "path": "generated/kotlin/com/gruent/steps/plugins/timersource/v1/TimerSourceConfig.kt"
       }
+    },
+    {
+      "pluginType": "transform",
+      "pluginVersion": 1,
+      "contractVersion": 1,
+      "category": "processing",
+      "definition": {
+        "path": "plugins/transform/v1/step.json",
+        "digest": "sha256:5ffe665ee2794fe25b5afa643f1ace708eb57d1876a989ef5a9f4f92d0f219cf"
+      },
+      "kotlin": {
+        "package": "com.gruent.steps.plugins.transform.v1",
+        "class": "TransformConfig",
+        "path": "generated/kotlin/com/gruent/steps/plugins/transform/v1/TransformConfig.kt"
+      }
     }
   ]
 }

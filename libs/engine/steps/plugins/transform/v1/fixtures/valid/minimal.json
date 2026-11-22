@@ -1,0 +1,8 @@
+{
+  "description": "Rules with an input value, a fixed value, a template and array items.",
+  "config": {
+    "inputModelId": "mdl_in",
+    "outputModelId": "mdl_out",
+    "mappings": ["deviceId = input.device.id", "unit = \"celsius\"", "label = \"Device {{input.device.name}}\"", "values[].c = input.readings[].celsius"]
+  }
+}
