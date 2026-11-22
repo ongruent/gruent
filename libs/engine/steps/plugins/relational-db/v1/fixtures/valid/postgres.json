@@ -1,0 +1,4 @@
+{
+  "description": "A Postgres insert with input values.",
+  "config": { "engine": "POSTGRES_SERVER", "connectionId": "con_123", "statement": "INSERT INTO readings (device_id) VALUES ({{input.device.id}})" }
+}

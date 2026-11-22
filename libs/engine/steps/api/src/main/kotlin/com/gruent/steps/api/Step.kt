@@ -206,6 +206,11 @@ data class StepSpec(
   val configJson: String,
   val redaction: Redaction? = null,
   val compiledJson: String? = null,
+  /**
+   * Hydrated connections by ID: the connection's attributes as JSON, with secret fields resolved. The
+   * runtime does not hydrate the dependency bundle yet, so this is empty until it does.
+   */
+  val connections: Map<String, String> = emptyMap(),
 )
 
 /**

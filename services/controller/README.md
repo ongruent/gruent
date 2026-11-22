@@ -101,6 +101,8 @@ The `transform@1` processing step maps its input to an output model (`outputMode
 
 The `http-response@1` action answers the request that started the execution with its `statusCode`, its input as the `body` (or none) and optional `headers`. It is only valid in a channel whose source is an `http-source` with `responseMode: sync` (`http_response_without_http_source`, `http_response_async_source`); the hub only lists it for channels with an HTTP source.
 
+The `relational-db@1` action runs a SQL `statement` against a connection of its `engine` (only `POSTGRES_SERVER` for now; other engines are later drivers). Input values are written as `{{input.device.id}}`. The compiler turns each into a bound parameter (`$1`, `$2`, …, reused for repeated values) in the plan step's `compiled` (`{"engine", "statement", "parameters"}`), so input values never become SQL text. Placeholders in quotes or comments, `$` parameters and dollar quoting are rejected (`invalid_statement`), and with a typed input every value must exist (`unknown_variable`). `POSTGRES_SERVER` connections embed their attributes with `password` as a secret reference.
+
 ## Routing table
 
 Source services never read Postgres. After recording a published version, the controller writes the channel's signed route table entry (`routing.Entry`) to `routing/v1/channels/<channel ID>.json`. It points to the routing artifact; unpublishing deletes it. Source services list these entries, verify each entry and routing artifact, and reconcile an in-memory table (`routing.Reconciler`). An entry that fails verification never changes routing: the previous routes stay until a later reconciliation succeeds.

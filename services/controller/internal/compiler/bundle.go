@@ -30,6 +30,7 @@ var connectionFields = map[string]struct {
 	"SENDGRID_CLIENT":     {secrets: []string{"apiKey"}},
 	"INFLUXDB_DATABASE":   {secrets: []string{"token"}},
 	"CLICKHOUSE_DATABASE": {secrets: []string{"password"}},
+	"POSTGRES_SERVER":     {secrets: []string{"password"}},
 }
 
 // SecretRef returns the reference of a secret in a space's key-value secrets.
