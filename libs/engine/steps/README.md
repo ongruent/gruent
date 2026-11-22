@@ -265,5 +265,5 @@ annotations.
   library steps against the library embedded in their binaries (`steps.EmbeddedLibrary()`), and the
   controller compiles them into plans (see `services/controller/README.md`). The runtime (`services/runtime`)
   executes steps that have a Kotlin implementation module in `plugins/<type>/v<N>` (`build.gradle.kts` +
-  `META-INF/services/com.gruent.steps.api.StepFactory`, see `api/`): today `timer-source@1`, `log@1`, `existence@1`, `compare@1` and `transform@1`. Plugin runtime artifacts (WASM) and
+  `META-INF/services/com.gruent.steps.api.StepFactory`, see `api/`): today `timer-source@1`, `log@1`, `existence@1`, `compare@1`, `transform@1` and `http-response@1`. Plugin runtime artifacts (WASM) and
   custom/third-party step packages are out of scope: definitions carry no artifact fields.

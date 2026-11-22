@@ -153,6 +153,22 @@ interface ExecutionContext {
 
   /** Records entries in the channel's execution logs, attributed to the current step. */
   val logger: ExecutionLogger
+
+  /**
+   * Answers the request that started the execution, e.g. an HTTP request whose source waits for the
+   * execution (sync). The first response wins and is sent once the execution completes. Returns false if
+   * the execution has no request to answer or it was already answered.
+   */
+  fun respond(response: Response): Boolean = false
+}
+
+/** The answer to the request that started an execution. Header names map to their values. */
+class Response(
+  val status: Int,
+  val headers: Map<String, List<String>> = emptyMap(),
+  val body: ByteArray? = null,
+) {
+  override fun toString(): String = "Response(status=$status, headers=${headers.keys}, bytes=${body?.size ?: 0})"
 }
 
 enum class LogLevel { DEBUG, INFO, WARN, ERROR }

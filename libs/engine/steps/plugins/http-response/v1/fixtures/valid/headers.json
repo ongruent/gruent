@@ -1,0 +1,4 @@
+{
+  "description": "Created, without a body, with headers.",
+  "config": { "statusCode": 201, "body": "none", "headers": ["Location: /devices/d1", "Cache-Control: no-store"] }
+}

@@ -126,19 +126,25 @@ go to `failure`.
 input and emits the output object as `application/json`. A missing input value leaves an optional field out
 and fails the step for a required one; input that isn't JSON fails the step.
 
+**HTTP response step** (port of the legacy HTTP response node): the first input of an HTTP-triggered
+execution becomes the response (`ExecutionContext.respond`): the configured status and headers, and the input
+as the body with its content type. The worker sends it as the sync reply once the execution completes, so
+later steps still run; without a response step, a completed execution answers 200 with no body.
+
 **Artifact access** uses a small SigV4 GetObject client instead of an S3 SDK, and the controller's
 Ed25519 signature contract (`libs/engine/signing`) is implemented with the JDK.
 
 ## Limitations
 
 - Only step library steps with a Kotlin implementation run: `timer-source@1`, `log@1`,
-  `existence@1`, `compare@1` and `transform@1`. Other steps
+  `existence@1`, `compare@1`, `transform@1` and
+  `http-response@1`. Other steps
   (including the HTTP and message queue sources) make the plan fail to apply, and the worker reports
   `failed`.
 - Payloads are the trigger's raw bytes (JSON for HTTP and queues), not the FlatBuffers encoding the plan
   describes; the dependency bundle is not hydrated yet.
-- HTTP replies: sync invocations answer 200 with no body (no response step yet), 504 on timeout and 500 on
-  failure. Nothing subscribes HTTP/queue sources to NATS yet, and downstream events are not produced.
+- HTTP replies: sync invocations answer with the HTTP response step's response, or 200 with no body without
+  one; 504 on timeout and 500 on failure. Nothing subscribes HTTP/queue sources to NATS yet, and downstream events are not produced.
 - Deploying happens during `Publish`: if Kubernetes is unreachable, publishing returns an error and must be
   retried; there is no periodic reconciliation of desired state, and the controller doesn't resync workers
   on startup.

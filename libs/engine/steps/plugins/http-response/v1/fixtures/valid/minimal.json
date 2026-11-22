@@ -1,0 +1,4 @@
+{
+  "description": "Answer with the input.",
+  "config": { "statusCode": 200, "body": "input" }
+}

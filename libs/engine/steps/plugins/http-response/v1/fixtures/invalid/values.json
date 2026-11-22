@@ -1,0 +1,5 @@
+{
+  "description": "Status code out of range, unknown body and a header without a name.",
+  "config": { "statusCode": 700, "body": "template", "headers": [": x"] },
+  "errors": ["/body", "/headers/0", "/statusCode"]
+}

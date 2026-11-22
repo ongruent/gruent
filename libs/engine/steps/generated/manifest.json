@@ -47,6 +47,21 @@
       }
     },
     {
+      "pluginType": "http-response",
+      "pluginVersion": 1,
+      "contractVersion": 1,
+      "category": "action",
+      "definition": {
+        "path": "plugins/http-response/v1/step.json",
+        "digest": "sha256:f88fb355b115fa6147153578f7b6fa8568b568b63ff0c5c99e6e560b09520b0c"
+      },
+      "kotlin": {
+        "package": "com.gruent.steps.plugins.httpresponse.v1",
+        "class": "HttpResponseConfig",
+        "path": "generated/kotlin/com/gruent/steps/plugins/httpresponse/v1/HttpResponseConfig.kt"
+      }
+    },
+    {
       "pluginType": "http-source",
       "pluginVersion": 1,
       "contractVersion": 1,

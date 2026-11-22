@@ -5,6 +5,7 @@ import com.gruent.runtime.telemetry.ExecutionStatus
 import com.gruent.runtime.telemetry.ExecutionTelemetry
 import com.gruent.steps.api.ExecutionContext
 import com.gruent.steps.api.ExecutionLogger
+import com.gruent.steps.api.Response
 import com.gruent.steps.api.StepMessage
 import com.gruent.steps.api.Trigger
 import kotlinx.coroutines.CancellationException
@@ -14,6 +15,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 
 /** A request to execute the channel once. */
 data class ExecutionRequest(
@@ -26,6 +28,8 @@ data class ExecutionResult(
   val executionId: String,
   val status: ExecutionStatus,
   val error: Throwable? = null,
+  /** The response a step gave to the request that started the execution (see [ExecutionContext.respond]). */
+  val response: Response? = null,
 )
 
 /**
@@ -65,13 +69,14 @@ class Executor(
         receivedAt = request.trigger.receivedAt,
       ),
     )
+    val response = AtomicReference<Response?>()
     val result = try {
       if (timeoutMs > 0) {
-        withTimeout(timeoutMs) { run(request, recorder) }
+        withTimeout(timeoutMs) { run(request, recorder, response) }
       } else {
-        run(request, recorder)
+        run(request, recorder, response)
       }
-      ExecutionResult(recorder.executionId, ExecutionStatus.COMPLETED)
+      ExecutionResult(recorder.executionId, ExecutionStatus.COMPLETED, response = response.get())
     } catch (e: TimeoutCancellationException) {
       ExecutionResult(recorder.executionId, ExecutionStatus.TIMEOUT, ExecutionTimeoutException(timeoutMs))
     } catch (e: CancellationException) {
@@ -84,7 +89,11 @@ class Executor(
     return result
   }
 
-  private suspend fun run(request: ExecutionRequest, recorder: com.gruent.runtime.telemetry.ExecutionRecorder) = coroutineScope {
+  private suspend fun run(
+    request: ExecutionRequest,
+    recorder: com.gruent.runtime.telemetry.ExecutionRecorder,
+    response: AtomicReference<Response?>,
+  ) = coroutineScope {
     val source = graph.nodes[request.sourceStepId]
       ?: throw IllegalArgumentException("step ${request.sourceStepId} is not part of the plan")
     val sourceStep = graph.source(request.sourceStepId)
@@ -93,12 +102,17 @@ class Executor(
     val inputs = graph.nodes.mapValues { Channel<StepMessage>(bufferCapacity) }
     val pendingUpstreams = graph.nodes.mapValues { AtomicInteger(it.value.upstreamCount) }
 
+    val responseSlot = response
     fun context(node: GraphNode, logger: ExecutionLogger) = object : ExecutionContext {
       override val executionId: String = recorder.executionId
       override val channelId: String = this@Executor.channelId
       override val planVersion: String = this@Executor.planVersion
       override val trigger: Trigger = request.trigger
       override val logger: ExecutionLogger = logger
+
+      // Only HTTP triggers have a request to answer; the worker replies to sync invocations.
+      override fun respond(response: Response): Boolean =
+        request.trigger.type == Trigger.TYPE_HTTP && responseSlot.compareAndSet(null, response)
     }
 
     // The source's first message is placed on its input before any step starts, so that the source

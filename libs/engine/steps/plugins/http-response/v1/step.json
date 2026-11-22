@@ -1,0 +1,52 @@
+{
+  "contractVersion": 1,
+  "pluginType": "http-response",
+  "pluginVersion": 1,
+  "displayName": "HTTP response",
+  "description": "Answer the request that started the execution, after the channel's other steps. Only for channels with an HTTP source that waits for the execution (sync).",
+  "category": "action",
+  "configSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["statusCode", "body"],
+    "x-ui": {
+      "groups": [{ "id": "response", "title": "Response" }]
+    },
+    "properties": {
+      "statusCode": {
+        "type": "integer",
+        "title": "Status code",
+        "minimum": 100,
+        "maximum": 599,
+        "default": 200,
+        "x-ui": { "control": "number", "order": 1, "group": "response", "step": 1 }
+      },
+      "body": {
+        "type": "string",
+        "title": "Body",
+        "enum": ["input", "none"],
+        "default": "input",
+        "x-ui": {
+          "control": "select",
+          "order": 2,
+          "group": "response",
+          "options": {
+            "static": [
+              { "value": "input", "label": "The step's input" },
+              { "value": "none", "label": "No body" }
+            ]
+          }
+        }
+      },
+      "headers": {
+        "type": "array",
+        "title": "Headers",
+        "description": "One header per line, e.g. Cache-Control: no-store. The content type is the input's unless set here.",
+        "items": { "type": "string", "minLength": 3, "maxLength": 1000, "pattern": "^[!#$%&'*+.^_`|~0-9A-Za-z-]+:" },
+        "maxItems": 30,
+        "x-ui": { "control": "list", "order": 3, "group": "response", "placeholder": "Cache-Control: no-store" }
+      }
+    }
+  }
+}

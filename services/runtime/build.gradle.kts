@@ -14,6 +14,7 @@ dependencies {
   runtimeOnly(project(":libs:engine:steps:plugins:existence:v1"))
   runtimeOnly(project(":libs:engine:steps:plugins:compare:v1"))
   runtimeOnly(project(":libs:engine:steps:plugins:transform:v1"))
+  runtimeOnly(project(":libs:engine:steps:plugins:http-response:v1"))
 
   implementation(libs.kotlinx.serialization.json)
   implementation("io.nats:jnats:2.20.4")
