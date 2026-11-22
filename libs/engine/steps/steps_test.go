@@ -277,7 +277,7 @@ func TestEmbeddedLibraryMatchesManifest(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, id := range []Identity{{"hello-world", 1}, {"http-source", 1}, {"timer-source", 1}, {"message-queue-source", 1}, {"log", 1}, {"existence", 1}} {
+	for _, id := range []Identity{{"hello-world", 1}, {"http-source", 1}, {"timer-source", 1}, {"message-queue-source", 1}, {"log", 1}, {"existence", 1}, {"compare", 1}} {
 		if _, err := registry.Resolve(id); err != nil {
 			t.Errorf("%s: %v", id, err)
 		}

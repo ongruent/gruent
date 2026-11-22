@@ -95,6 +95,19 @@ class FieldPath private constructor(val segments: List<Segment>) {
   companion object {
     private val name = Regex("^[^.\\[\\]\\s]+$")
 
+    /** The prefix of variables (`input.device.id`), which name values of the step's input. */
+    const val VARIABLE_ROOT = "input"
+
+    /**
+     * Parses a variable such as `input.device.id` or `input` (the whole input) into a path relative to the
+     * input, or throws [IllegalArgumentException].
+     */
+    fun parseVariable(variable: String): FieldPath {
+      if (variable == VARIABLE_ROOT) return FieldPath(emptyList())
+      require(variable.startsWith("$VARIABLE_ROOT.")) { "variable $variable does not start with $VARIABLE_ROOT" }
+      return parse(variable.removePrefix("$VARIABLE_ROOT."))
+    }
+
     /** Parses a path, or throws [IllegalArgumentException]. */
     fun parse(path: String): FieldPath {
       require(path.isNotEmpty()) { "empty field path" }

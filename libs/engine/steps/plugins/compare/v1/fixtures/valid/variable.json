@@ -1,0 +1,4 @@
+{
+  "description": "Text compared with another input value.",
+  "config": { "valueType": "string", "left": "input.status", "operator": "notEqual", "compareTo": "variable", "right": "input.expected.status" }
+}

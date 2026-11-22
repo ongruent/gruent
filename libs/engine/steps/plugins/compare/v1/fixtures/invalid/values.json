@@ -1,0 +1,5 @@
+{
+  "description": "Unknown type and operator, a value outside the input, an empty segment, and an unknown property.",
+  "config": { "valueType": "date", "left": "payload.temperatureC", "operator": "between", "compareTo": "variable", "right": "input..x", "threshold": 1 },
+  "errors": ["/left", "/operator", "/right", "/threshold", "/valueType"]
+}

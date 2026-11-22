@@ -47,7 +47,9 @@ func TestCompileExistenceStepChecksEveryModelField(t *testing.T) {
 		}
 	}
 	edges := result.Artifacts.Plan.Channel.Graph.Edges
-	if !slices.ContainsFunc(edges, func(e plan.Edge) bool { return e.From == "n_exists" && e.FromPort == plan.PortSuccess && e.To == "n_pass" }) {
+	if !slices.ContainsFunc(edges, func(e plan.Edge) bool {
+		return e.From == "n_exists" && e.FromPort == plan.PortSuccess && e.To == "n_pass"
+	}) {
 		t.Fatalf("edges = %+v", edges)
 	}
 }

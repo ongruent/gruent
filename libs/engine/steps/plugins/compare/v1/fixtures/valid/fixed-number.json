@@ -1,0 +1,4 @@
+{
+  "description": "A number compared with a fixed value.",
+  "config": { "valueType": "number", "left": "input.temperatureC", "operator": "greaterThanOrEqual", "compareTo": "value", "value": "25.5" }
+}
