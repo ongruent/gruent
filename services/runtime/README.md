@@ -126,6 +126,12 @@ go to `failure`.
 input and emits the output object as `application/json`. A missing input value leaves an optional field out
 and fails the step for a required one; input that isn't JSON fails the step.
 
+**HTTP source step** (port of the legacy HTTP source node): the plan's HTTP binding carries the route,
+method, response mode and timeout, and `routing.Ingress` publishes each request as an invocation and waits
+for the reply. The step turns the request body into the execution's first message with the request's
+content type, or into a signal when the request has no body. Bodies are not checked against the request
+model: input that isn't JSON goes to `failure` in conditional steps.
+
 **HTTP response step** (port of the legacy HTTP response node): the first input of an HTTP-triggered
 execution becomes the response (`ExecutionContext.respond`): the configured status and headers, and the input
 as the body with its content type. The worker sends it as the sync reply once the execution completes, so
@@ -136,15 +142,16 @@ Ed25519 signature contract (`libs/engine/signing`) is implemented with the JDK.
 
 ## Limitations
 
-- Only step library steps with a Kotlin implementation run: `timer-source@1`, `log@1`,
-  `existence@1`, `compare@1`, `transform@1` and
-  `http-response@1`. Other steps
-  (including the HTTP and message queue sources) make the plan fail to apply, and the worker reports
-  `failed`.
+- Only step library steps with a Kotlin implementation run: `timer-source@1`, `http-source@1`, `log@1`,
+  `existence@1`, `compare@1`, `transform@1` and `http-response@1`. Other steps (including the message
+  queue source) make the plan fail to apply, and the worker reports `failed`.
 - Payloads are the trigger's raw bytes (JSON for HTTP and queues), not the FlatBuffers encoding the plan
   describes; the dependency bundle is not hydrated yet.
 - HTTP replies: sync invocations answer with the HTTP response step's response, or 200 with no body without
-  one; 504 on timeout and 500 on failure. Nothing subscribes HTTP/queue sources to NATS yet, and downstream events are not produced.
+  one; 504 on timeout and 500 on failure. No deployed service runs `routing.Ingress` yet (the API's
+  `/v1/trigger/http/<channel ID>` route still proxies to the legacy HTTP server), so HTTP requests only
+  reach the runtime through something that publishes invocations to NATS. Nothing consumes queues yet,
+  and downstream events are not produced.
 - Deploying happens during `Publish`: if Kubernetes is unreachable, publishing returns an error and must be
   retried; there is no periodic reconciliation of desired state, and the controller doesn't resync workers
   on startup.

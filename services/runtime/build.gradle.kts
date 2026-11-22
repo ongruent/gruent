@@ -10,6 +10,7 @@ dependencies {
 
   // Built-in steps. They register through META-INF/services, like external step packages would.
   runtimeOnly(project(":libs:engine:steps:plugins:timer-source:v1"))
+  runtimeOnly(project(":libs:engine:steps:plugins:http-source:v1"))
   runtimeOnly(project(":libs:engine:steps:plugins:log:v1"))
   runtimeOnly(project(":libs:engine:steps:plugins:existence:v1"))
   runtimeOnly(project(":libs:engine:steps:plugins:compare:v1"))
@@ -37,6 +38,8 @@ dependencies {
   testImplementation(project(":libs:engine:steps:plugins:timer-source:v1"))
   testImplementation(project(":libs:engine:steps:plugins:log:v1"))
   testImplementation(project(":libs:engine:steps:plugins:existence:v1"))
+  testImplementation(project(":libs:engine:steps:plugins:http-source:v1"))
+  testImplementation(project(":libs:engine:steps:plugins:http-response:v1"))
   testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

@@ -13,6 +13,9 @@ import com.gruent.runtime.telemetry.ExecutionTelemetry
 import com.gruent.runtime.telemetry.StepRecorder
 import com.gruent.steps.api.ExecutionLogger
 import com.gruent.steps.api.LogLevel
+import com.gruent.steps.plugins.existence.v1.ExistenceConfig
+import com.gruent.steps.plugins.httpresponse.v1.HttpResponseConfig
+import com.gruent.steps.plugins.httpsource.v1.HttpSourceConfig
 import com.gruent.steps.plugins.log.v1.LogConfig
 import com.gruent.steps.plugins.timersource.v1.TimerSourceConfig
 import java.util.Collections
@@ -163,3 +166,74 @@ fun processingStepJson(id: String, type: String) =
     """,{"id":"$id","type":"processing.$type","name":"$id","definition":{"pluginType":"$type","pluginVersion":1,"digest":"sha256:$type"},"config":{}}"""
 
 fun edgeJson(from: String, to: String, fromPort: String = "") = """,{"from":"$from","fromPort":"$fromPort","to":"$to"}"""
+
+/**
+ * A plan as the controller compiles it for an HTTP source (sync) connected to an existence check of
+ * `deviceId`, whose success branch answers 200 with the input and whose failure branch answers 500.
+ */
+fun httpExistencePlanJson(): String = """
+{
+  "apiVersion": "gruent.com/v1",
+  "kind": "Plan",
+  "metadata": {"orgId": "org1", "spaceId": "space1", "channelId": "$CHANNEL_ID", "channelName": "Devices"},
+  "publishStrategy": {"mode": "replace"},
+  "channel": {
+    "name": "Devices",
+    "graph": {
+      "steps": [
+        {
+          "id": "n_err", "type": "action.http-response", "version": "1", "name": "Failed",
+          "definition": {"pluginType": "http-response", "pluginVersion": 1, "digest": "${HttpResponseConfig.definitionDigest}"},
+          "config": {"body": "none", "statusCode": 500},
+          "modelRefs": [], "connectionRefs": []
+        },
+        {
+          "id": "n_exists", "type": "conditional.existence", "version": "1", "name": "Has device",
+          "definition": {"pluginType": "existence", "pluginVersion": 1, "digest": "${ExistenceConfig.definitionDigest}"},
+          "config": {"fields": ["deviceId"], "match": "all", "modelId": "m1"},
+          "modelRefs": ["m1"], "connectionRefs": [],
+          "compiled": {"modelRef": "m1", "paths": ["deviceId"]}
+        },
+        {
+          "id": "n_ok", "type": "action.http-response", "version": "1", "name": "OK",
+          "definition": {"pluginType": "http-response", "pluginVersion": 1, "digest": "${HttpResponseConfig.definitionDigest}"},
+          "config": {"body": "input", "statusCode": 200},
+          "modelRefs": [], "connectionRefs": []
+        },
+        {
+          "id": "n_src", "type": "source.http-source", "version": "1", "name": "HTTP",
+          "definition": {"pluginType": "http-source", "pluginVersion": 1, "digest": "${HttpSourceConfig.definitionDigest}"},
+          "config": {"method": "POST", "modelId": "m1", "responseMode": "sync", "responseTimeout": 10},
+          "bindingRef": "bind_n_src", "modelRefs": ["m1"], "connectionRefs": []
+        }
+      ],
+      "edges": [
+        {"from": "n_exists", "fromPort": "failure", "to": "n_err", "toPort": "input"},
+        {"from": "n_exists", "fromPort": "success", "to": "n_ok", "toPort": "input"},
+        {"from": "n_src", "fromPort": "output", "to": "n_exists", "toPort": "input"}
+      ]
+    }
+  },
+  "bindings": {
+    "http": [
+      {
+        "bindingId": "bind_n_src", "stepId": "n_src", "method": "POST", "path": "/v1/trigger/http/$CHANNEL_ID",
+        "responseMode": "sync", "timeoutMs": 10000, "subject": "gruent.v1.invocations.$CHANNEL_ID",
+        "inputModelRefs": ["m1"], "overflow": {"action": "reject", "httpStatus": 429}
+      }
+    ],
+    "timer": [],
+    "messageQueue": []
+  },
+  "payloads": {"encoding": "flatbuffers", "schema": {"kind": "payload_schema", "version": "sha256:1", "key": "k"}, "namespace": "n", "steps": []},
+  "dependencies": {"kind": "dependency_bundle", "version": "sha256:2", "key": "k"},
+  "policies": {
+    "runtime": {
+      "executionClass": "standard",
+      "concurrency": {"maxConcurrentExecutions": 4, "maxQueuedExecutions": 4},
+      "timeouts": {"maxInvocationMs": 10000}
+    },
+    "deployment": {"resources": {"allocationMode": "static", "memoryMiB": 256, "memoryReservationMiB": 256}}
+  }
+}
+""".trimIndent()
