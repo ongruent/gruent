@@ -2,7 +2,7 @@
 
 import { FC, useState } from 'react'
 import dayjs from 'dayjs'
-import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
+import { ChevronDownIcon } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../core/collapsible'
 
 type LogAttributes = {
@@ -32,15 +32,21 @@ const StepExecutionLogEntry: FC<{
   const { timestamp, body, level, logAttributes } = stepExecutionLog
   const { node: step } = logAttributes
 
-  const borderColor = (() => {
+  const levelStyle = (() => {
     switch (level) {
       case 'error':
-        return 'border-error'
+        return {
+          border: 'border-destructive/40',
+          badge: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300',
+        }
       case 'warn':
-        return 'border-warning'
+        return {
+          border: 'border-yellow-300 dark:border-yellow-900',
+          badge: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300',
+        }
       case 'info':
       default:
-        return 'border-gray-300 hover:border-blue-500'
+        return { border: 'border-border', badge: 'bg-muted text-muted-foreground' }
     }
   })()
 
@@ -77,23 +83,28 @@ const StepExecutionLogEntry: FC<{
     <Collapsible
       open={open}
       onOpenChange={setOpen}
-      className={`mt-2 rounded-sm transition border ${borderColor} w-full`}
+      className={`mt-2 w-full overflow-hidden rounded-md border bg-card transition-colors ${levelStyle.border}`}
     >
-      <CollapsibleTrigger
-        className={`transition ${open ? 'border-b' : ''} ${borderColor} p-4 cursor-pointer flex w-full text-left`}
-      >
-        <p className="select-none">
-          {dayjs(timestamp).format('MM-DD-YYYY HH:mm:ss.SSS ')} - {step} ({level})
-        </p>
-        <div className="grow" />
-        {open ? (
-          <ChevronUpIcon size="1em" className="text-gray-500" />
-        ) : (
-          <ChevronDownIcon size="1em" className="text-gray-500" />
-        )}
+      <CollapsibleTrigger className="flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted/50">
+        <span
+          className={`w-12 shrink-0 rounded-sm px-1.5 py-0.5 text-center text-[10px] font-semibold tracking-wide uppercase ${levelStyle.badge}`}
+        >
+          {level}
+        </span>
+        <span className="min-w-0 grow truncate font-medium select-none">{step}</span>
+        <span className="shrink-0 font-mono text-xs text-muted-foreground select-none">
+          {dayjs(timestamp).format('HH:mm:ss.SSS')}
+        </span>
+        <ChevronDownIcon
+          size="1em"
+          className={`shrink-0 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`}
+        />
       </CollapsibleTrigger>
-      <CollapsibleContent className="max-w-full overflow-x-scroll">
-        <pre className="whitespace-pre-wrap dark:text-gray-200 pt-4 px-4 pb-1 text-sm">
+      <CollapsibleContent className="max-w-full overflow-x-auto border-t bg-muted/30">
+        <p className="px-3 pt-2 text-xs text-muted-foreground">
+          {dayjs(timestamp).format('MM-DD-YYYY HH:mm:ss.SSS')}
+        </p>
+        <pre className="px-3 pt-1 pb-3 font-mono text-xs whitespace-pre-wrap text-foreground">
           {stringifiedMessage}
         </pre>
       </CollapsibleContent>

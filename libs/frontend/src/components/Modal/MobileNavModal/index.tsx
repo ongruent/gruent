@@ -10,7 +10,7 @@ const MobileNavModal = () => {
     <Modal id="mobileNav" title="Navigation" showAccept={false}>
       <Image
         src="/img/logos/mark-cutout-secondary.png"
-        alt="GRUENT logo"
+        alt="Gruent logo"
         width={30}
         height={30}
         className="mb-4"

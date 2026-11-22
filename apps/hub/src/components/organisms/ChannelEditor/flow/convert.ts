@@ -10,7 +10,9 @@ import type {
 } from './types'
 
 export const GRID_SIZE = 24
-export const STEP_SIZE = 90
+// Steps are cards that span whole grid cells, as wide as notes
+export const STEP_WIDTH = 192
+export const STEP_HEIGHT = 64
 export const NOTE_WIDTH = 192
 export const NOTE_HEIGHT = 95
 
@@ -100,8 +102,8 @@ export const toFlowSteps = ({
     id: step.id,
     type: 'channelStep',
     position: { x: step.coordinates.x, y: step.coordinates.y },
-    width: STEP_SIZE,
-    height: STEP_SIZE,
+    width: STEP_WIDTH,
+    height: STEP_HEIGHT,
     selected: currentStep?.id === step.id,
     data: {
       step,

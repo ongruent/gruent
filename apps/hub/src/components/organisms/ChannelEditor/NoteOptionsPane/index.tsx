@@ -1,9 +1,10 @@
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
+import { Textarea } from '@gruent/libs/frontend/components/core/textarea'
+import { StickyNoteIcon } from 'lucide-react'
 import { FC, useCallback } from 'react'
+import InspectorSection from '../InspectorSection'
 
-type Props = {}
-
-const NoteOptionsPane: FC<Props> = () => {
+const NoteOptionsPane: FC = () => {
   // set up store
   const currentNote = useChannelEditorStore((state) => state.currentNote)
   const upsertNote = useChannelEditorStore((state) => state.upsertNote)
@@ -28,14 +29,24 @@ const NoteOptionsPane: FC<Props> = () => {
   )
 
   return (
-    <div className="p-4 text-sm border-b">
-      <h2 className="uppercase text-gray-500 font-bold text-xs mb-2">Note</h2>
-      <textarea
-        className="p-1 w-full min-h-24 border border-gray-200 rounded-sm"
-        value={currentNote?.text}
+    <InspectorSection
+      data-testid="note-options"
+      title="Note"
+      description="Shown on the canvas only"
+      media={
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-400">
+          <StickyNoteIcon className="size-[18px]" />
+        </div>
+      }
+    >
+      <Textarea
+        aria-label="Note text"
+        placeholder="Write a note…"
+        className="min-h-28"
+        value={currentNote?.text ?? ''}
         onChange={(e) => handleUpdateNote(e.target.value)}
       />
-    </div>
+    </InspectorSection>
   )
 }
 

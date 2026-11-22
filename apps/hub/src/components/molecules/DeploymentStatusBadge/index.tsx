@@ -10,6 +10,7 @@ const variants = {
   PUBLISHED: { label: 'Deployed', dot: 'bg-green-500' },
   INITIALIZING: { label: 'Initializing', dot: 'bg-yellow-500 animate-pulse' },
   UNPUBLISHED: { label: 'Not deployed', dot: 'bg-gray-300 dark:bg-gray-600' },
+  ERROR: { label: 'Error', dot: 'bg-red-400 dark:bg-red-500' },
   UNKNOWN: { label: 'Unknown', dot: 'border border-gray-400 dark:border-gray-500' },
 }
 

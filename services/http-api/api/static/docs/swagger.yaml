@@ -236,7 +236,7 @@ host: localhost:9001
 info:
   contact: {}
   description: Connect systems with clarity.
-  title: GRUENT
+  title: Gruent
   version: alpha-v1.0
 paths:
   /api-keys:

@@ -7,10 +7,14 @@ import type {
 import type { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import { useMemo } from 'react'
 
-// Temporary static resource settings until the editor lets users configure them. The controller
-// requires both to compile a channel and never chooses them itself (see services/controller/README.md).
+// Resource settings for channels that have not configured their own. The controller requires both to
+// compile a channel and never chooses them itself (see services/controller/README.md).
 export const STATIC_RUNTIME_MEMORY_MIB = 512
 export const STATIC_RUNTIME_MAX_CONCURRENT_EXECUTIONS = 10
+
+// Bounds the controller accepts for the resource settings (services/controller/internal/plan/limits.go).
+export const RUNTIME_MEMORY_MIB_LIMITS = { min: 64, max: 16384 }
+export const RUNTIME_MAX_CONCURRENT_EXECUTIONS_LIMITS = { min: 1, max: 1000 }
 
 const isConfigured = (value: unknown): value is number =>
   typeof value === 'number' && Number.isInteger(value)

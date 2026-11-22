@@ -4,5 +4,5 @@ import (
 	"github.com/ongruent/gruent/prisma/db"
 )
 
-// GRUENT database client
+// Gruent database client
 var Client *db.PrismaClient

@@ -148,7 +148,7 @@ func handleMagicLinkLogin(user sqldb.AppUser, appUrl string, ctx context.Context
 	const htmlBodyTemplate = `
 	<html>
 		<body>
-			<h1>GRUENT Magic Link Sign In</h1>
+			<h1>Gruent Magic Link Sign In</h1>
 			<p>Click the link below to login to your account:</p>
 			<p>
 				<a href="{{ .AppUrl }}/api/magic-link/verify?t={{ .Token }}">Sign in</a>
@@ -159,7 +159,7 @@ func handleMagicLinkLogin(user sqldb.AppUser, appUrl string, ctx context.Context
 	</html>
 	`
 
-	const plainBodyTemplate = `GRUENT Magic Link Sign In
+	const plainBodyTemplate = `Gruent Magic Link Sign In
 
 	Copy and paste the link below to login to your account:
 	{{ .AppUrl }}/api/magic-link/verify?t={{ .Token }}
@@ -174,7 +174,7 @@ func handleMagicLinkLogin(user sqldb.AppUser, appUrl string, ctx context.Context
 	}
 
 	// Create multipart message
-	subject := "GRUENT Magic Link Sign In"
+	subject := "Gruent Magic Link Sign In"
 	message, err := gruenthttputil.BuildEmail(from, to, subject, plainBodyTemplate, htmlBodyTemplate, bodyData)
 	if err != nil {
 		smtpSpan.SetAttributes(
