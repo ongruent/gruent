@@ -33,53 +33,90 @@ func compareChannel(sourceModel string, config map[string]any) []byte {
 	})
 }
 
-func compareConfigOf(valueType, left, operator string, extra map[string]any) map[string]any {
-	config := map[string]any{"valueType": valueType, "left": left, "operator": operator, "compareTo": "value", "value": "25"}
-	for key, value := range extra {
-		config[key] = value
+// compareConfigOf returns a compare configuration of model modelID with the given comparisons.
+func compareConfigOf(modelID, match string, comparisons ...map[string]any) map[string]any {
+	list := make([]any, len(comparisons))
+	for i, comparison := range comparisons {
+		list[i] = comparison
 	}
-	return config
+	return map[string]any{"modelId": modelID, "match": match, "comparisons": list}
+}
+
+// fixed compares left with a fixed value.
+func fixed(left, operator, value string) map[string]any {
+	return map[string]any{"left": left, "operator": operator, "compareTo": "value", "value": value}
+}
+
+// other compares left with another field.
+func other(left, operator, right string) map[string]any {
+	return map[string]any{"left": left, "operator": operator, "compareTo": "variable", "right": right}
 }
 
 func TestCompileCompareStep(t *testing.T) {
-	result := compile(t, compareChannel("m1", compareConfigOf("number", "input.temperatureC", "greaterThanOrEqual", nil)))
+	result := compile(t, compareChannel("m1", compareConfigOf("m1", "all",
+		fixed("temperatureC", "greaterThanOrEqual", "25"),
+		other("temperatureC", "lessThan", "location.lat"),
+		fixed("deviceId", "equal", "d1"),
+	)))
 	step := planStep(result.Artifacts.Plan, "n_cmp")
-	if step.Type != "conditional.compare" || len(step.Compiled) != 0 {
+	if step.Type != "conditional.compare" || !slices.Equal(step.ModelRefs, []string{"m1"}) {
 		t.Fatalf("unexpected step: %+v", step)
+	}
+	if want := `{"modelRef":"m1","valueTypes":["number","number","string"]}`; string(step.Compiled) != want {
+		t.Fatalf("compiled = %s, want %s", step.Compiled, want)
 	}
 	if output := resolvedByID(result, "n_pass").Output; output == nil || output.ModelRef != "m1" {
 		t.Fatalf("output = %+v", output)
 	}
-
-	// Another input value of the same type.
-	compile(t, compareChannel("m1", compareConfigOf("number", "input.temperatureC", "lessThan", map[string]any{"compareTo": "variable", "right": "input.location.lat"})))
-	compile(t, compareChannel("m1", compareConfigOf("string", "input.deviceId", "equal", map[string]any{"value": "d1"})))
 }
 
 func TestCompileCompareStepWithUntypedInput(t *testing.T) {
-	result := compile(t, compareChannel("", compareConfigOf("boolean", "input.active", "equal", map[string]any{"value": "TRUE"})))
+	result := compile(t, compareChannel("", compareConfigOf("m4", "any",
+		fixed("active", "equal", "TRUE"),
+		other("status", "notEqual", "expected.status"),
+	)))
 	if got := warnings(result); !slices.Equal(got, []string{"compare_untyped_input n_cmp"}) {
 		t.Fatalf("warnings = %v", got)
+	}
+	if got := string(planStep(result.Artifacts.Plan, "n_cmp").Compiled); got != `{"modelRef":"m4","valueTypes":["boolean","string"]}` {
+		t.Fatalf("compiled = %s", got)
 	}
 }
 
 func TestCompileCompareStepProblems(t *testing.T) {
 	for name, test := range map[string]struct {
+		source string
 		config map[string]any
 		code   string
+		path   string
 	}{
-		"ordering text":    {compareConfigOf("string", "input.deviceId", "greaterThan", nil), "operator_type_mismatch"},
-		"not a number":     {compareConfigOf("number", "input.temperatureC", "equal", map[string]any{"value": "warm"}), "invalid_compare_value"},
-		"no fixed value":   {map[string]any{"valueType": "number", "left": "input.temperatureC", "operator": "equal", "compareTo": "value"}, "compare_value_required"},
-		"no input value":   {compareConfigOf("number", "input.temperatureC", "equal", map[string]any{"compareTo": "variable"}), "compare_value_required"},
-		"unknown":          {compareConfigOf("number", "input.humidity", "equal", nil), "unknown_variable"},
-		"wrong type":       {compareConfigOf("number", "input.deviceId", "equal", nil), "variable_type_mismatch"},
-		"other wrong":      {compareConfigOf("number", "input.temperatureC", "equal", map[string]any{"compareTo": "variable", "right": "input.deviceId"}), "variable_type_mismatch"},
-		"through arrays":   {compareConfigOf("number", "input.readings[].value", "equal", nil), "multi_valued_variable"},
-		"outside of input": {compareConfigOf("number", "temperatureC", "equal", nil), "invalid_step_config"},
+		"ordering text":       {"m1", compareConfigOf("m1", "all", fixed("deviceId", "greaterThan", "a")), "operator_type_mismatch", "/config/comparisons/0/operator"},
+		"not a number":        {"m1", compareConfigOf("m1", "all", fixed("temperatureC", "equal", "warm")), "invalid_compare_value", "/config/comparisons/0/value"},
+		"not a boolean":       {"m4", compareConfigOf("m4", "all", fixed("active", "equal", "yes")), "invalid_compare_value", "/config/comparisons/0/value"},
+		"no fixed value":      {"m1", compareConfigOf("m1", "all", map[string]any{"left": "temperatureC", "operator": "equal", "compareTo": "value"}), "compare_value_required", "/config/comparisons/0/value"},
+		"no other field":      {"m1", compareConfigOf("m1", "all", map[string]any{"left": "temperatureC", "operator": "equal", "compareTo": "variable"}), "compare_value_required", "/config/comparisons/0/right"},
+		"not in the model":    {"m1", compareConfigOf("m1", "all", fixed("temperatureC", "equal", "1"), fixed("humidity", "equal", "1")), "unknown_model_field", "/config/comparisons/1/left"},
+		"with input prefix":   {"m1", compareConfigOf("m1", "all", fixed("input.temperatureC", "equal", "1")), "unknown_model_field", "/config/comparisons/0/left"},
+		"an object":           {"m1", compareConfigOf("m1", "all", fixed("location", "equal", "1")), "invalid_compare_field", "/config/comparisons/0/left"},
+		"other type":          {"m1", compareConfigOf("m1", "all", other("temperatureC", "equal", "deviceId")), "variable_type_mismatch", "/config/comparisons/0/right"},
+		"through arrays":      {"m3", compareConfigOf("m3", "all", fixed("readings[].token", "equal", "a")), "invalid_step_config", ""},
+		"not in the input":    {"m1", compareConfigOf("m4", "all", fixed("active", "equal", "true")), "unknown_variable", "/config/comparisons/0/left"},
+		"other type in input": {"m1", compareConfigOf("m4", "all", fixed("temperatureC", "equal", "25")), "variable_type_mismatch", "/config/comparisons/0/left"},
+		"no comparisons":      {"m1", compareConfigOf("m1", "all"), "invalid_step_config", ""},
 	} {
 		t.Run(name, func(t *testing.T) {
-			requireProblem(t, problems(t, compareChannel("m1", test.config)), test.code)
+			config := compareChannel(test.source, test.config)
+			requireProblem(t, problems(t, config), test.code)
+			if test.path == "" {
+				return
+			}
+			result, err := Compile(context.Background(), input(config), resolver)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !slices.ContainsFunc(result.Diagnostics, func(d types.Diagnostic) bool { return d.Code == test.code && d.Path == test.path }) {
+				t.Fatalf("no %s at %s: %+v", test.code, test.path, result.Diagnostics)
+			}
 		})
 	}
 }
@@ -88,13 +125,13 @@ func TestCompileStepCompareUsesTheUpstreamType(t *testing.T) {
 	upstream := types.Type{Kind: types.KindObject, Fields: []types.Field{{Name: "temperatureC", Type: types.Type{Kind: types.KindString}}}}
 	result, err := CompileStep(context.Background(), StepInput{
 		SpaceID:      "s1",
-		Step:         mustJSON(libraryNode("n_cmp", "conditional", "compare", compareConfigOf("number", "input.temperatureC", "equal", nil))),
+		Step:         mustJSON(libraryNode("n_cmp", "conditional", "compare", compareConfigOf("m1", "all", fixed("temperatureC", "equal", "25")))),
 		UpstreamType: &upstream,
 	}, resolver)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(result.Diagnostics) != 1 || result.Diagnostics[0].Code != "variable_type_mismatch" || result.Diagnostics[0].Path != "/config/left" {
+	if len(result.Diagnostics) != 1 || result.Diagnostics[0].Code != "variable_type_mismatch" || result.Diagnostics[0].Path != "/config/comparisons/0/left" {
 		t.Fatalf("diagnostics = %+v", result.Diagnostics)
 	}
 }

@@ -1,0 +1,11 @@
+{
+  "description": "Every comparison must hold: a number against a fixed value and text against another field.",
+  "config": {
+    "modelId": "m1",
+    "match": "all",
+    "comparisons": [
+      { "left": "temperatureC", "operator": "greaterThanOrEqual", "compareTo": "value", "value": "25.5" },
+      { "left": "status", "operator": "notEqual", "compareTo": "variable", "right": "expected.status" }
+    ]
+  }
+}

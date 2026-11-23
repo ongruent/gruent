@@ -31,7 +31,7 @@ func (c *compilation) compileLibraryStep(step *plan.Step, input *types.Type) err
 	case library.is(pluginExistence, 1):
 		return c.compileExistence(step, library, input)
 	case library.is(pluginCompare, 1):
-		return c.checkCompare(step, input)
+		return c.compileCompare(step, library, input)
 	}
 	return nil
 }

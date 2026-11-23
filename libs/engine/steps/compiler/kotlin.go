@@ -99,18 +99,30 @@ func kdocText(s string) string {
 
 type kotlinField struct {
 	f        steps.Field
-	kType    string // element type for arrays
-	enumName string // Kotlin enum class name when the field (or its items) is a static-only enum
+	kType    string       // element type for arrays
+	enumName string       // Kotlin enum class name when the field (or its items) is a static-only enum
+	item     *kotlinClass // nested class of object items
 }
 
-// generateKotlin renders the configuration type, validator and codec for one definition. Rendering
-// annotations (x-ui) never become members; static option sets only surface as enums when the schema itself
-// constrains values with enum.
-func generateKotlin(def *steps.Definition, sourcePath string) (string, error) {
-	t := kotlinTargetFor(def.Identity())
-	var fields []kotlinField
-	enumNames := map[string]bool{}
-	for _, f := range def.Fields() {
+// kotlinClass is a generated data class: the configuration, or the items of an objectList field.
+type kotlinClass struct {
+	name   string
+	fields []kotlinField
+}
+
+// kotlinFields maps fields to Kotlin members. Enums and item classes are nested in the class that declares
+// the field, so their names only need to be unique within it; reserved are the names they cannot use.
+func kotlinFields(fields []steps.Field, reserved map[string]bool) ([]kotlinField, error) {
+	var out []kotlinField
+	nested := map[string]bool{}
+	claim := func(f steps.Field, name string) error {
+		if nested[name] || reserved[name] || name == "Definition" || name == "Companion" {
+			return fmt.Errorf("%s: Kotlin class name %s is ambiguous", f.Pointer, name)
+		}
+		nested[name] = true
+		return nil
+	}
+	for _, f := range fields {
 		kf := kotlinField{f: f}
 		enum := f.Enum
 		elemType := f.Type
@@ -118,20 +130,33 @@ func generateKotlin(def *steps.Definition, sourcePath string) (string, error) {
 			elemType = f.Items.Type
 			enum = f.Items.Enum
 		}
+		if elemType == steps.TypeObject {
+			name := strings.ToUpper(f.Name[:1]) + f.Name[1:] + "Item"
+			if err := claim(f, name); err != nil {
+				return nil, err
+			}
+			itemFields, err := kotlinFields(f.Items.Fields, map[string]bool{name: true})
+			if err != nil {
+				return nil, fmt.Errorf("%s/items: %w", f.Pointer, err)
+			}
+			kf.item = &kotlinClass{name: name, fields: itemFields}
+			kf.kType = name
+			out = append(out, kf)
+			continue
+		}
 		if len(enum) > 0 {
 			kf.enumName = strings.ToUpper(f.Name[:1]) + f.Name[1:]
 			if f.Type == steps.TypeArray {
 				kf.enumName += "Item"
 			}
-			if enumNames[kf.enumName] || kf.enumName == t.Class || kf.enumName == "Definition" {
-				return "", fmt.Errorf("%s: Kotlin enum name %s is ambiguous", f.Pointer, kf.enumName)
+			if err := claim(f, kf.enumName); err != nil {
+				return nil, err
 			}
-			enumNames[kf.enumName] = true
 			seen := map[string]string{}
 			for _, v := range enum {
 				n := enumEntryName(v)
 				if prev, ok := seen[n]; ok {
-					return "", fmt.Errorf("%s: enum values %q and %q both map to Kotlin entry %s", f.Pointer, prev, v, n)
+					return nil, fmt.Errorf("%s: enum values %q and %q both map to Kotlin entry %s", f.Pointer, prev, v, n)
 				}
 				seen[n] = v
 			}
@@ -148,11 +173,181 @@ func generateKotlin(def *steps.Definition, sourcePath string) (string, error) {
 		case elemType == steps.TypeBoolean:
 			kf.kType = "Boolean"
 		}
-		fields = append(fields, kf)
+		out = append(out, kf)
+	}
+	return out, nil
+}
+
+// kotlinWriter writes indented Kotlin source.
+type kotlinWriter struct {
+	b *strings.Builder
+}
+
+// line writes one line at the given indentation (two spaces per level); empty format writes an empty line.
+func (w kotlinWriter) line(indent int, format string, args ...any) {
+	if format == "" {
+		w.b.WriteString("\n")
+		return
+	}
+	w.b.WriteString(strings.Repeat("  ", indent))
+	fmt.Fprintf(w.b, format, args...)
+	w.b.WriteString("\n")
+}
+
+// properties writes the constructor properties of a data class.
+func (w kotlinWriter) properties(indent int, fields []kotlinField) {
+	for _, kf := range fields {
+		f := kf.f
+		w.line(indent, "/**")
+		w.line(indent, " * %s", kdocText(f.Title))
+		if f.Description != "" {
+			w.line(indent, " *")
+			w.line(indent, " * %s", kdocText(f.Description))
+		}
+		if len(f.Default) > 0 {
+			w.line(indent, " *")
+			w.line(indent, " * Default for new configurations: `%s`. Defaults are not applied when decoding.", kdocText(string(f.Default)))
+		}
+		w.line(indent, " */")
+		typ := kf.kType
+		if f.Type == steps.TypeArray {
+			typ = "List<" + typ + ">"
+		}
+		if f.Required {
+			w.line(indent, "val %s: %s,", f.Name, typ)
+		} else {
+			w.line(indent, "val %s: %s? = null,", f.Name, typ)
+		}
+	}
+}
+
+// nested writes the enums and item classes declared by fields.
+func (w kotlinWriter) nested(indent int, fields []kotlinField) {
+	for _, kf := range fields {
+		if kf.item != nil {
+			w.itemClass(indent, kf)
+			w.line(0, "")
+			continue
+		}
+		if kf.enumName == "" {
+			continue
+		}
+		enum := enumOf(kf.f)
+		w.line(indent, "enum class %s(val value: String) {", kf.enumName)
+		for i, v := range enum {
+			sep := ","
+			if i == len(enum)-1 {
+				sep = ";"
+			}
+			w.line(indent+1, "%s(%s)%s", enumEntryName(v), kotlinString(v), sep)
+		}
+		w.line(0, "")
+		w.line(indent+1, "companion object {")
+		w.line(indent+2, "fun fromValue(value: String): %s = entries.first { it.value == value }", kf.enumName)
+		w.line(indent+1, "}")
+		w.line(indent, "}")
+		w.line(0, "")
+	}
+}
+
+// constants writes the property set, required list, patterns and enum value sets of a validator.
+func (w kotlinWriter) constants(indent int, fields []kotlinField) {
+	var props, required []string
+	for _, kf := range fields {
+		props = append(props, kotlinString(kf.f.Name))
+		if kf.f.Required {
+			required = append(required, kotlinString(kf.f.Name))
+		}
+	}
+	w.line(indent, "private val properties: Set<String> = setOf(%s)", strings.Join(props, ", "))
+	w.line(indent, "private val required: List<String> = listOf(%s)", strings.Join(required, ", "))
+	for _, kf := range fields {
+		if p := patternOf(kf.f); p != "" {
+			w.line(indent, "private val %sPattern = Regex(%s)", kf.f.Name, kotlinString(p))
+		}
+		if enum := enumOf(kf.f); len(enum) > 0 {
+			quoted := make([]string, len(enum))
+			for i, v := range enum {
+				quoted[i] = kotlinString(v)
+			}
+			w.line(indent, "private val %sValues: Set<String> = setOf(%s)", kf.f.Name, strings.Join(quoted, ", "))
+		}
+	}
+}
+
+// checks writes the validation of every field of obj; path returns the Kotlin expression of a field's path.
+func (w kotlinWriter) checks(indent int, fields []kotlinField, path func(steps.Field) string) {
+	for _, kf := range fields {
+		w.line(indent, "obj[%s]?.let { %s }", kotlinString(kf.f.Name), checkExpr(kf, "it", path(kf.f)))
+	}
+}
+
+// decode writes the constructor arguments that decode every field of obj.
+func (w kotlinWriter) decode(indent int, fields []kotlinField) {
+	for _, kf := range fields {
+		f := kf.f
+		get := fmt.Sprintf("obj.getValue(%s)", kotlinString(f.Name))
+		if !f.Required {
+			get = fmt.Sprintf("obj[%s]?", kotlinString(f.Name))
+		}
+		w.line(indent, "%s = %s.%s,", f.Name, get, decodeExpr(kf))
+	}
+}
+
+// encode writes the entries that encode every field of value.
+func (w kotlinWriter) encode(indent int, fields []kotlinField) {
+	for _, kf := range fields {
+		w.line(indent, "%s to %s,", kotlinString(kf.f.Name), encodeExpr(kf, "value."+kf.f.Name, kf.f.Required))
+	}
+}
+
+// itemClass writes the data class of an objectList field's items, with its validator and codec.
+func (w kotlinWriter) itemClass(indent int, kf kotlinField) {
+	c := kf.item
+	w.line(indent, "/** An item of %s. */", kdocText(kf.f.Title))
+	w.line(indent, "data class %s(", c.name)
+	w.properties(indent+1, c.fields)
+	w.line(indent, ") {")
+	w.nested(indent+1, c.fields)
+	w.line(indent+1, "fun toJsonObject(): JsonObject = Companion.toJsonObject(this)")
+	w.line(0, "")
+	w.line(indent+1, "companion object {")
+	w.constants(indent+2, c.fields)
+	w.line(0, "")
+	w.line(indent+2, "fun check(v: ConfigValidator, element: JsonElement, path: String) {")
+	w.line(indent+3, "val obj = v.objectAt(element, path) ?: return")
+	w.line(indent+3, "v.closed(obj, path, properties, required)")
+	w.checks(indent+3, c.fields, func(f steps.Field) string {
+		return "ConfigValidator.child(path, " + kotlinString(f.Name) + ")"
+	})
+	w.line(indent+2, "}")
+	w.line(0, "")
+	w.line(indent+2, "fun fromValidated(obj: JsonObject): %s =", c.name)
+	w.line(indent+3, "%s(", c.name)
+	w.decode(indent+4, c.fields)
+	w.line(indent+3, ")")
+	w.line(0, "")
+	w.line(indent+2, "fun toJsonObject(value: %s): JsonObject =", c.name)
+	w.line(indent+3, "ConfigCodec.objectOf(")
+	w.encode(indent+4, c.fields)
+	w.line(indent+3, ")")
+	w.line(indent+1, "}")
+	w.line(indent, "}")
+}
+
+// generateKotlin renders the configuration type, validator and codec for one definition. Rendering
+// annotations (x-ui) never become members; static option sets only surface as enums when the schema itself
+// constrains values with enum.
+func generateKotlin(def *steps.Definition, sourcePath string) (string, error) {
+	t := kotlinTargetFor(def.Identity())
+	fields, err := kotlinFields(def.Fields(), map[string]bool{t.Class: true})
+	if err != nil {
+		return "", err
 	}
 
 	var b strings.Builder
 	w := func(format string, args ...any) { fmt.Fprintf(&b, format, args...) }
+	kw := kotlinWriter{b: &b}
 
 	w("// Code generated by libs/engine/steps/compiler from %s. DO NOT EDIT.\n", sourcePath)
 	w("//\n// Plugin: %s, contract version %d.\n", def.Identity(), def.ContractVersion)
@@ -171,54 +366,13 @@ func generateKotlin(def *steps.Definition, sourcePath string) (string, error) {
 		w("  override fun equals(other: Any?): Boolean = other is %s\n\n", t.Class)
 		w("  override fun hashCode(): Int = 0\n\n")
 		w("  override fun toString(): String = %s\n", kotlinString(t.Class+"()"))
+		w("\n  fun toJson(): String = Definition.encode(this)\n\n")
 	} else {
 		w("data class %s(\n", t.Class)
-		for _, kf := range fields {
-			f := kf.f
-			w("  /**\n   * %s\n", kdocText(f.Title))
-			if f.Description != "" {
-				w("   *\n   * %s\n", kdocText(f.Description))
-			}
-			if len(f.Default) > 0 {
-				w("   *\n   * Default for new configurations: `%s`. Defaults are not applied when decoding.\n", kdocText(string(f.Default)))
-			}
-			w("   */\n")
-			typ := kf.kType
-			if f.Type == steps.TypeArray {
-				typ = "List<" + typ + ">"
-			}
-			if f.Required {
-				w("  val %s: %s,\n", f.Name, typ)
-			} else {
-				w("  val %s: %s? = null,\n", f.Name, typ)
-			}
-		}
+		kw.properties(1, fields)
 		w(") {\n")
-		for _, kf := range fields {
-			if kf.enumName == "" {
-				continue
-			}
-			enum := kf.f.Enum
-			if kf.f.Type == steps.TypeArray {
-				enum = kf.f.Items.Enum
-			}
-			w("  enum class %s(val value: String) {\n", kf.enumName)
-			for i, v := range enum {
-				sep := ","
-				if i == len(enum)-1 {
-					sep = ";"
-				}
-				w("    %s(%s)%s\n", enumEntryName(v), kotlinString(v), sep)
-			}
-			w("\n    companion object {\n")
-			w("      fun fromValue(value: String): %s = entries.first { it.value == value }\n", kf.enumName)
-			w("    }\n  }\n\n")
-		}
-	}
-	if len(fields) > 0 {
+		kw.nested(1, fields)
 		w("  fun toJson(): String = Definition.encode(this)\n\n")
-	} else {
-		w("\n  fun toJson(): String = Definition.encode(this)\n\n")
 	}
 
 	// Companion: identity, validator and codec.
@@ -227,39 +381,12 @@ func generateKotlin(def *steps.Definition, sourcePath string) (string, error) {
 	w("    override val pluginVersion: Int = %d\n", def.PluginVersion)
 	w("    override val contractVersion: Int = %d\n", def.ContractVersion)
 	w("    override val definitionDigest: String = %s\n\n", kotlinString(def.Digest()))
-
-	var props []string
-	for _, kf := range fields {
-		props = append(props, kotlinString(kf.f.Name))
-	}
-	var required []string
-	for _, kf := range fields {
-		if kf.f.Required {
-			required = append(required, kotlinString(kf.f.Name))
-		}
-	}
-	w("    private val properties: Set<String> = setOf(%s)\n", strings.Join(props, ", "))
-	w("    private val required: List<String> = listOf(%s)\n", strings.Join(required, ", "))
-	for _, kf := range fields {
-		if p := patternOf(kf.f); p != "" {
-			w("    private val %sPattern = Regex(%s)\n", kf.f.Name, kotlinString(p))
-		}
-		if enum := enumOf(kf.f); len(enum) > 0 {
-			quoted := make([]string, len(enum))
-			for i, v := range enum {
-				quoted[i] = kotlinString(v)
-			}
-			w("    private val %sValues: Set<String> = setOf(%s)\n", kf.f.Name, strings.Join(quoted, ", "))
-		}
-	}
+	kw.constants(2, fields)
 	w("\n    override fun validate(element: JsonElement): List<ConfigViolation> {\n")
 	w("      val v = ConfigValidator()\n")
 	w("      val obj = v.objectAt(element, \"\") ?: return v.violations\n")
 	w("      v.closed(obj, \"\", properties, required)\n")
-	for _, kf := range fields {
-		f := kf.f
-		w("      obj[%s]?.let { %s }\n", kotlinString(f.Name), checkExpr(f, "it", kotlinString(f.Pointer)))
-	}
+	kw.checks(3, fields, func(f steps.Field) string { return kotlinString(f.Pointer) })
 	w("      return v.violations\n    }\n\n")
 
 	// Decode.
@@ -268,24 +395,14 @@ func generateKotlin(def *steps.Definition, sourcePath string) (string, error) {
 		w(" = %s()\n\n", t.Class)
 	} else {
 		w(" =\n      %s(\n", t.Class)
-		for _, kf := range fields {
-			f := kf.f
-			get := fmt.Sprintf("obj.getValue(%s)", kotlinString(f.Name))
-			if !f.Required {
-				get = fmt.Sprintf("obj[%s]?", kotlinString(f.Name))
-			}
-			w("        %s = %s.%s,\n", f.Name, get, decodeExpr(kf))
-		}
+		kw.decode(4, fields)
 		w("      )\n\n")
 	}
 
 	// Encode.
 	w("    override fun toJsonObject(value: %s): JsonObject =\n", t.Class)
 	w("      ConfigCodec.objectOf(\n")
-	for _, kf := range fields {
-		f := kf.f
-		w("        %s to %s,\n", kotlinString(f.Name), encodeExpr(kf, "value."+f.Name, f.Required))
-	}
+	kw.encode(4, fields)
 	w("      )\n")
 	w("  }\n}\n")
 	return b.String(), nil
@@ -366,7 +483,8 @@ func scalarCheck(name string, s scalarSpec, value, path string) string {
 	panic("unsupported type " + s.Type)
 }
 
-func checkExpr(f steps.Field, value, path string) string {
+func checkExpr(kf kotlinField, value, path string) string {
+	f := kf.f
 	if f.Type != steps.TypeArray {
 		return scalarCheck(f.Name, scalarSpec{
 			Type: f.Type, MinLength: f.MinLength, MaxLength: f.MaxLength, HasPattern: f.Pattern != "",
@@ -375,10 +493,15 @@ func checkExpr(f steps.Field, value, path string) string {
 		}, value, path)
 	}
 	it := f.Items
-	item := scalarCheck(f.Name, scalarSpec{
-		Type: it.Type, MinLength: it.MinLength, MaxLength: it.MaxLength, HasPattern: it.Pattern != "",
-		HasEnum: len(it.Enum) > 0, Min: it.Minimum, Max: it.Maximum, ExMin: it.ExclusiveMinimum, ExMax: it.ExclusiveMaximum,
-	}, "item", "itemPath")
+	var item string
+	if kf.item != nil {
+		item = kf.item.name + ".check(v, item, itemPath)"
+	} else {
+		item = scalarCheck(f.Name, scalarSpec{
+			Type: it.Type, MinLength: it.MinLength, MaxLength: it.MaxLength, HasPattern: it.Pattern != "",
+			HasEnum: len(it.Enum) > 0, Min: it.Minimum, Max: it.Maximum, ExMin: it.ExclusiveMinimum, ExMax: it.ExclusiveMaximum,
+		}, "item", "itemPath")
+	}
 	args := []string{value, path}
 	if f.MinItems != nil {
 		args = append(args, "minItems = "+optInt(f.MinItems))
@@ -408,6 +531,9 @@ func scalarDecode(t steps.FieldType) string {
 
 func decodeExpr(kf kotlinField) string {
 	f := kf.f
+	if kf.item != nil {
+		return "let { ConfigCodec.list(it) { item -> " + kf.item.name + ".fromValidated(item as JsonObject) } }"
+	}
 	elem := f.Type
 	if f.Type == steps.TypeArray {
 		elem = f.Items.Type
@@ -431,6 +557,9 @@ func encodeExpr(kf kotlinField, value string, required bool) string {
 	var expr string
 	if f.Type == steps.TypeArray {
 		inner := "ConfigCodec.primitive(" + elem + ")"
+		if kf.item != nil {
+			inner = elem + ".toJsonObject()"
+		}
 		if required {
 			return value + ".let { list -> ConfigCodec.array(list.map { " + inner + " }) }"
 		}

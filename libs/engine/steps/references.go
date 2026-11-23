@@ -31,47 +31,79 @@ func (d *Definition) References(config []byte) ([]Reference, error) {
 	}
 	var refs []Reference
 	for _, f := range d.fields {
-		o := f.UI.Options
 		raw, ok := values[f.Name]
-		if o == nil || o.Named == nil || !ok {
+		if !ok {
 			continue
 		}
-		params := map[string]any{}
-		for k, v := range o.Named.Params {
-			params[k] = v
-		}
-		for k, ptr := range o.Named.ParamsFromFields {
-			if v, ok := values[strings.TrimPrefix(ptr, "/")]; ok {
-				var x any
-				_ = json.Unmarshal(v, &x)
-				params[k] = x
-			}
-		}
-		if len(params) == 0 {
-			params = nil
-		}
-		var ids []string
-		var paths []string
-		if f.Type == TypeArray {
-			if err := json.Unmarshal(raw, &ids); err != nil {
+		if f.Items != nil && f.Items.Type == TypeObject {
+			var rows []map[string]json.RawMessage
+			if err := json.Unmarshal(raw, &rows); err != nil {
 				return nil, fmt.Errorf("%s: %w", f.Pointer, err)
 			}
-			for i := range ids {
-				paths = append(paths, fmt.Sprintf("%s/%d", f.Pointer, i))
+			for i, row := range rows {
+				for _, item := range f.Items.Fields {
+					itemRefs, err := fieldReferences(item, fmt.Sprintf("%s/%d%s", f.Pointer, i, item.Pointer), row, values)
+					if err != nil {
+						return nil, err
+					}
+					refs = append(refs, itemRefs...)
+				}
 			}
-		} else {
-			var id string
-			if err := json.Unmarshal(raw, &id); err != nil {
-				return nil, fmt.Errorf("%s: %w", f.Pointer, err)
-			}
-			ids, paths = []string{id}, []string{f.Pointer}
+			continue
 		}
-		for i, id := range ids {
-			if o.HasStatic(id) {
-				continue
-			}
-			refs = append(refs, Reference{Path: paths[i], Collection: o.Named.Name, ID: id, Params: params})
+		fieldRefs, err := fieldReferences(f, f.Pointer, values, values)
+		if err != nil {
+			return nil, err
 		}
+		refs = append(refs, fieldRefs...)
+	}
+	return refs, nil
+}
+
+// fieldReferences extracts the references of one select or multiselect field at pointer, whose value is
+// in values. Named option parameters are always derived from the top-level configuration.
+func fieldReferences(f Field, pointer string, values, top map[string]json.RawMessage) ([]Reference, error) {
+	o := f.UI.Options
+	raw, ok := values[f.Name]
+	if o == nil || o.Named == nil || !ok {
+		return nil, nil
+	}
+	params := map[string]any{}
+	for k, v := range o.Named.Params {
+		params[k] = v
+	}
+	for k, ptr := range o.Named.ParamsFromFields {
+		if v, ok := top[strings.TrimPrefix(ptr, "/")]; ok {
+			var x any
+			_ = json.Unmarshal(v, &x)
+			params[k] = x
+		}
+	}
+	if len(params) == 0 {
+		params = nil
+	}
+	var ids []string
+	var paths []string
+	if f.Type == TypeArray {
+		if err := json.Unmarshal(raw, &ids); err != nil {
+			return nil, fmt.Errorf("%s: %w", pointer, err)
+		}
+		for i := range ids {
+			paths = append(paths, fmt.Sprintf("%s/%d", pointer, i))
+		}
+	} else {
+		var id string
+		if err := json.Unmarshal(raw, &id); err != nil {
+			return nil, fmt.Errorf("%s: %w", pointer, err)
+		}
+		ids, paths = []string{id}, []string{pointer}
+	}
+	var refs []Reference
+	for i, id := range ids {
+		if o.HasStatic(id) {
+			continue
+		}
+		refs = append(refs, Reference{Path: paths[i], Collection: o.Named.Name, ID: id, Params: params})
 	}
 	return refs, nil
 }

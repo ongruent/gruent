@@ -1,15 +1,17 @@
 'use client'
 
 import {
+  createItem,
   type Definition,
   describeForm,
+  describeItem,
   type FieldModel,
   fieldIssues,
   type Issue,
   isFieldVisible,
+  isVisible,
   type NamedOptions,
   type OptionsEvent,
-  type Section,
   withField,
 } from '@gruent/libs/engine/steps/ts'
 import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
@@ -25,7 +27,14 @@ import {
 import { CircleXIcon, LoaderCircleIcon } from 'lucide-react'
 import { FC, type ReactElement, useId, useMemo } from 'react'
 import { useNodeDefinition } from './context'
-import { DateTimeControl, ListControl, NumberControl, TextControl, ToggleControl } from './controls'
+import {
+  DateTimeControl,
+  ListControl,
+  NumberControl,
+  ObjectListControl,
+  TextControl,
+  ToggleControl,
+} from './controls'
 import OptionsSelect from './OptionsSelect'
 
 export type { NodeDefinitionSource, NodeDefinitionState } from './context'
@@ -103,13 +112,18 @@ export const NodeConfigForm: FC<FormProps & { definition: Definition }> = ({
     return field ? `${field.schema.title} (hidden)` : issue.path || 'Configuration'
   }
 
-  const renderField = (section: Section, field: FieldModel) => {
-    if (!isFieldVisible(section, field, value)) return null
+  /**
+   * Renders one field: a top-level field, or a field of an objectList row (whose path points into the row).
+   * fieldValue and set read and write the field in its parent object.
+   */
+  const renderField = (
+    field: FieldModel,
+    fieldValue: unknown,
+    set: (v: unknown) => void,
+  ): ReactElement => {
     const id = `${idPrefix}${field.path}`
-    const errors = fieldIssues(field, issues)
-    const invalid = errors.length > 0
-    const fieldValue = value[field.name]
-    const set = (v: unknown) => onChange(withField(value, field.name, v))
+    let errors = fieldIssues(field, issues)
+    let invalid = errors.length > 0
     const { control } = field.schema['x-ui']
 
     let input: ReactElement
@@ -176,6 +190,36 @@ export const NodeConfigForm: FC<FormProps & { definition: Definition }> = ({
           />
         )
         break
+      case 'objectList': {
+        // Issues of visible row fields are shown next to them; the rest (rows themselves, hidden fields)
+        // are shown under the list.
+        const rows = Array.isArray(fieldValue) ? (fieldValue as unknown[]) : []
+        const shownRowFields = rows.flatMap((row, index) =>
+          describeItem(field, index).filter((f) =>
+            isVisible(f.schema['x-ui'].visibleWhen, (row ?? {}) as Record<string, unknown>),
+          ),
+        )
+        errors = errors.filter((e) => !shownRowFields.some((f) => fieldIssues(f, [e]).length > 0))
+        // Only the list's own issues mark it invalid, so one invalid row doesn't highlight every row.
+        invalid = errors.length > 0
+        input = (
+          <ObjectListControl
+            id={id}
+            title={field.schema.title}
+            maxItems={field.schema.maxItems}
+            value={fieldValue}
+            invalid={invalid}
+            onChange={set}
+            newItem={() => createItem(field.schema) ?? {}}
+            renderRow={(index, row, setRow) =>
+              describeItem(field, index)
+                .filter((f) => isVisible(f.schema['x-ui'].visibleWhen, row))
+                .map((f) => renderField(f, row[f.name], (v) => setRow(withField(row, f.name, v))))
+            }
+          />
+        )
+        break
+      }
       case 'select':
       case 'multiselect':
         input = (
@@ -250,7 +294,11 @@ export const NodeConfigForm: FC<FormProps & { definition: Definition }> = ({
       data-testid="node-config"
     >
       {sections.map((section) => {
-        const fields = section.fields.map((f) => renderField(section, f)).filter(Boolean)
+        const fields = section.fields
+          .filter((f) => isFieldVisible(section, f, value))
+          .map((f) =>
+            renderField(f, value[f.name], (v) => onChange(withField(value, f.name, v))),
+          )
         if (fields.length === 0) return null
         if (!section.group) return <FieldGroup key="_">{fields}</FieldGroup>
         return (

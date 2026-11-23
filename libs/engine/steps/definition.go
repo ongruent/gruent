@@ -50,6 +50,8 @@ const (
 	TypeInteger FieldType = "integer"
 	TypeBoolean FieldType = "boolean"
 	TypeArray   FieldType = "array"
+	// TypeObject is only valid for array items: repeatable rows of scalar fields (control objectList).
+	TypeObject FieldType = "object"
 )
 
 // Identity is the exact plugin identity persisted by channels. There is no "latest".
@@ -111,17 +113,23 @@ type FieldUI struct {
 	Options     *Options   `json:"options,omitempty"`
 }
 
-// Items describes the primitive items of an array field.
+// Items describes the items of an array field: primitives, or objects of scalar fields.
 type Items struct {
-	Type             FieldType `json:"type"`
-	MinLength        *int64    `json:"minLength,omitempty"`
-	MaxLength        *int64    `json:"maxLength,omitempty"`
-	Pattern          string    `json:"pattern,omitempty"`
-	Enum             []string  `json:"enum,omitempty"`
-	Minimum          *float64  `json:"minimum,omitempty"`
-	Maximum          *float64  `json:"maximum,omitempty"`
-	ExclusiveMinimum *float64  `json:"exclusiveMinimum,omitempty"`
-	ExclusiveMaximum *float64  `json:"exclusiveMaximum,omitempty"`
+	Type FieldType `json:"type"`
+	// Properties and Required declare the fields of object items.
+	Properties map[string]json.RawMessage `json:"properties,omitempty"`
+	Required   []string                   `json:"required,omitempty"`
+	// Fields are the parsed fields of object items, ordered by x-ui.order. Their Pointer is relative to
+	// the item ("/left").
+	Fields           []Field  `json:"-"`
+	MinLength        *int64   `json:"minLength,omitempty"`
+	MaxLength        *int64   `json:"maxLength,omitempty"`
+	Pattern          string   `json:"pattern,omitempty"`
+	Enum             []string `json:"enum,omitempty"`
+	Minimum          *float64 `json:"minimum,omitempty"`
+	Maximum          *float64 `json:"maximum,omitempty"`
+	ExclusiveMinimum *float64 `json:"exclusiveMinimum,omitempty"`
+	ExclusiveMaximum *float64 `json:"exclusiveMaximum,omitempty"`
 }
 
 // Field is one top-level configuration property. Its identity is its location in the schema.
@@ -279,14 +287,26 @@ func ParseDefinition(raw []byte) (*Definition, error) {
 		f.Name = name
 		f.Pointer = "/" + name
 		f.Required = required[name]
+		if f.Items != nil && f.Items.Type == TypeObject {
+			itemRequired := map[string]bool{}
+			for _, r := range f.Items.Required {
+				itemRequired[r] = true
+			}
+			for itemName, iraw := range f.Items.Properties {
+				var item Field
+				if err := json.Unmarshal(iraw, &item); err != nil {
+					return nil, &DefinitionError{Issues: []Issue{{Path: propPath(name, "items", "properties", escapePointer(itemName)), Message: err.Error()}}}
+				}
+				item.Name = itemName
+				item.Pointer = "/" + itemName
+				item.Required = itemRequired[itemName]
+				f.Items.Fields = append(f.Items.Fields, item)
+			}
+			sortFields(f.Items.Fields)
+		}
 		d.fields = append(d.fields, f)
 	}
-	sort.Slice(d.fields, func(i, j int) bool {
-		if d.fields[i].UI.Order != d.fields[j].UI.Order {
-			return d.fields[i].UI.Order < d.fields[j].UI.Order
-		}
-		return d.fields[i].Name < d.fields[j].Name
-	})
+	sortFields(d.fields)
 	d.groups = cs.UI.Groups
 
 	issues := checkSemantics(d, cs.Required)
@@ -304,6 +324,15 @@ func ParseDefinition(raw []byte) (*Definition, error) {
 		return nil, &DefinitionError{Issues: issues}
 	}
 	return d, nil
+}
+
+func sortFields(fields []Field) {
+	sort.Slice(fields, func(i, j int) bool {
+		if fields[i].UI.Order != fields[j].UI.Order {
+			return fields[i].UI.Order < fields[j].UI.Order
+		}
+		return fields[i].Name < fields[j].Name
+	})
 }
 
 func propPath(name string, rest ...string) string {

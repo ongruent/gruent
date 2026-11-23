@@ -15,77 +15,127 @@ import kotlinx.serialization.json.JsonObject
 /**
  * Compare
  *
- * Compare a value of the input with a fixed value or another input value, like an if statement. Inputs that pass continue on the success branch, all others on the failure branch.
+ * Compare fields of the input with fixed values or other fields, like an if statement. Inputs that pass continue on the success branch, all others on the failure branch.
  */
 data class CompareConfig(
   /**
-   * Type
+   * Model
    *
-   * Both values must have this type. Greater and less than comparisons need numbers.
-   *
-   * Default for new configurations: `"number"`. Defaults are not applied when decoding.
+   * Model of the input. Its fields are offered for comparison, and their types decide how values compare.
    */
-  val valueType: ValueType,
+  val modelId: String,
   /**
-   * Value
+   * Pass when
    *
-   * Input value to compare, e.g. input.temperatureC.
+   * Default for new configurations: `"all"`. Defaults are not applied when decoding.
    */
-  val left: String,
+  val match: Match,
   /**
-   * Operator
+   * Comparison
    *
-   * Default for new configurations: `"equal"`. Defaults are not applied when decoding.
+   * Numbers compare by value; text and true/false values can only be equal or not equal.
    */
-  val operator: Operator,
-  /**
-   * Compare to
-   *
-   * Default for new configurations: `"value"`. Defaults are not applied when decoding.
-   */
-  val compareTo: CompareTo,
-  /**
-   * Fixed value
-   *
-   * A number such as 25.5, text, or true/false, depending on the type.
-   */
-  val value: String? = null,
-  /**
-   * Other input value
-   *
-   * Input value to compare with, e.g. input.limits.maxC.
-   */
-  val right: String? = null,
+  val comparisons: List<ComparisonsItem>,
 ) {
-  enum class ValueType(val value: String) {
-    NUMBER("number"),
-    STRING("string"),
-    BOOLEAN("boolean");
+  enum class Match(val value: String) {
+    ALL("all"),
+    ANY("any");
 
     companion object {
-      fun fromValue(value: String): ValueType = entries.first { it.value == value }
+      fun fromValue(value: String): Match = entries.first { it.value == value }
     }
   }
 
-  enum class Operator(val value: String) {
-    EQUAL("equal"),
-    NOTEQUAL("notEqual"),
-    GREATERTHAN("greaterThan"),
-    GREATERTHANOREQUAL("greaterThanOrEqual"),
-    LESSTHAN("lessThan"),
-    LESSTHANOREQUAL("lessThanOrEqual");
+  /** An item of Comparison. */
+  data class ComparisonsItem(
+    /**
+     * Field
+     */
+    val left: String,
+    /**
+     * Operator
+     *
+     * Default for new configurations: `"equal"`. Defaults are not applied when decoding.
+     */
+    val operator: Operator,
+    /**
+     * Compare to
+     *
+     * Default for new configurations: `"value"`. Defaults are not applied when decoding.
+     */
+    val compareTo: CompareTo,
+    /**
+     * Value
+     *
+     * A number such as 25.5, text, or true/false, depending on the field's type.
+     */
+    val value: String? = null,
+    /**
+     * Other field
+     *
+     * Must have the same type as the field.
+     */
+    val right: String? = null,
+  ) {
+    enum class Operator(val value: String) {
+      EQUAL("equal"),
+      NOTEQUAL("notEqual"),
+      GREATERTHAN("greaterThan"),
+      GREATERTHANOREQUAL("greaterThanOrEqual"),
+      LESSTHAN("lessThan"),
+      LESSTHANOREQUAL("lessThanOrEqual");
 
-    companion object {
-      fun fromValue(value: String): Operator = entries.first { it.value == value }
+      companion object {
+        fun fromValue(value: String): Operator = entries.first { it.value == value }
+      }
     }
-  }
 
-  enum class CompareTo(val value: String) {
-    VALUE("value"),
-    VARIABLE("variable");
+    enum class CompareTo(val value: String) {
+      VALUE("value"),
+      VARIABLE("variable");
+
+      companion object {
+        fun fromValue(value: String): CompareTo = entries.first { it.value == value }
+      }
+    }
+
+    fun toJsonObject(): JsonObject = Companion.toJsonObject(this)
 
     companion object {
-      fun fromValue(value: String): CompareTo = entries.first { it.value == value }
+      private val properties: Set<String> = setOf("left", "operator", "compareTo", "value", "right")
+      private val required: List<String> = listOf("left", "operator", "compareTo")
+      private val leftPattern = Regex("^[^.\\s\\[\\]]+(?:\\.[^.\\s\\[\\]]+)*\$")
+      private val operatorValues: Set<String> = setOf("equal", "notEqual", "greaterThan", "greaterThanOrEqual", "lessThan", "lessThanOrEqual")
+      private val compareToValues: Set<String> = setOf("value", "variable")
+      private val rightPattern = Regex("^[^.\\s\\[\\]]+(?:\\.[^.\\s\\[\\]]+)*\$")
+
+      fun check(v: ConfigValidator, element: JsonElement, path: String) {
+        val obj = v.objectAt(element, path) ?: return
+        v.closed(obj, path, properties, required)
+        obj["left"]?.let { v.string(it, ConfigValidator.child(path, "left"), minLength = 1, maxLength = 200, pattern = leftPattern) }
+        obj["operator"]?.let { v.string(it, ConfigValidator.child(path, "operator"), allowed = operatorValues) }
+        obj["compareTo"]?.let { v.string(it, ConfigValidator.child(path, "compareTo"), allowed = compareToValues) }
+        obj["value"]?.let { v.string(it, ConfigValidator.child(path, "value"), maxLength = 1000) }
+        obj["right"]?.let { v.string(it, ConfigValidator.child(path, "right"), minLength = 1, maxLength = 200, pattern = rightPattern) }
+      }
+
+      fun fromValidated(obj: JsonObject): ComparisonsItem =
+        ComparisonsItem(
+          left = obj.getValue("left").let { ConfigCodec.string(it) },
+          operator = obj.getValue("operator").let { Operator.fromValue(ConfigCodec.string(it)) },
+          compareTo = obj.getValue("compareTo").let { CompareTo.fromValue(ConfigCodec.string(it)) },
+          value = obj["value"]?.let { ConfigCodec.string(it) },
+          right = obj["right"]?.let { ConfigCodec.string(it) },
+        )
+
+      fun toJsonObject(value: ComparisonsItem): JsonObject =
+        ConfigCodec.objectOf(
+          "left" to value.left.let { ConfigCodec.primitive(it) },
+          "operator" to value.operator.let { ConfigCodec.primitive(it.value) },
+          "compareTo" to value.compareTo.let { ConfigCodec.primitive(it.value) },
+          "value" to value.value?.let { ConfigCodec.primitive(it) },
+          "right" to value.right?.let { ConfigCodec.primitive(it) },
+        )
     }
   }
 
@@ -95,47 +145,34 @@ data class CompareConfig(
     override val pluginType: String = "compare"
     override val pluginVersion: Int = 1
     override val contractVersion: Int = 1
-    override val definitionDigest: String = "sha256:5eaddde207cebd7bd2a102b27e88a8213c8fff4290dba339fb389ed76483b217"
+    override val definitionDigest: String = "sha256:9152e734740f22d8d4a64450c334fbb4e0cca5fc98e65532da479cd3c4849f4d"
 
-    private val properties: Set<String> = setOf("valueType", "left", "operator", "compareTo", "value", "right")
-    private val required: List<String> = listOf("valueType", "left", "operator", "compareTo")
-    private val valueTypeValues: Set<String> = setOf("number", "string", "boolean")
-    private val leftPattern = Regex("^input(?:\\.[^.\\s]+)*\$")
-    private val operatorValues: Set<String> = setOf("equal", "notEqual", "greaterThan", "greaterThanOrEqual", "lessThan", "lessThanOrEqual")
-    private val compareToValues: Set<String> = setOf("value", "variable")
-    private val rightPattern = Regex("^input(?:\\.[^.\\s]+)*\$")
+    private val properties: Set<String> = setOf("modelId", "match", "comparisons")
+    private val required: List<String> = listOf("modelId", "match", "comparisons")
+    private val matchValues: Set<String> = setOf("all", "any")
 
     override fun validate(element: JsonElement): List<ConfigViolation> {
       val v = ConfigValidator()
       val obj = v.objectAt(element, "") ?: return v.violations
       v.closed(obj, "", properties, required)
-      obj["valueType"]?.let { v.string(it, "/valueType", allowed = valueTypeValues) }
-      obj["left"]?.let { v.string(it, "/left", minLength = 1, maxLength = 200, pattern = leftPattern) }
-      obj["operator"]?.let { v.string(it, "/operator", allowed = operatorValues) }
-      obj["compareTo"]?.let { v.string(it, "/compareTo", allowed = compareToValues) }
-      obj["value"]?.let { v.string(it, "/value", maxLength = 1000) }
-      obj["right"]?.let { v.string(it, "/right", minLength = 1, maxLength = 200, pattern = rightPattern) }
+      obj["modelId"]?.let { v.string(it, "/modelId", minLength = 1) }
+      obj["match"]?.let { v.string(it, "/match", allowed = matchValues) }
+      obj["comparisons"]?.let { v.array(it, "/comparisons", minItems = 1, maxItems = 20) { item, itemPath -> ComparisonsItem.check(v, item, itemPath) } }
       return v.violations
     }
 
     override fun fromValidated(obj: JsonObject): CompareConfig =
       CompareConfig(
-        valueType = obj.getValue("valueType").let { ValueType.fromValue(ConfigCodec.string(it)) },
-        left = obj.getValue("left").let { ConfigCodec.string(it) },
-        operator = obj.getValue("operator").let { Operator.fromValue(ConfigCodec.string(it)) },
-        compareTo = obj.getValue("compareTo").let { CompareTo.fromValue(ConfigCodec.string(it)) },
-        value = obj["value"]?.let { ConfigCodec.string(it) },
-        right = obj["right"]?.let { ConfigCodec.string(it) },
+        modelId = obj.getValue("modelId").let { ConfigCodec.string(it) },
+        match = obj.getValue("match").let { Match.fromValue(ConfigCodec.string(it)) },
+        comparisons = obj.getValue("comparisons").let { ConfigCodec.list(it) { item -> ComparisonsItem.fromValidated(item as JsonObject) } },
       )
 
     override fun toJsonObject(value: CompareConfig): JsonObject =
       ConfigCodec.objectOf(
-        "valueType" to value.valueType.let { ConfigCodec.primitive(it.value) },
-        "left" to value.left.let { ConfigCodec.primitive(it) },
-        "operator" to value.operator.let { ConfigCodec.primitive(it.value) },
-        "compareTo" to value.compareTo.let { ConfigCodec.primitive(it.value) },
-        "value" to value.value?.let { ConfigCodec.primitive(it) },
-        "right" to value.right?.let { ConfigCodec.primitive(it) },
+        "modelId" to value.modelId.let { ConfigCodec.primitive(it) },
+        "match" to value.match.let { ConfigCodec.primitive(it.value) },
+        "comparisons" to value.comparisons.let { list -> ConfigCodec.array(list.map { it.toJsonObject() }) },
       )
   }
 }

@@ -2,13 +2,16 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 import {
+  createItem,
   Definition,
   describeForm,
+  describeItem,
   fieldIssues,
   isFieldVisible,
   isVisible,
   optionsEvent,
   selectedOptions,
+  valueAtPointer,
   visibleOptions,
   withField,
 } from '../index'
@@ -103,5 +106,61 @@ describe('StepConfig model', () => {
     expect(withField(saved, 'greeting', 'hey')).toEqual({ greeting: 'hey', unknown: 1, startAt: 'hidden value' })
     expect(withField(saved, 'greeting', undefined)).toEqual({ unknown: 1, startAt: 'hidden value' })
     expect(saved).toEqual({ greeting: 'hi', unknown: 1, startAt: 'hidden value' })
+  })
+})
+
+describe('objectList rows', () => {
+  const loadRows = () =>
+    Definition.fromDocument(
+      JSON.parse(readFileSync(join(__dirname, '../../contracts/v1/fixtures/valid/object-list.json'), 'utf8')).definition,
+      'object-list',
+    )
+  const rowsField = (def: Definition) => describeForm(def).flatMap((s) => s.fields).find((f) => f.name === 'rows')!
+
+  it('describes the fields of a row with paths into that row', () => {
+    const fields = describeItem(rowsField(loadRows()), 1)
+    expect(fields.map((f) => `${f.path}:${f.required}`)).toEqual([
+      '/rows/1/left:true',
+      '/rows/1/operator:true',
+      '/rows/1/value:false',
+      '/rows/1/strict:false',
+    ])
+    expect(describeItem(describeForm(loadRows())[0].fields[0], 0)).toEqual([])
+  })
+
+  it('creates rows from item defaults only', () => {
+    expect(createItem(rowsField(loadRows()).schema)).toEqual({ operator: 'equal', strict: false })
+  })
+
+  it('derives row option parameters from the top-level configuration', () => {
+    const config = { modelId: 'm1', rows: [{ operator: 'equal' }] }
+    const [left] = describeItem(rowsField(loadRows()), 0)
+    expect(optionsEvent(left, config, 'temp')).toEqual({
+      path: '/rows/0/left',
+      name: 'model-fields',
+      query: 'temp',
+      params: { model: 'm1', scalars: true },
+    })
+  })
+
+  it('evaluates row conditions against the row and assigns issues per row', () => {
+    const def = loadRows()
+    const value = describeItem(rowsField(def), 0).find((f) => f.name === 'value')!
+    expect(isVisible(value.schema['x-ui'].visibleWhen, { operator: 'lessThan' })).toBe(true)
+    expect(isVisible(value.schema['x-ui'].visibleWhen, { operator: 'equal' })).toBe(false)
+
+    const issues = def.validateConfig({ rows: [{ left: 'a', operator: 'equal' }, { operator: 'nope' }] })
+    const second = describeItem(rowsField(def), 1)
+    expect(fieldIssues(second[0], issues).map((i) => i.path)).toEqual(['/rows/1/left'])
+    expect(fieldIssues(second[1], issues).map((i) => i.path)).toEqual(['/rows/1/operator'])
+    expect(fieldIssues(describeItem(rowsField(def), 0)[0], issues)).toEqual([])
+  })
+
+  it('reads values at JSON Pointers', () => {
+    const config = { rows: [{ left: 'a' }], 'a/b': { '~': 1 } }
+    expect(valueAtPointer(config, '/rows/0/left')).toBe('a')
+    expect(valueAtPointer(config, '/a~1b/~0')).toBe(1)
+    expect(valueAtPointer(config, '/rows/3/left')).toBeUndefined()
+    expect(valueAtPointer(config, '/rows/0/left/x')).toBeUndefined()
   })
 })

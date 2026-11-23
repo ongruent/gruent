@@ -3,110 +3,138 @@
   "pluginType": "compare",
   "pluginVersion": 1,
   "displayName": "Compare",
-  "description": "Compare a value of the input with a fixed value or another input value, like an if statement. Inputs that pass continue on the success branch, all others on the failure branch.",
+  "description": "Compare fields of the input with fixed values or other fields, like an if statement. Inputs that pass continue on the success branch, all others on the failure branch.",
   "category": "conditional",
   "configSchema": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "additionalProperties": false,
-    "required": ["valueType", "left", "operator", "compareTo"],
+    "required": ["modelId", "match", "comparisons"],
     "x-ui": {
-      "groups": [
-        { "id": "condition", "title": "Condition" },
-        {
-          "id": "fixed",
-          "title": "Fixed value",
-          "visibleWhen": { "field": "/compareTo", "equals": "value" }
-        },
-        {
-          "id": "variable",
-          "title": "Input value",
-          "visibleWhen": { "field": "/compareTo", "equals": "variable" }
-        }
-      ]
+      "groups": [{ "id": "condition", "title": "Condition" }]
     },
     "properties": {
-      "valueType": {
+      "modelId": {
         "type": "string",
-        "title": "Type",
-        "description": "Both values must have this type. Greater and less than comparisons need numbers.",
-        "enum": ["number", "string", "boolean"],
-        "default": "number",
+        "title": "Model",
+        "description": "Model of the input. Its fields are offered for comparison, and their types decide how values compare.",
+        "minLength": 1,
         "x-ui": {
           "control": "select",
           "order": 1,
           "group": "condition",
-          "options": {
-            "static": [
-              { "value": "number", "label": "Number" },
-              { "value": "string", "label": "Text" },
-              { "value": "boolean", "label": "Boolean" }
-            ]
-          }
+          "options": { "named": { "name": "models" } }
         }
       },
-      "left": {
+      "match": {
         "type": "string",
-        "title": "Value",
-        "description": "Input value to compare, e.g. input.temperatureC.",
-        "minLength": 1,
-        "maxLength": 200,
-        "pattern": "^input(?:\\.[^.\\s]+)*$",
-        "x-ui": { "control": "text", "order": 2, "group": "condition", "placeholder": "input.temperatureC" }
-      },
-      "operator": {
-        "type": "string",
-        "title": "Operator",
-        "enum": ["equal", "notEqual", "greaterThan", "greaterThanOrEqual", "lessThan", "lessThanOrEqual"],
-        "default": "equal",
+        "title": "Pass when",
+        "enum": ["all", "any"],
+        "default": "all",
         "x-ui": {
           "control": "select",
-          "order": 3,
+          "order": 2,
           "group": "condition",
           "options": {
             "static": [
-              { "value": "equal", "label": "Is equal to" },
-              { "value": "notEqual", "label": "Is not equal to" },
-              { "value": "greaterThan", "label": "Is greater than" },
-              { "value": "greaterThanOrEqual", "label": "Is greater than or equal to" },
-              { "value": "lessThan", "label": "Is less than" },
-              { "value": "lessThanOrEqual", "label": "Is less than or equal to" }
+              { "value": "all", "label": "Every comparison holds" },
+              { "value": "any", "label": "At least one comparison holds" }
             ]
           }
         }
       },
-      "compareTo": {
-        "type": "string",
-        "title": "Compare to",
-        "enum": ["value", "variable"],
-        "default": "value",
-        "x-ui": {
-          "control": "select",
-          "order": 4,
-          "group": "condition",
-          "options": {
-            "static": [
-              { "value": "value", "label": "A fixed value" },
-              { "value": "variable", "label": "Another input value" }
-            ]
+      "comparisons": {
+        "type": "array",
+        "title": "Comparison",
+        "description": "Numbers compare by value; text and true/false values can only be equal or not equal.",
+        "minItems": 1,
+        "maxItems": 20,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["left", "operator", "compareTo"],
+          "properties": {
+            "left": {
+              "type": "string",
+              "title": "Field",
+              "minLength": 1,
+              "maxLength": 200,
+              "pattern": "^[^.\\s\\[\\]]+(?:\\.[^.\\s\\[\\]]+)*$",
+              "x-ui": {
+                "control": "select",
+                "order": 1,
+                "options": {
+                  "named": { "name": "model-fields", "params": { "scalars": true }, "paramsFromFields": { "model": "/modelId" } }
+                }
+              }
+            },
+            "operator": {
+              "type": "string",
+              "title": "Operator",
+              "enum": ["equal", "notEqual", "greaterThan", "greaterThanOrEqual", "lessThan", "lessThanOrEqual"],
+              "default": "equal",
+              "x-ui": {
+                "control": "select",
+                "order": 2,
+                "options": {
+                  "static": [
+                    { "value": "equal", "label": "Is equal to" },
+                    { "value": "notEqual", "label": "Is not equal to" },
+                    { "value": "greaterThan", "label": "Is greater than" },
+                    { "value": "greaterThanOrEqual", "label": "Is greater than or equal to" },
+                    { "value": "lessThan", "label": "Is less than" },
+                    { "value": "lessThanOrEqual", "label": "Is less than or equal to" }
+                  ]
+                }
+              }
+            },
+            "compareTo": {
+              "type": "string",
+              "title": "Compare to",
+              "enum": ["value", "variable"],
+              "default": "value",
+              "x-ui": {
+                "control": "select",
+                "order": 3,
+                "options": {
+                  "static": [
+                    { "value": "value", "label": "A fixed value" },
+                    { "value": "variable", "label": "Another field" }
+                  ]
+                }
+              }
+            },
+            "value": {
+              "type": "string",
+              "title": "Value",
+              "description": "A number such as 25.5, text, or true/false, depending on the field's type.",
+              "maxLength": 1000,
+              "x-ui": {
+                "control": "text",
+                "order": 4,
+                "placeholder": "25",
+                "visibleWhen": { "field": "/compareTo", "equals": "value" }
+              }
+            },
+            "right": {
+              "type": "string",
+              "title": "Other field",
+              "description": "Must have the same type as the field.",
+              "minLength": 1,
+              "maxLength": 200,
+              "pattern": "^[^.\\s\\[\\]]+(?:\\.[^.\\s\\[\\]]+)*$",
+              "x-ui": {
+                "control": "select",
+                "order": 5,
+                "visibleWhen": { "field": "/compareTo", "equals": "variable" },
+                "options": {
+                  "named": { "name": "model-fields", "params": { "scalars": true }, "paramsFromFields": { "model": "/modelId" } }
+                }
+              }
+            }
           }
-        }
-      },
-      "value": {
-        "type": "string",
-        "title": "Fixed value",
-        "description": "A number such as 25.5, text, or true/false, depending on the type.",
-        "maxLength": 1000,
-        "x-ui": { "control": "text", "order": 5, "group": "fixed", "placeholder": "25" }
-      },
-      "right": {
-        "type": "string",
-        "title": "Other input value",
-        "description": "Input value to compare with, e.g. input.limits.maxC.",
-        "minLength": 1,
-        "maxLength": 200,
-        "pattern": "^input(?:\\.[^.\\s]+)*$",
-        "x-ui": { "control": "text", "order": 6, "group": "variable", "placeholder": "input.limits.maxC" }
+        },
+        "x-ui": { "control": "objectList", "order": 3, "group": "condition" }
       }
     }
   }

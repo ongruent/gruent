@@ -602,3 +602,82 @@ describe('<NodeConfig />', () => {
     expect(container.textContent).toContain('No node definition source is configured.')
   })
 })
+
+describe('<NodeConfigForm /> objectList rows', () => {
+  const rowsDefinition = Definition.fromDocument(
+    JSON.parse(
+      readFileSync(
+        join(__dirname, '../../../../engine/steps/contracts/v1/fixtures/valid/object-list.json'),
+        'utf8',
+      ),
+    ).definition,
+    'sha256:object-list',
+  )
+  const rows = [
+    { left: 'temperatureC', operator: 'lessThan', value: '25' },
+    { left: 'deviceId', operator: 'equal', strict: true },
+  ]
+
+  it('renders each row with its own fields and evaluates row conditions against the row', () => {
+    const h = harness(rowsDefinition)
+    h.render({ modelId: 'm1', rows })
+    expect(container.querySelectorAll('[data-row]')).toHaveLength(2)
+    expect(has('/rows/0/value')).toBe(true)
+    expect(has('/rows/1/value')).toBe(false)
+    expect(input('/rows/0/value').value).toBe('25')
+    expect(h.onChange).not.toHaveBeenCalled()
+  })
+
+  it('edits, adds and removes rows without touching other rows or keys', () => {
+    const h = harness(rowsDefinition)
+    h.render({ modelId: 'm1', rows, legacy: 1 })
+
+    type(input('/rows/0/value'), '30')
+    expect(h.onChange).toHaveBeenLastCalledWith({
+      modelId: 'm1',
+      rows: [{ ...rows[0], value: '30' }, rows[1]],
+      legacy: 1,
+    })
+
+    click(button(field('/rows'), 'Add another'))
+    expect(h.onChange).toHaveBeenLastCalledWith({
+      modelId: 'm1',
+      rows: [...rows, { operator: 'equal', strict: false }],
+      legacy: 1,
+    })
+
+    click(button(field('/rows'), 'Remove Rows 1'))
+    expect(h.onChange).toHaveBeenLastCalledWith({ modelId: 'm1', rows: [rows[1]], legacy: 1 })
+  })
+
+  it('requests options per row with parameters from the top-level configuration', () => {
+    const h = harness(rowsDefinition)
+    h.render({ modelId: 'm1', rows }, { '/rows/1/left': state({ items: [{ value: 'deviceId', label: 'deviceId (string)' }] }) })
+    const requests = h.onOptionsSearch.mock.calls.map(([r]) => r).filter((r) => r.name === 'model-fields')
+    expect(requests).toEqual([
+      { path: '/rows/0/left', name: 'model-fields', query: '', params: { model: 'm1', scalars: true } },
+      { path: '/rows/1/left', name: 'model-fields', query: '', params: { model: 'm1', scalars: true } },
+    ])
+    expect(field('/rows/1/left').textContent).toContain('deviceId (string)')
+    expect(field('/rows/0/left').textContent).toContain('temperatureC (unavailable)')
+  })
+
+  it('shows row issues next to row fields and other issues under the list', () => {
+    const h = harness(rowsDefinition)
+    h.render({ modelId: 'm1', rows: [{ operator: 'equal', value: 'x'.repeat(101) }] })
+    expect(errorsOf('/rows/0/left')).toBe('is required')
+    expect(field('/rows/0/left').getAttribute('data-invalid')).toBe('true')
+    // value is hidden for this operator, so its issue is shown under the list.
+    const listErrors =
+      field('/rows').querySelector(':scope > [data-slot="field-error"]')?.textContent ?? ''
+    expect(listErrors).toContain('0/value')
+    expect(listErrors).not.toContain('left')
+  })
+
+  it('marks only the invalid row field, not the whole list, when a row field has an issue', () => {
+    const h = harness(rowsDefinition)
+    h.render({ modelId: 'm1', rows: [{ operator: 'equal' }] })
+    expect(field('/rows/0/left').getAttribute('data-invalid')).toBe('true')
+    expect(field('/rows').getAttribute('data-invalid')).toBe('false')
+  })
+})

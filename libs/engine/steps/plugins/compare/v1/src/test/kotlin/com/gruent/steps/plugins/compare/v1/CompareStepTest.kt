@@ -23,10 +23,23 @@ class CompareStepTest {
     override val logger = ExecutionLogger { _, _, _ -> }
   }
 
-  private fun step(config: String) = CompareStepFactory().create(StepSpec("cmp", "Compare", "compare", 1, config)) as CompareStep
+  /** A comparison of [left] with a fixed value, as configured in the editor. */
+  private fun fixed(left: String, operator: String, value: String) =
+    """{"left":"$left","operator":"$operator","compareTo":"value","value":"$value"}"""
 
-  private fun fixed(type: String, left: String, operator: String, value: String) =
-    step("""{"valueType":"$type","left":"$left","operator":"$operator","compareTo":"value","value":"$value"}""")
+  /** A comparison of [left] with another field. */
+  private fun other(left: String, operator: String, right: String) =
+    """{"left":"$left","operator":"$operator","compareTo":"variable","right":"$right"}"""
+
+  /** A step with [comparisons] whose compiled value types are [types], as the controller compiles them. */
+  private fun step(types: List<String>, vararg comparisons: String, match: String = "all") =
+    CompareStepFactory().create(
+      StepSpec(
+        "cmp", "Compare", "compare", 1,
+        """{"modelId":"m1","match":"$match","comparisons":[${comparisons.joinToString(",")}]}""",
+        compiledJson = """{"modelRef":"m1","valueTypes":[${types.joinToString(",") { "\"$it\"" }}]}""",
+      ),
+    ) as CompareStep
 
   private suspend fun route(step: CompareStep, input: String): String? {
     var port: String? = null
@@ -42,40 +55,66 @@ class CompareStepTest {
     "lessThanOrEqual, 25, success", "lessThanOrEqual, 24, failure",
   )
   fun `numbers compare numerically`(operator: String, value: String, expected: String) = runTest {
-    assertEquals(expected, route(fixed("number", "input.reading.temperatureC", operator, value), """{"reading":{"temperatureC":25}}"""))
+    val step = step(listOf("number"), fixed("reading.temperatureC", operator, value))
+    assertEquals(expected, route(step, """{"reading":{"temperatureC":25}}"""))
   }
 
   @Test
   fun `text and booleans compare by equality`() = runTest {
-    assertEquals("success", route(fixed("string", "input.status", "equal", "ok"), """{"status":"ok"}"""))
-    assertEquals("failure", route(fixed("string", "input.status", "equal", "OK"), """{"status":"ok"}"""))
-    assertEquals("success", route(fixed("boolean", "input.active", "notEqual", "false"), """{"active":true}"""))
-    assertEquals("success", route(fixed("string", "input", "equal", "ok"), "\"ok\""))
+    assertEquals("success", route(step(listOf("string"), fixed("status", "equal", "ok")), """{"status":"ok"}"""))
+    assertEquals("failure", route(step(listOf("string"), fixed("status", "equal", "OK")), """{"status":"ok"}"""))
+    assertEquals("success", route(step(listOf("boolean"), fixed("active", "notEqual", "false")), """{"active":true}"""))
   }
 
   @Test
-  fun `another input value`() = runTest {
-    val step = step("""{"valueType":"number","left":"input.temperatureC","operator":"greaterThan","compareTo":"variable","right":"input.limits.maxC"}""")
+  fun `another field`() = runTest {
+    val step = step(listOf("number"), other("temperatureC", "greaterThan", "limits.maxC"))
     assertEquals("success", route(step, """{"temperatureC":30,"limits":{"maxC":25}}"""))
     assertEquals("failure", route(step, """{"temperatureC":20,"limits":{"maxC":25}}"""))
     assertEquals("failure", route(step, """{"temperatureC":30}"""))
   }
 
   @Test
-  fun `missing, mistyped and multi-valued inputs fail the condition`() = runTest {
-    val step = fixed("number", "input.temperatureC", "equal", "25")
+  fun `every comparison must hold with all`() = runTest {
+    val step = step(listOf("number", "string"), fixed("temperatureC", "greaterThan", "25"), fixed("status", "equal", "ok"))
+    assertEquals("success", route(step, """{"temperatureC":30,"status":"ok"}"""))
+    assertEquals("failure", route(step, """{"temperatureC":30,"status":"error"}"""))
+    assertEquals("failure", route(step, """{"temperatureC":20,"status":"ok"}"""))
+  }
+
+  @Test
+  fun `one comparison is enough with any`() = runTest {
+    val step = step(listOf("number", "string"), fixed("temperatureC", "greaterThan", "25"), fixed("status", "equal", "error"), match = "any")
+    assertEquals("success", route(step, """{"temperatureC":30,"status":"ok"}"""))
+    assertEquals("success", route(step, """{"temperatureC":20,"status":"error"}"""))
+    assertEquals("failure", route(step, """{"temperatureC":20,"status":"ok"}"""))
+    // A missing value only makes its own comparison not hold.
+    assertEquals("success", route(step, """{"status":"error"}"""))
+  }
+
+  @Test
+  fun `missing, mistyped and non-JSON inputs fail the condition`() = runTest {
+    val step = step(listOf("number"), fixed("temperatureC", "equal", "25"))
     assertEquals("failure", route(step, """{}"""))
     assertEquals("failure", route(step, """{"temperatureC":"25"}"""))
     assertEquals("failure", route(step, """{"temperatureC":null}"""))
     assertEquals("failure", route(step, "not json"))
-    assertEquals("failure", route(fixed("number", "input.readings[].value", "equal", "1"), """{"readings":[{"value":1},{"value":1}]}"""))
+    var port: String? = null
+    step.process(StepMessage.signal(), context) { port = it.port }
+    assertEquals("failure", port)
   }
 
   @Test
-  fun `invalid configurations are rejected`() {
-    assertThrows<StepConfigurationException> { fixed("number", "input.x", "equal", "warm") }
-    assertThrows<StepConfigurationException> { fixed("string", "input.x", "greaterThan", "a") }
-    assertThrows<StepConfigurationException> { step("""{"valueType":"number","left":"input.x","operator":"equal","compareTo":"value"}""") }
-    assertThrows<StepConfigurationException> { step("""{"valueType":"number","left":"input.x","operator":"equal","compareTo":"variable"}""") }
+  fun `invalid configurations and compiled data are rejected`() {
+    assertThrows<StepConfigurationException> { step(listOf("number"), fixed("x", "equal", "warm")) }
+    assertThrows<StepConfigurationException> { step(listOf("string"), fixed("x", "greaterThan", "a")) }
+    assertThrows<StepConfigurationException> { step(listOf("number"), """{"left":"x","operator":"equal","compareTo":"value"}""") }
+    assertThrows<StepConfigurationException> { step(listOf("number"), """{"left":"x","operator":"equal","compareTo":"variable"}""") }
+    // The compiled value types must match the comparisons.
+    assertThrows<StepConfigurationException> { step(listOf(), fixed("x", "equal", "1")) }
+    assertThrows<StepConfigurationException> { step(listOf("date"), fixed("x", "equal", "1")) }
+    assertThrows<StepConfigurationException> {
+      CompareStepFactory().create(StepSpec("cmp", "Compare", "compare", 1, """{"modelId":"m1","match":"all","comparisons":[${fixed("x", "equal", "1")}]}"""))
+    }
   }
 }

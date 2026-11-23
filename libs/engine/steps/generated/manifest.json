@@ -8,7 +8,7 @@
       "category": "conditional",
       "definition": {
         "path": "plugins/compare/v1/step.json",
-        "digest": "sha256:5eaddde207cebd7bd2a102b27e88a8213c8fff4290dba339fb389ed76483b217"
+        "digest": "sha256:9152e734740f22d8d4a64450c334fbb4e0cca5fc98e65532da479cd3c4849f4d"
       },
       "kotlin": {
         "package": "com.gruent.steps.plugins.compare.v1",
