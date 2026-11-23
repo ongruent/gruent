@@ -120,6 +120,10 @@ type Step struct {
 	ConnectionRefs []string `json:"connectionRefs"`
 	// Redaction lists the input values the step must redact before they leave the runtime, e.g. in logs.
 	Redaction *Redaction `json:"redaction,omitempty"`
+	// Compiled is step-specific data that the compiler derived from the step's configuration and
+	// dependencies, as canonical JSON, e.g. the field paths an existence step checks. Its shape belongs to
+	// the step's plugin version (see the compiler's per-plugin files); it is absent for other steps.
+	Compiled RawJSON `json:"compiled,omitempty"`
 }
 
 // Redaction lists the sensitive fields of a step's input, resolved from a model whose every field is
@@ -142,6 +146,13 @@ type StepDefinition struct {
 	PluginVersion int    `json:"pluginVersion"`
 	Digest        string `json:"digest"`
 }
+
+// Output ports of conditional steps. Every edge out of a step library conditional step leaves from one of
+// them, and the runtime delivers each message only along the edges of the branch it was routed to.
+const (
+	PortSuccess = "success"
+	PortFailure = "failure"
+)
 
 // Edge connects the output of one step to the input of another.
 type Edge struct {

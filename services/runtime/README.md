@@ -105,12 +105,23 @@ redaction, UTF-8 text, or base64. Redaction applies the plan's paths (`a.b`, `a[
 the input isn't JSON, the payload is omitted. A step with a sensitive fields model but no redaction paths
 in the plan is rejected. Recorded data is capped at 64 KiB.
 
+**Output ports.** A step can send a message through a named output (`StepMessage.toPort`); the executor then
+delivers it only along the plan edges whose `fromPort` is that output, and a message without a port along
+every edge. Conditional steps (`ConditionalStep`) send every input, unchanged, to `success` or `failure`.
+
+**Existence step** (port of the legacy existence node): checks the plan step's `compiled.paths` (the
+model's leaf fields, or the selected ones) in the JSON input and routes it to `success` when every field
+(`match: all`) or at least one (`any`) is present. A path through an array needs every item to have the
+field; null counts as missing unless `nullIsMissing` is false. Signals and input that isn't a JSON object go
+to `failure`.
+
 **Artifact access** uses a small SigV4 GetObject client instead of an S3 SDK, and the controller's
 Ed25519 signature contract (`libs/engine/signing`) is implemented with the JDK.
 
 ## Limitations
 
-- Only step library steps with a Kotlin implementation run: `timer-source@1` and `log@1`. Other steps
+- Only step library steps with a Kotlin implementation run: `timer-source@1`, `log@1` and
+  `existence@1`. Other steps
   (including the HTTP and message queue sources) make the plan fail to apply, and the worker reports
   `failed`.
 - Payloads are the trigger's raw bytes (JSON for HTTP and queues), not the FlatBuffers encoding the plan

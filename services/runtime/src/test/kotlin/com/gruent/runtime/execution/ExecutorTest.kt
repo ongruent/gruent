@@ -11,6 +11,7 @@ import com.gruent.runtime.steps.UnsupportedStepException
 import com.gruent.runtime.telemetry.ExecutionStatus
 import com.gruent.runtime.timerToLogPlan
 import com.gruent.runtime.timerToLogPlanJson
+import com.gruent.steps.api.ConditionalStep
 import com.gruent.steps.api.ExecutionContext
 import com.gruent.steps.api.LogLevel
 import com.gruent.steps.api.MessageStep
@@ -44,8 +45,18 @@ private class SlowStep : MessageStep() {
   }
 }
 
+/** Sends "a" to the success branch and everything else to the failure branch. */
+private class IsAStep : ConditionalStep() {
+  override suspend fun evaluate(message: StepMessage, context: ExecutionContext): Boolean = String(message.payload) == "a"
+}
+
 class ExecutorTest {
-  private val registry = testRegistry(testFactory("split") { SplitStep() }, testFactory("fail") { FailStep() }, testFactory("slow") { SlowStep() })
+  private val registry = testRegistry(
+    testFactory("split") { SplitStep() },
+    testFactory("fail") { FailStep() },
+    testFactory("slow") { SlowStep() },
+    testFactory("is-a") { IsAStep() },
+  )
 
   private val tick = ExecutionRequest("inv1", "timer", Trigger(Trigger.TYPE_TIMER, "timer-timer", Instant.parse("2026-11-20T10:00:00Z")))
 
@@ -79,6 +90,24 @@ class ExecutorTest {
     assertEquals(ExecutionStatus.COMPLETED, result.status)
     assertEquals(1, telemetry.logs.count { it.stepId == "log" })
     assertEquals(listOf("a", "b"), telemetry.logs.filter { it.stepId == "log2" }.map { it.attributes["data"] })
+  }
+
+  @Test
+  fun `conditional outputs only travel along the edges of their branch`() = runTest {
+    // timer -> split -> is-a; is-a success -> pass, is-a failure -> rejected (pass and rejected re-emit)
+    val json = timerToLogPlanJson(
+      extraSteps = processingStepJson("split", "split") + processingStepJson("is-a", "is-a") +
+        """,{"id":"pass","type":"action.log","name":"Pass","definition":{"pluginType":"log","pluginVersion":1,"digest":"${com.gruent.steps.plugins.log.v1.LogConfig.definitionDigest}"},"config":{"level":"info"}}""" +
+        """,{"id":"rejected","type":"action.log","name":"Rejected","definition":{"pluginType":"log","pluginVersion":1,"digest":"${com.gruent.steps.plugins.log.v1.LogConfig.definitionDigest}"},"config":{"level":"warn"}}""",
+      extraEdges = edgeJson("timer", "split") + edgeJson("split", "is-a") +
+        edgeJson("is-a", "pass", fromPort = StepMessage.PORT_SUCCESS) + edgeJson("is-a", "rejected", fromPort = StepMessage.PORT_FAILURE),
+    )
+    val telemetry = RecordingTelemetry()
+    val result = executor(json, telemetry).execute(tick)
+
+    assertEquals(ExecutionStatus.COMPLETED, result.status)
+    assertEquals(listOf("a"), telemetry.logs.filter { it.stepId == "pass" }.map { it.attributes["data"] })
+    assertEquals(listOf("b"), telemetry.logs.filter { it.stepId == "rejected" }.map { it.attributes["data"] })
   }
 
   @Test

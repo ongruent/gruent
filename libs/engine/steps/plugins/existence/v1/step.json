@@ -1,0 +1,73 @@
+{
+  "contractVersion": 1,
+  "pluginType": "existence",
+  "pluginVersion": 1,
+  "displayName": "Existence",
+  "description": "Check that fields of a model are present in the input. Inputs that pass continue on the success branch, all others on the failure branch.",
+  "category": "conditional",
+  "configSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["modelId", "match"],
+    "x-ui": {
+      "groups": [
+        { "id": "condition", "title": "Condition" },
+        { "id": "options", "title": "Options" }
+      ]
+    },
+    "properties": {
+      "modelId": {
+        "type": "string",
+        "title": "Model",
+        "description": "Model whose fields must be present in the input.",
+        "minLength": 1,
+        "x-ui": {
+          "control": "select",
+          "order": 1,
+          "group": "condition",
+          "options": { "named": { "name": "models" } }
+        }
+      },
+      "fields": {
+        "type": "array",
+        "title": "Fields",
+        "description": "Fields of the model to check. Leave empty to check every field of the model.",
+        "items": { "type": "string", "minLength": 1, "maxLength": 200, "pattern": "^[^.\\s]+(?:\\.[^.\\s]+)*$" },
+        "uniqueItems": true,
+        "maxItems": 50,
+        "x-ui": {
+          "control": "multiselect",
+          "order": 2,
+          "group": "condition",
+          "placeholder": "Every field of the model",
+          "options": { "named": { "name": "model-fields", "paramsFromFields": { "model": "/modelId" } } }
+        }
+      },
+      "match": {
+        "type": "string",
+        "title": "Pass when",
+        "enum": ["all", "any"],
+        "default": "all",
+        "x-ui": {
+          "control": "select",
+          "order": 3,
+          "group": "condition",
+          "options": {
+            "static": [
+              { "value": "all", "label": "Every field is present" },
+              { "value": "any", "label": "At least one field is present" }
+            ]
+          }
+        }
+      },
+      "nullIsMissing": {
+        "type": "boolean",
+        "title": "Treat null as missing",
+        "description": "A field whose value is null counts as missing.",
+        "default": true,
+        "x-ui": { "control": "toggle", "order": 4, "group": "options" }
+      }
+    }
+  }
+}

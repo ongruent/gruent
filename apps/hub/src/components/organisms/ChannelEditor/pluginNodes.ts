@@ -20,13 +20,25 @@ export const nodeConfig = (node: ChannelNode): Record<string, unknown> =>
 const DOWNSTREAM: ChannelNodeIO['allowedEdge'] = ['processing', 'action', 'conditional', 'custom']
 
 /**
- * Node definitions declare no ports (contract v1), so the canvas gives every node the same generic handles:
- * sources have one output, all other categories one input and one output.
+ * Output ports of conditional steps. The runtime sends every input to one of the two branches, and the
+ * controller rejects edges from a conditional step that leave from any other port.
  */
-const genericIo = (category: Category): ChannelNode['metadata']['io'] => {
-  const output: ChannelNodeIO = { id: 'output', allowedEdge: DOWNSTREAM, dataType: ['bytes'] }
+export const CONDITIONAL_OUTPUTS = ['success', 'failure'] as const
+
+/**
+ * Node definitions declare no ports (contract v1), so the canvas derives handles from the category: sources
+ * have one output, conditionals one input and a success and a failure output, and all other categories one
+ * input and one output.
+ */
+export const genericIo = (category: Category): ChannelNode['metadata']['io'] => {
+  const output = (id: string): ChannelNodeIO => ({
+    id,
+    allowedEdge: DOWNSTREAM,
+    dataType: ['bytes'],
+  })
   const input: ChannelNodeIO = { id: 'input', allowedEdge: ['*'], dataType: ['bytes'] }
-  return { inputs: category === 'source' ? [] : [input], outputs: [output] }
+  const outputs = category === 'conditional' ? CONDITIONAL_OUTPUTS.map(output) : [output('output')]
+  return { inputs: category === 'source' ? [] : [input], outputs }
 }
 
 /**

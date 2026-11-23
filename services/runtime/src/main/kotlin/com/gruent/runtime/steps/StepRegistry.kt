@@ -5,6 +5,7 @@ import com.gruent.steps.api.Step
 import com.gruent.steps.api.StepCategory
 import com.gruent.steps.api.StepFactory
 import com.gruent.steps.api.StepSpec
+import kotlinx.serialization.json.JsonNull
 import java.util.ServiceLoader
 import com.gruent.runtime.plan.Step as PlanStep
 
@@ -58,6 +59,7 @@ class StepRegistry(factories: Iterable<StepFactory>) {
         pluginVersion = definition.pluginVersion,
         configJson = step.config?.toString() ?: "{}",
         redaction = step.redaction?.let { Redaction(it.paths, it.replacement) },
+        compiledJson = step.compiled?.takeUnless { it is JsonNull }?.toString(),
       ),
     )
   }

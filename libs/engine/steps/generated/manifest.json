@@ -2,6 +2,21 @@
   "manifestVersion": 1,
   "plugins": [
     {
+      "pluginType": "existence",
+      "pluginVersion": 1,
+      "contractVersion": 1,
+      "category": "conditional",
+      "definition": {
+        "path": "plugins/existence/v1/step.json",
+        "digest": "sha256:0a4f9284a57aa82ea9f44588cd958985986a8af8503f5c757856a0fefdc4c30b"
+      },
+      "kotlin": {
+        "package": "com.gruent.steps.plugins.existence.v1",
+        "class": "ExistenceConfig",
+        "path": "generated/kotlin/com/gruent/steps/plugins/existence/v1/ExistenceConfig.kt"
+      }
+    },
+    {
       "pluginType": "hello-world",
       "pluginVersion": 1,
       "contractVersion": 1,

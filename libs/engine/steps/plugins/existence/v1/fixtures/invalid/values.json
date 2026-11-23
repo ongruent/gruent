@@ -1,0 +1,5 @@
+{
+  "description": "Missing model, unknown match, a path with an empty segment, and an unknown property.",
+  "config": { "match": "some", "fields": ["device..id"], "attributeIds": ["a1"] },
+  "errors": ["/attributeIds", "/fields/0", "/match", "/modelId"]
+}

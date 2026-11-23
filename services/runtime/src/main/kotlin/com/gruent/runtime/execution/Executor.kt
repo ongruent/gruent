@@ -33,7 +33,9 @@ data class ExecutionResult(
  *
  * - Every step runs as its own coroutine for the duration of the execution, reading its input channel and
  *   writing its output channel (see [com.gruent.steps.api.Step]).
- * - Each step's output is fanned out to the input channel of every downstream step. A step's input
+ * - Each step's output is fanned out to the input channel of every downstream step. A message sent through
+ *   an output port (e.g. a conditional step's success or failure branch) only travels along the edges from
+ *   that port. A step's input
  *   closes once all of its upstream steps have finished, so completion flows through the DAG like the
  *   data does, and the execution is complete when every step coroutine has returned. This replaces the
  *   legacy engine's per-message "data processed" notifications.
@@ -119,7 +121,9 @@ class Executor(
         val output = Channel<StepMessage>(bufferCapacity)
         val forwarder = launch {
           for (message in output) {
-            for (target in node.downstream) inputs.getValue(target).send(message)
+            for (edge in node.downstream) {
+              if (edge.carries(message.port)) inputs.getValue(edge.to).send(message.withoutPort())
+            }
           }
         }
         try {
@@ -134,8 +138,8 @@ class Executor(
           output.close()
         }
         forwarder.join()
-        for (target in node.downstream) {
-          if (pendingUpstreams.getValue(target).decrementAndGet() == 0) inputs.getValue(target).close()
+        for (edge in node.downstream) {
+          if (pendingUpstreams.getValue(edge.to).decrementAndGet() == 0) inputs.getValue(edge.to).close()
         }
       }
     }

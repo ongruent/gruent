@@ -198,12 +198,18 @@ annotations.
 - Steps created from the library persist `metadata.pluginType` and `metadata.pluginVersion` next to
   `metadata.config`. The editor resolves exactly that pair. Steps without them (created before the step
   library) are kept unchanged and reported as unsupported instead of being matched by name.
-- Definitions declare no ports, so the canvas gives every library step generic handles: sources have one
-  output, all other categories one input and one output.
+- Definitions declare no ports, so the canvas derives handles from the category: sources have one output
+  (`output`), conditionals one input and two outputs (`success`, `failure`), and all other categories one
+  input and one output.
 - The step options pane is the `<NodeConfig />` parent. It fetches `models`, `connections` and `secrets` with the
   user's credentials through the API client, with per-field search, pagination, react-query caching,
   stale-response tokens and lookup of saved identifiers. Secrets expose only their names. Unknown collection
   names show an error on the field.
+- `model-fields` is a field picker: the fields of the model selected in another field (`params.model`, usually
+  through `paramsFromFields`), as paths relative to the input (`device.id`, `readings[].value`). With
+  `params.scalars: true` it lists only single strings, numbers and booleans. The paths come from `modelFields`
+  in `ts/`, which mirrors the controller's model types, so the controller accepts every path it offers. The
+  controller ignores `model-fields` references and checks the paths itself.
 
 ## Publishing, versioning and ownership
 
@@ -227,13 +233,15 @@ annotations.
 - **Deployment plans.** Channel graph validation, plan hydration, sizing and processing modes are deferred
   to a separate issue once the plan format is defined. This library only validates definitions and
   configurations.
-- **Connection rules and ports.** v1 definitions declare no I/O constraints, and edges connect steps, not
-  named ports. Conditional plugins with distinct pass/fail outputs need a port model before they can be
-  expressed.
+- **Connection rules and ports.** v1 definitions declare no I/O constraints. Output ports follow from the
+  category instead: every conditional step has a `success` and a `failure` output, the controller rejects
+  edges from a conditional step that leave from any other port, and the runtime delivers each message only
+  along the edges of the branch the step sent it to (`StepMessage.port`, `ConditionalStep`). Steps that need
+  other ports would need declarative ports in a later contract version.
 - **Integration.** The hub serves definitions from the library directory and edits configuration with
   `<NodeConfig />` (see above). The API (`PATCH /v1/channels/validate`) and the controller validate saved
   library steps against the library embedded in their binaries (`steps.EmbeddedLibrary()`), and the
   controller compiles them into plans (see `services/controller/README.md`). The runtime (`services/runtime`)
   executes steps that have a Kotlin implementation module in `plugins/<type>/v<N>` (`build.gradle.kts` +
-  `META-INF/services/com.gruent.steps.api.StepFactory`, see `api/`): today `timer-source@1` and `log@1`. Plugin runtime artifacts (WASM) and
+  `META-INF/services/com.gruent.steps.api.StepFactory`, see `api/`): today `timer-source@1`, `log@1` and `existence@1`. Plugin runtime artifacts (WASM) and
   custom/third-party step packages are out of scope: definitions carry no artifact fields.
