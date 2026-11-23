@@ -680,4 +680,99 @@ describe('<NodeConfigForm /> objectList rows', () => {
     expect(field('/rows/0/left').getAttribute('data-invalid')).toBe('true')
     expect(field('/rows').getAttribute('data-invalid')).toBe('false')
   })
+
+  it('lists the issues of the list itself without marking its rows invalid', () => {
+    const h = harness(rowsDefinition)
+    h.render({ modelId: 'm1', rows: [] })
+    expect(errorsOf('/rows')).toContain('fewer than 1')
+    expect(field('/rows').getAttribute('data-invalid')).toBe('false')
+  })
+})
+
+describe('<NodeConfigForm /> keyed rows (transform mappings)', () => {
+  const transform = Definition.fromDocument(
+    JSON.parse(
+      readFileSync(
+        join(__dirname, '../../../../engine/steps/plugins/transform/v1/step.json'),
+        'utf8',
+      ),
+    ),
+    'sha256:transform',
+  )
+  const outputFields = state({
+    items: [
+      { value: 'deviceId', label: 'deviceId (string, required)' },
+      { value: 'message', label: 'message (string)' },
+    ],
+  })
+  const inputFields = state({ items: [{ value: 'device.id', label: 'device.id (string)' }] })
+  const named = (extra: NamedOptions = {}): NamedOptions => ({
+    '/mappings': outputFields,
+    '/mappings/0/source': inputFields,
+    '/mappings/1/source': inputFields,
+    ...extra,
+  })
+  const rows = () => Array.from(container.querySelectorAll('[data-key]')).map((r) => r.getAttribute('aria-label'))
+
+  it('renders a row per output field and asks for the output fields of the selected model', () => {
+    const h = harness(transform)
+    h.render({ outputModelId: 'm2', mappings: [{ target: 'message', source: '$value', value: 'Hot' }] }, named())
+    expect(rows()).toEqual(['deviceId (string, required)', 'message (string)'])
+    expect(h.onOptionsSearch).toHaveBeenCalledWith({
+      path: '/mappings',
+      name: 'model-fields',
+      query: '',
+      params: { model: 'm2' },
+    })
+    // Saved rows keep their index; new rows come after them.
+    expect(has('/mappings/0/value')).toBe(true)
+    expect(input('/mappings/0/value').value).toBe('Hot')
+    expect(has('/mappings/1/source')).toBe(true)
+    expect(has('/mappings/1/value')).toBe(false)
+    expect(has('/mappings/0/target')).toBe(false)
+    // Rows are optional until something is set, so their fields have no required marker.
+    expect(field('/mappings/1/source').querySelector('label')!.textContent).toBe('Value from')
+    expect(h.onChange).not.toHaveBeenCalled()
+  })
+
+  it('saves a row once a source is picked and removes it when cleared', () => {
+    const h = harness(transform)
+    h.render({ outputModelId: 'm2', mappings: [{ target: 'message', source: '$value', value: 'Hot' }] }, named())
+    open('/mappings/1/source')
+    expect(options('/mappings/1/source')).toEqual(['A fixed value', 'Text with input values', 'device.id (string)'])
+    click(Array.from(field('/mappings/1/source').querySelectorAll('[role="option"]')).find((o) => o.textContent === 'device.id (string)')!)
+    expect(h.onChange).toHaveBeenLastCalledWith({
+      outputModelId: 'm2',
+      mappings: [
+        { target: 'message', source: '$value', value: 'Hot' },
+        { target: 'deviceId', source: 'device.id' },
+      ],
+    })
+
+    type(input('/mappings/0/value'), '')
+    expect(h.onChange).toHaveBeenLastCalledWith({
+      outputModelId: 'm2',
+      mappings: [{ target: 'message', source: '$value' }],
+    })
+  })
+
+  it('keeps saved rows of fields the output model no longer has, so they can be removed', () => {
+    const h = harness(transform)
+    h.render({ outputModelId: 'm2', mappings: [{ target: 'severity', source: '$value', value: '1' }] }, named())
+    expect(rows()).toEqual(['deviceId (string, required)', 'message (string)', 'severity (unavailable)'])
+    click(button(field('/mappings'), 'Remove severity (unavailable)'))
+    expect(h.onChange).toHaveBeenLastCalledWith({ outputModelId: 'm2' })
+  })
+
+  it('explains why there is nothing to map', () => {
+    const h = harness(transform)
+    h.render({ mappings: [] }, { '/mappings': state() })
+    expect(field('/mappings').textContent).toContain('Nothing to map yet')
+    h.render(
+      { outputModelId: 'm2' },
+      named({ '/mappings/0/source': state({ error: 'The input has no model, so it has no fields to map.' }) }),
+    )
+    open('/mappings/0/source')
+    expect(field('/mappings/0/source').textContent).toContain('The input has no model')
+  })
 })

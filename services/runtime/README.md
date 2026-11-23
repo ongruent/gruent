@@ -122,13 +122,17 @@ least one does (`any`). Numbers compare exactly (`25` equals `25.0`). A missing 
 another type or a path with several values makes its comparison not hold; signals and input that isn't JSON
 go to `failure`.
 
+**Transform step** (port of the legacy transform node): applies the plan step's compiled rules to the JSON
+input and emits the output object as `application/json`. A missing input value leaves an optional field out
+and fails the step for a required one; input that isn't JSON fails the step.
+
 **Artifact access** uses a small SigV4 GetObject client instead of an S3 SDK, and the controller's
 Ed25519 signature contract (`libs/engine/signing`) is implemented with the JDK.
 
 ## Limitations
 
 - Only step library steps with a Kotlin implementation run: `timer-source@1`, `log@1`,
-  `existence@1` and `compare@1`. Other steps
+  `existence@1`, `compare@1` and `transform@1`. Other steps
   (including the HTTP and message queue sources) make the plan fail to apply, and the worker reports
   `failed`.
 - Payloads are the trigger's raw bytes (JSON for HTTP and queues), not the FlatBuffers encoding the plan

@@ -1,0 +1,5 @@
+{
+  "description": "At least one output field must be mapped.",
+  "config": { "outputModelId": "mdl_out", "mappings": [] },
+  "errors": ["/mappings"]
+}

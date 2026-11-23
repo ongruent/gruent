@@ -1,0 +1,117 @@
+{
+  "description": "One row per option of a named select item field (keyField).",
+  "definition": {
+    "contractVersion": 1,
+    "pluginType": "fixture",
+    "pluginVersion": 1,
+    "displayName": "Fixture",
+    "description": "Definition fixture.",
+    "category": "conditional",
+    "configSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "modelId": {
+          "type": "string",
+          "title": "Model",
+          "x-ui": {
+            "control": "select",
+            "order": 1,
+            "options": {
+              "named": {
+                "name": "models"
+              }
+            }
+          }
+        },
+        "rows": {
+          "type": "array",
+          "title": "Rows",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "left",
+              "operator"
+            ],
+            "properties": {
+              "left": {
+                "type": "string",
+                "title": "Field",
+                "x-ui": {
+                  "control": "select",
+                  "order": 1,
+                  "options": {
+                    "named": {
+                      "name": "model-fields",
+                      "params": {
+                        "scalars": true
+                      },
+                      "paramsFromFields": {
+                        "model": "/modelId"
+                      }
+                    }
+                  }
+                }
+              },
+              "operator": {
+                "type": "string",
+                "title": "Operator",
+                "enum": [
+                  "equal",
+                  "lessThan"
+                ],
+                "default": "equal",
+                "x-ui": {
+                  "control": "select",
+                  "order": 2,
+                  "options": {
+                    "static": [
+                      {
+                        "value": "equal",
+                        "label": "Is equal to"
+                      },
+                      {
+                        "value": "lessThan",
+                        "label": "Is less than"
+                      }
+                    ]
+                  }
+                }
+              },
+              "value": {
+                "type": "string",
+                "title": "Value",
+                "maxLength": 100,
+                "x-ui": {
+                  "control": "text",
+                  "order": 3,
+                  "visibleWhen": {
+                    "field": "/operator",
+                    "equals": "lessThan"
+                  }
+                }
+              },
+              "strict": {
+                "type": "boolean",
+                "title": "Strict",
+                "default": false,
+                "x-ui": {
+                  "control": "toggle",
+                  "order": 4
+                }
+              }
+            }
+          },
+          "x-ui": {
+            "control": "objectList",
+            "order": 2,
+            "keyField": "left"
+          }
+        }
+      }
+    }
+  }
+}

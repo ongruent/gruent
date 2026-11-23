@@ -103,6 +103,11 @@ ASCII and cannot be Kotlin hard keywords.
 - Each row field is addressed by its full pointer (`/comparisons/0/left`): option state, events, validation
   errors and `Definition.References` use it.
 - Kotlin generates a nested `<Field>Item` data class with its own enums, validator and codec.
+- `x-ui.keyField` names an item field (a required, always visible select with named options only) whose
+  options each get one row, labelled by the option, e.g. one row per field of `transform@1`'s output model.
+  The key's options are requested at the list's pointer (`/mappings`). A row is saved once another of its
+  fields is set and removed when they are all cleared; saved rows whose key is no longer offered are shown
+  as unavailable so they can be removed.
 
 **Conditional sections.** `visibleWhen: { "field": "/ptr", "equals": v }` or `{ "field": "/ptr", "in": [...] }`
 can be set on a field or a group. It cannot target arrays, the field itself, or a field inside the group it
@@ -223,6 +228,10 @@ annotations.
   `params.scalars: true` it lists only single strings, numbers and booleans. The paths come from `modelFields`
   in `ts/`, which mirrors the controller's model types, so the controller accepts every path it offers. The
   controller ignores `model-fields` references and checks the paths itself.
+- `input-fields` lists the fields of the step's input, as the controller infers it from the previous steps:
+  the hub compiles the editor's draft channel (`POST /v1/channels/{id}/compile`) and reads the step's resolved
+  input type (`typeFields` in `ts/`). If the input is unknown (no previous step) or has no fields (no model, a
+  signal), the field shows why instead of options.
 
 ## Publishing, versioning and ownership
 
@@ -256,5 +265,5 @@ annotations.
   library steps against the library embedded in their binaries (`steps.EmbeddedLibrary()`), and the
   controller compiles them into plans (see `services/controller/README.md`). The runtime (`services/runtime`)
   executes steps that have a Kotlin implementation module in `plugins/<type>/v<N>` (`build.gradle.kts` +
-  `META-INF/services/com.gruent.steps.api.StepFactory`, see `api/`): today `timer-source@1`, `log@1`, `existence@1` and `compare@1`. Plugin runtime artifacts (WASM) and
+  `META-INF/services/com.gruent.steps.api.StepFactory`, see `api/`): today `timer-source@1`, `log@1`, `existence@1`, `compare@1` and `transform@1`. Plugin runtime artifacts (WASM) and
   custom/third-party step packages are out of scope: definitions carry no artifact fields.

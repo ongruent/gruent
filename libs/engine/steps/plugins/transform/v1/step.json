@@ -1,0 +1,82 @@
+{
+  "contractVersion": 1,
+  "pluginType": "transform",
+  "pluginVersion": 1,
+  "displayName": "Transform",
+  "description": "Map the input to the shape of another model, field by field.",
+  "category": "processing",
+  "configSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["outputModelId", "mappings"],
+    "properties": {
+      "outputModelId": {
+        "type": "string",
+        "title": "Output model",
+        "description": "Model of the output. Every required field must be mapped. The input is the output of the previous step.",
+        "minLength": 1,
+        "x-ui": {
+          "control": "select",
+          "order": 1,
+          "options": { "named": { "name": "models" } }
+        }
+      },
+      "mappings": {
+        "type": "array",
+        "title": "Mapping",
+        "description": "For each output field, pick an input field, a fixed value, or text with input values such as \"Device {{device.id}}\". A field inside an array ([]) takes the matching item of an input array.",
+        "minItems": 1,
+        "maxItems": 200,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["target", "source"],
+          "properties": {
+            "target": {
+              "type": "string",
+              "title": "Output field",
+              "minLength": 1,
+              "maxLength": 200,
+              "pattern": "^[^.\\s\\[\\]=]+(?:\\[\\])?(?:\\.[^.\\s\\[\\]=]+(?:\\[\\])?)*$",
+              "x-ui": {
+                "control": "select",
+                "order": 1,
+                "options": { "named": { "name": "model-fields", "paramsFromFields": { "model": "/outputModelId" } } }
+              }
+            },
+            "source": {
+              "type": "string",
+              "title": "Value from",
+              "minLength": 1,
+              "maxLength": 200,
+              "x-ui": {
+                "control": "select",
+                "order": 2,
+                "options": {
+                  "static": [
+                    { "value": "$value", "label": "A fixed value" },
+                    { "value": "$template", "label": "Text with input values" }
+                  ],
+                  "named": { "name": "input-fields" }
+                }
+              }
+            },
+            "value": {
+              "type": "string",
+              "title": "Value",
+              "description": "A number, true/false or text, depending on the output field. Text can include input values: {{device.id}}.",
+              "maxLength": 1000,
+              "x-ui": {
+                "control": "text",
+                "order": 3,
+                "visibleWhen": { "field": "/source", "in": ["$value", "$template"] }
+              }
+            }
+          }
+        },
+        "x-ui": { "control": "objectList", "order": 2, "keyField": "target" }
+      }
+    }
+  }
+}

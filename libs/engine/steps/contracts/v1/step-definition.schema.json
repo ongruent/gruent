@@ -728,6 +728,10 @@
         },
         "options": {
           "$ref": "#/$defs/options"
+        },
+        "keyField": {
+          "description": "objectList only: an item field (a select with named options) whose options each get one row. Rows are matched by that field's value, and rows whose other fields are all empty are not saved.",
+          "$ref": "#/$defs/fieldName"
         }
       },
       "if": {

@@ -9,3 +9,5 @@ export { default as channelStatus } from './status'
 export { default as validateChannel } from './validate'
 
 export * from './create'
+export { default as compileChannel } from './compile'
+export type { CompiledType, CompileDiagnostic } from './compile'

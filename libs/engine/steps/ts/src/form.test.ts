@@ -9,13 +9,17 @@ import {
   fieldIssues,
   isFieldVisible,
   isVisible,
+  keyOptionsEvent,
   optionsEvent,
   selectedOptions,
   valueAtPointer,
   visibleOptions,
   withField,
+  withKeyedRow,
 } from '../index'
 
+const loadHello = () =>
+  Definition.fromDocument(JSON.parse(readFileSync(join(__dirname, '../../plugins/hello-world/v1/step.json'), 'utf8')), 'hello')
 const load = () => Definition.parse(readFileSync(join(__dirname, '../../plugins/hello-world/v1/step.json')))
 
 describe('StepConfig model', () => {
@@ -162,5 +166,34 @@ describe('objectList rows', () => {
     expect(valueAtPointer(config, '/a~1b/~0')).toBe(1)
     expect(valueAtPointer(config, '/rows/3/left')).toBeUndefined()
     expect(valueAtPointer(config, '/rows/0/left/x')).toBeUndefined()
+  })
+})
+
+describe('keyed objectList rows', () => {
+  const keyed = () => {
+    const doc = JSON.parse(readFileSync(join(__dirname, '../../contracts/v1/fixtures/valid/object-list-keyed.json'), 'utf8'))
+    return Definition.fromDocument(doc.definition, 'object-list-keyed')
+  }
+
+  it('requests the key options at the list pointer with parameters from the configuration', () => {
+    const rows = describeForm(keyed()).flatMap((s) => s.fields).find((f) => f.name === 'rows')!
+    expect(keyOptionsEvent(rows, { modelId: 'm1' })).toEqual({
+      path: '/rows',
+      name: 'model-fields',
+      query: '',
+      params: { model: 'm1', scalars: true },
+    })
+    expect(keyOptionsEvent(describeForm(loadHello())[0].fields[0], {})).toBeUndefined()
+  })
+
+  it('adds, updates and removes rows by key, never saving a row with only its key', () => {
+    const a = { left: 'a', operator: 'equal' }
+    expect(withKeyedRow(undefined, 'left', 'a', { operator: 'equal' })).toEqual([a])
+    expect(withKeyedRow([a], 'left', 'b', {})).toEqual([a])
+    expect(withKeyedRow([a], 'left', 'a', { ...a, value: '1' })).toEqual([{ ...a, value: '1' }])
+    expect(withKeyedRow([a, { left: 'b', operator: 'lessThan' }], 'left', 'a', { left: 'a', operator: undefined })).toEqual([
+      { left: 'b', operator: 'lessThan' },
+    ])
+    expect(withKeyedRow([a], 'left', 'a', { left: 'a' })).toBeUndefined()
   })
 })

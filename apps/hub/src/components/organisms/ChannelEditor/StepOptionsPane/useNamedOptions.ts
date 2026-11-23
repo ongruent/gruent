@@ -8,8 +8,10 @@ import {
   type NamedOptions,
   type Option,
   type OptionsEvent,
+  typeFields,
   valueAtPointer,
 } from '@gruent/libs/engine/steps/ts'
+import type { ChannelConfig } from '@gruent/libs/legacy/engine/channels/index'
 import type { ApiResponse } from '@gruent/libs/gruent-js/src/response'
 import { type QueryClient, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -38,10 +40,17 @@ const unwrap = <T>({ data, errors }: ApiResponse<T>): T => {
 const hasMore = (res: ApiResponse<unknown[]>, page: number) =>
   res.totalPages ? page < res.totalPages : (res.data?.length ?? 0) >= PAGE_SIZE
 
+/** The step whose options are shown, and the editor's draft channel, for options that depend on the graph. */
+export type StepContext = { stepId: string; channel: ChannelConfig }
+
+/** Thrown when the step's input type is not known or has no fields; shown as the field's option error. */
+class UnknownInputError extends Error {}
+
 const sourcesFor = (
   accessToken: string,
   spaceId: string,
   queryClient: QueryClient,
+  context?: StepContext,
 ): Record<string, NamedSource> => {
   const client = gruentClient(accessToken)
   const toOption = (r: { id: string; name: string }): Option => ({ value: r.id, label: r.name })
@@ -59,6 +68,34 @@ const sourcesFor = (
     })
     const attributes = model.attributes as Record<string, ModelAttribute> | null
     return modelFields(attributes, { scalars: params.scalars === true }).map(
+      (f): Option => ({ value: f.path, label: modelFieldLabel(f) }),
+    )
+  }
+
+  // Fields of the step's input, inferred by the controller from the previous steps of the draft channel.
+  // The step's own configuration doesn't change its input, so it is left out of the cache key.
+  const inputFieldsOf = async (params: Record<string, unknown>) => {
+    if (!context) throw new UnknownInputError('The step is not part of a channel')
+    const { stepId, channel } = context
+    const upstream = {
+      ...channel,
+      nodes: channel.nodes.map((n) => (n.id === stepId ? { ...n, metadata: { ...n.metadata, config: {} } } : n)),
+    }
+    const compiled = await queryClient.fetchQuery({
+      queryKey: ['nodeOptionUpstream', spaceId, channel.id, stepId, JSON.stringify(upstream)],
+      queryFn: async () => unwrap(await client.channels.compile(spaceId, channel.id, channel)),
+      staleTime: STALE_TIME,
+      retry: false,
+    })
+    const input = compiled.types.find((t) => t.stepId === stepId)?.input
+    if (!input) throw new UnknownInputError('Connect a previous step to map its fields')
+    if (input.kind === 'bytes')
+      throw new UnknownInputError(
+        'The input has no model, so it has no fields to map. Give the previous step a model, or use fixed values.',
+      )
+    if (input.kind === 'signal')
+      throw new UnknownInputError('The input is a signal without data. Use fixed values.')
+    return typeFields(input, { scalars: params.scalars === true }).map(
       (f): Option => ({ value: f.path, label: modelFieldLabel(f) }),
     )
   }
@@ -104,6 +141,14 @@ const sourcesFor = (
       },
       get: async (id) => ((await secretNames()).includes(id) ? { value: id, label: id } : null),
     },
+    'input-fields': {
+      list: async ({ query, params }) => {
+        const q = query.trim().toLowerCase()
+        const items = (await inputFieldsOf(params)).filter((o) => o.value.toLowerCase().includes(q))
+        return { items, hasMore: false }
+      },
+      get: async (id, params) => (await inputFieldsOf(params)).find((o) => o.value === id) ?? null,
+    },
     'model-fields': {
       list: async ({ query, params }) => {
         const q = query.trim().toLowerCase()
@@ -131,12 +176,16 @@ const savedIds = (value: unknown): string[] =>
  * caching, stale-response handling and resolution of saved identifiers. State is keyed by field path, so two
  * fields using the same collection are independent.
  */
-const useNamedOptions = (spaceId: string, config: Record<string, unknown>) => {
+const useNamedOptions = (
+  spaceId: string,
+  config: Record<string, unknown>,
+  context?: StepContext,
+) => {
   const { accessToken } = useAuth()
   const queryClient = useQueryClient()
   const sources = useMemo(
-    () => sourcesFor(accessToken ?? '', spaceId, queryClient),
-    [accessToken, spaceId, queryClient],
+    () => sourcesFor(accessToken ?? '', spaceId, queryClient, context),
+    [accessToken, spaceId, queryClient, context],
   )
   const [namedOptions, setNamedOptions] = useState<NamedOptions>({})
   const current = useRef(new Map<string, Current>())

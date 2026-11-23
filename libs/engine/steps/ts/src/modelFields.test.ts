@@ -1,4 +1,4 @@
-import { modelFieldLabel, modelFields } from '../index'
+import { modelFieldLabel, modelFields, typeFields } from '../index'
 
 // The "Sensitive telemetry" model of the controller's compiler tests (services/controller/internal/compiler),
 // so the paths below are the ones the controller accepts for it.
@@ -20,15 +20,15 @@ const telemetry = {
 describe('modelFields', () => {
   it('lists every field in path order, including objects, arrays and array items', () => {
     expect(modelFields(telemetry)).toEqual([
-      { path: 'active', kind: 'boolean' },
-      { path: 'deviceId', kind: 'string' },
-      { path: 'location', kind: 'object' },
-      { path: 'location.lat', kind: 'number' },
-      { path: 'readings', kind: 'array' },
-      { path: 'readings[]', kind: 'object' },
-      { path: 'readings[].token', kind: 'string' },
-      { path: 'tags', kind: 'array' },
-      { path: 'tags[]', kind: 'string' },
+      { path: 'active', kind: 'boolean', required: false },
+      { path: 'deviceId', kind: 'string', required: false },
+      { path: 'location', kind: 'object', required: false },
+      { path: 'location.lat', kind: 'number', required: false },
+      { path: 'readings', kind: 'array', required: false },
+      { path: 'readings[]', kind: 'object', required: false },
+      { path: 'readings[].token', kind: 'string', required: false },
+      { path: 'tags', kind: 'array', required: false },
+      { path: 'tags[]', kind: 'string', required: false },
     ])
   })
 
@@ -42,12 +42,54 @@ describe('modelFields', () => {
 
   it('skips attributes the controller cannot type and tolerates missing attributes', () => {
     expect(modelFields({ a: { key: 'blob', type: 'binary' }, b: { key: 'n', type: 'number' } })).toEqual([
-      { path: 'n', kind: 'number' },
+      { path: 'n', kind: 'number', required: false },
     ])
     expect(modelFields(null)).toEqual([])
   })
 
   it('labels fields with their kind', () => {
-    expect(modelFieldLabel({ path: 'location.lat', kind: 'number' })).toBe('location.lat (number)')
+    expect(modelFieldLabel({ path: 'location.lat', kind: 'number', required: false })).toBe('location.lat (number)')
+  })
+})
+
+describe('typeFields', () => {
+  // A resolved input type as returned by the controller's compile results.
+  const input = {
+    kind: 'object',
+    fields: [
+      { name: 'deviceId', type: { kind: 'string' }, required: true },
+      {
+        name: 'location',
+        type: { kind: 'object', fields: [{ name: 'lat', type: { kind: 'number' }, required: true }] },
+      },
+      {
+        name: 'readings',
+        type: { kind: 'array', items: { kind: 'object', fields: [{ name: 'celsius', type: { kind: 'number' } }] } },
+        required: true,
+      },
+    ],
+  }
+
+  it('lists the fields of a resolved type with whether they are required', () => {
+    expect(typeFields(input)).toEqual([
+      { path: 'deviceId', kind: 'string', required: true },
+      { path: 'location', kind: 'object', required: false },
+      { path: 'location.lat', kind: 'number', required: false },
+      { path: 'readings', kind: 'array', required: true },
+      { path: 'readings[]', kind: 'object', required: true },
+      { path: 'readings[].celsius', kind: 'number', required: false },
+    ])
+  })
+
+  it('has no fields for opaque, signal and missing types', () => {
+    expect(typeFields({ kind: 'bytes' })).toEqual([])
+    expect(typeFields({ kind: 'signal' })).toEqual([])
+    expect(typeFields(undefined)).toEqual([])
+  })
+
+  it('marks required model attributes', () => {
+    expect(modelFields({ a: { key: 'message', type: 'string', required: true } })).toEqual([
+      { path: 'message', kind: 'string', required: true },
+    ])
   })
 })

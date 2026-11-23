@@ -40,6 +40,8 @@ export type FieldUi = {
   step?: number
   visibleWhen?: Condition
   options?: OptionsSource
+  /** objectList only: the item field whose named options each get one row (rows are keyed by its value). */
+  keyField?: string
 }
 
 export type ItemSchema = {
@@ -386,6 +388,20 @@ function checkSemantics(def: StepDefinition): Issue[] {
         add(prop('maxItems'), 'is less than minItems')
       if (f.items) checkRange(prop('items'), f.items)
 
+      if (ui.keyField !== undefined) {
+        const key = objectItems ? f.items?.properties?.[ui.keyField] : undefined
+        const keyUi = key?.['x-ui']
+        if (!objectItems) add(`${uiPath}/keyField`, 'keyField is only supported on objectList fields')
+        else if (!key) add(`${uiPath}/keyField`, `item field "${ui.keyField}" does not exist`)
+        else if (
+          !(f.items?.required ?? []).includes(ui.keyField) ||
+          keyUi?.control !== 'select' ||
+          !keyUi.options?.named ||
+          keyUi.options.static?.length ||
+          keyUi.visibleWhen
+        )
+          add(`${uiPath}/keyField`, 'the key field must be a required, always visible select with named options only')
+      }
       if (objectItems) {
         const items = f.items?.properties ?? {}
         if (f.uniqueItems) add(prop('uniqueItems'), 'object items cannot be unique')

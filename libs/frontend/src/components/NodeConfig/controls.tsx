@@ -1,6 +1,12 @@
 'use client'
 
-import { type FieldModel, type ItemSchema, isDateTime } from '@gruent/libs/engine/steps/ts'
+import {
+  type FieldModel,
+  type ItemSchema,
+  isDateTime,
+  type Option,
+  withKeyedRow,
+} from '@gruent/libs/engine/steps/ts'
 import { Button } from '@gruent/libs/frontend/components/core/button'
 import { Checkbox } from '@gruent/libs/frontend/components/core/checkbox'
 import { Input } from '@gruent/libs/frontend/components/core/input'
@@ -310,6 +316,85 @@ export const ObjectListControl: FC<
       >
         <PlusIcon /> Add {rows.length > 0 ? 'another' : 'one'}
       </Button>
+    </div>
+  )
+}
+
+/**
+ * An objectList with x-ui.keyField: one row per option of the key field (e.g. per output model field),
+ * labelled by the option. Rows are saved only once one of their other fields is set. Saved rows whose key is
+ * no longer offered stay visible as unavailable, so they can be removed but are never dropped silently.
+ */
+export const KeyedObjectListControl: FC<{
+  id: string
+  value: unknown
+  invalid: boolean
+  keyField: string
+  options: Option[]
+  loading: boolean
+  error?: string
+  /** Shown when there are no options and nothing is loading, e.g. before a model is selected. */
+  emptyMessage: string
+  onChange: (value: unknown) => void
+  /** Renders a row's fields. index is the row's position in the saved list, or past its end for new rows. */
+  renderRow: (
+    index: number,
+    row: Record<string, unknown>,
+    onChange: (row: Record<string, unknown>) => void,
+  ) => ReactNode
+}> = ({ id, value, invalid, keyField, options, loading, error, emptyMessage, onChange, renderRow }) => {
+  const rows = (Array.isArray(value) ? value : []).filter(
+    (r): r is Record<string, unknown> => !!r && typeof r === 'object' && !Array.isArray(r),
+  )
+  const keyOf = (row: Record<string, unknown>) => (typeof row[keyField] === 'string' ? (row[keyField] as string) : '')
+  const offered = new Set(options.map((o) => o.value))
+  const unavailable = loading ? [] : rows.filter((r) => !offered.has(keyOf(r)))
+  let next = rows.length
+
+  const section = (key: string, label: string, row: Record<string, unknown>, removable: boolean) => {
+    const saved = rows.findIndex((r) => keyOf(r) === key)
+    const index = saved >= 0 ? saved : next++
+    return (
+      <section
+        key={key}
+        aria-label={label}
+        data-row={index}
+        data-key={key}
+        className="flex flex-col gap-3 rounded-md border p-3"
+      >
+        <div className="flex items-center justify-between">
+          <span className={`text-xs font-medium ${removable ? 'text-destructive' : 'text-muted-foreground'}`}>
+            {label}
+          </span>
+          {removable && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={`Remove ${label}`}
+              onClick={() => onChange(withKeyedRow(rows, keyField, key, { [keyField]: key }))}
+            >
+              <Trash2Icon />
+            </Button>
+          )}
+        </div>
+        {renderRow(index, row, (changed) => onChange(withKeyedRow(rows, keyField, key, changed)))}
+      </section>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-3" id={id} aria-invalid={invalid}>
+      {value !== undefined && !Array.isArray(value) && (
+        <p className="text-sm text-destructive">Saved value is not a list: {display(value)}</p>
+      )}
+      {error && <p className="text-sm text-destructive">{error}</p>}
+      {loading && options.length === 0 && <p className="text-sm text-muted-foreground">Loading…</p>}
+      {!loading && !error && options.length === 0 && (
+        <p className="text-sm text-muted-foreground">{emptyMessage}</p>
+      )}
+      {options.map((o) => section(o.value, o.label, rows.find((r) => keyOf(r) === o.value) ?? {}, false))}
+      {unavailable.map((r) => section(keyOf(r), `${keyOf(r) || '(no key)'} (unavailable)`, r, true))}
     </div>
   )
 }
