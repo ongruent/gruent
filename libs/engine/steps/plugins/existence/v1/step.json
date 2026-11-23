@@ -32,11 +32,17 @@
       "fields": {
         "type": "array",
         "title": "Fields",
-        "description": "Fields of the model to check, e.g. device.id or readings[].value. Leave empty to check every field of the model.",
+        "description": "Fields of the model to check. Leave empty to check every field of the model.",
         "items": { "type": "string", "minLength": 1, "maxLength": 200, "pattern": "^[^.\\s]+(?:\\.[^.\\s]+)*$" },
         "uniqueItems": true,
         "maxItems": 50,
-        "x-ui": { "control": "list", "order": 2, "group": "condition", "placeholder": "device.id" }
+        "x-ui": {
+          "control": "multiselect",
+          "order": 2,
+          "group": "condition",
+          "placeholder": "Every field of the model",
+          "options": { "named": { "name": "model-fields", "paramsFromFields": { "model": "/modelId" } } }
+        }
       },
       "match": {
         "type": "string",

@@ -1,13 +1,16 @@
 import useAuth from '@gruent/hub/hooks/useAuth'
 import gruentClient from '@gruent/hub/lib/gruent'
-import type {
-  NamedOptionState,
-  NamedOptions,
-  Option,
-  OptionsEvent,
+import {
+  type ModelAttribute,
+  modelFieldLabel,
+  modelFields,
+  type NamedOptionState,
+  type NamedOptions,
+  type Option,
+  type OptionsEvent,
 } from '@gruent/libs/engine/steps/ts'
 import type { ApiResponse } from '@gruent/libs/gruent-js/src/response'
-import { useQueryClient } from '@tanstack/react-query'
+import { type QueryClient, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 const PAGE_SIZE = 20
@@ -18,8 +21,11 @@ type Page = { items: Option[]; hasMore: boolean }
 /** A named collection of resources the editor can offer as select options. Values are always identifiers. */
 type NamedSource = {
   list: (request: { query: string; params: Record<string, unknown>; page: number }) => Promise<Page>
-  /** Resolves a saved identifier independently of the current page or search. null if it does not exist. */
-  get: (id: string) => Promise<Option | null>
+  /**
+   * Resolves a saved identifier independently of the current page or search, with the parameters of the
+   * field's current request. null if it does not exist.
+   */
+  get: (id: string, params: Record<string, unknown>) => Promise<Option | null>
 }
 
 const unwrap = <T>({ data, errors }: ApiResponse<T>): T => {
@@ -31,9 +37,30 @@ const unwrap = <T>({ data, errors }: ApiResponse<T>): T => {
 const hasMore = (res: ApiResponse<unknown[]>, page: number) =>
   res.totalPages ? page < res.totalPages : (res.data?.length ?? 0) >= PAGE_SIZE
 
-const sourcesFor = (accessToken: string, spaceId: string): Record<string, NamedSource> => {
+const sourcesFor = (
+  accessToken: string,
+  spaceId: string,
+  queryClient: QueryClient,
+): Record<string, NamedSource> => {
   const client = gruentClient(accessToken)
   const toOption = (r: { id: string; name: string }): Option => ({ value: r.id, label: r.name })
+
+  // Fields of the model selected in another configuration field (params.model), as paths relative to the
+  // input. params.scalars limits them to single strings, numbers and booleans.
+  const fieldsOf = async (params: Record<string, unknown>) => {
+    if (typeof params.model !== 'string' || params.model === '') return []
+    const modelId = params.model
+    const model = await queryClient.fetchQuery({
+      queryKey: ['nodeOptionModel', spaceId, modelId],
+      queryFn: async () => unwrap(await client.models.get(spaceId, modelId)),
+      staleTime: STALE_TIME,
+      retry: false,
+    })
+    const attributes = model.attributes as Record<string, ModelAttribute> | null
+    return modelFields(attributes, { scalars: params.scalars === true }).map(
+      (f): Option => ({ value: f.path, label: modelFieldLabel(f) }),
+    )
+  }
 
   // Secret names are the identifiers. Only names ever reach the browser, never secret values.
   const secretNames = async () => unwrap(await client.secrets.list(spaceId)).map((s) => s.name)
@@ -76,6 +103,14 @@ const sourcesFor = (accessToken: string, spaceId: string): Record<string, NamedS
       },
       get: async (id) => ((await secretNames()).includes(id) ? { value: id, label: id } : null),
     },
+    'model-fields': {
+      list: async ({ query, params }) => {
+        const q = query.trim().toLowerCase()
+        const items = (await fieldsOf(params)).filter((o) => o.value.toLowerCase().includes(q))
+        return { items, hasMore: false }
+      },
+      get: async (id, params) => (await fieldsOf(params)).find((o) => o.value === id) ?? null,
+    },
   }
 }
 
@@ -98,7 +133,10 @@ const savedIds = (value: unknown): string[] =>
 const useNamedOptions = (spaceId: string, config: Record<string, unknown>) => {
   const { accessToken } = useAuth()
   const queryClient = useQueryClient()
-  const sources = useMemo(() => sourcesFor(accessToken ?? '', spaceId), [accessToken, spaceId])
+  const sources = useMemo(
+    () => sourcesFor(accessToken ?? '', spaceId, queryClient),
+    [accessToken, spaceId, queryClient],
+  )
   const [namedOptions, setNamedOptions] = useState<NamedOptions>({})
   const current = useRef(new Map<string, Current>())
   const resolved = useRef(new Set<string>())
@@ -175,7 +213,7 @@ const useNamedOptions = (spaceId: string, config: Record<string, unknown>) => {
   // Resolve saved identifiers that are not in the loaded results. Unknown ones are left unresolved so the
   // renderer shows them as unavailable; they are never removed from the configuration.
   useEffect(() => {
-    for (const [path, { name }] of current.current) {
+    for (const [path, { name, params }] of current.current) {
       const source = sources[name]
       if (!source) continue
       const state = namedOptions[path]
@@ -183,13 +221,13 @@ const useNamedOptions = (spaceId: string, config: Record<string, unknown>) => {
         [...(state?.selectedItems ?? []), ...(state?.items ?? [])].map((o) => o.value),
       )
       for (const id of savedIds(config[path.slice(1)])) {
-        const key = `${path}\u0000${name}\u0000${id}`
+        const key = `${path}\u0000${name}\u0000${JSON.stringify(params)}\u0000${id}`
         if (known.has(id) || resolved.current.has(key)) continue
         resolved.current.add(key)
         queryClient
           .fetchQuery({
-            queryKey: ['nodeOptionSelected', spaceId, name, id],
-            queryFn: () => source.get(id),
+            queryKey: ['nodeOptionSelected', spaceId, name, params, id],
+            queryFn: () => source.get(id, params),
             staleTime: STALE_TIME,
             retry: false,
           })

@@ -27,7 +27,7 @@ data class ExistenceConfig(
   /**
    * Fields
    *
-   * Fields of the model to check, e.g. device.id or readings[].value. Leave empty to check every field of the model.
+   * Fields of the model to check. Leave empty to check every field of the model.
    */
   val fields: List<String>? = null,
   /**
@@ -60,7 +60,7 @@ data class ExistenceConfig(
     override val pluginType: String = "existence"
     override val pluginVersion: Int = 1
     override val contractVersion: Int = 1
-    override val definitionDigest: String = "sha256:8a240d63fa0d4678fcaaf02ffe12293b322e0d8c8d8b97af81208f512fc14cee"
+    override val definitionDigest: String = "sha256:0a4f9284a57aa82ea9f44588cd958985986a8af8503f5c757856a0fefdc4c30b"
 
     private val properties: Set<String> = setOf("modelId", "fields", "match", "nullIsMissing")
     private val required: List<String> = listOf("modelId", "match")

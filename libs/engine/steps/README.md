@@ -205,6 +205,11 @@ annotations.
   user's credentials through the API client, with per-field search, pagination, react-query caching,
   stale-response tokens and lookup of saved identifiers. Secrets expose only their names. Unknown collection
   names show an error on the field.
+- `model-fields` is a field picker: the fields of the model selected in another field (`params.model`, usually
+  through `paramsFromFields`), as paths relative to the input (`device.id`, `readings[].value`). With
+  `params.scalars: true` it lists only single strings, numbers and booleans. The paths come from `modelFields`
+  in `ts/`, which mirrors the controller's model types, so the controller accepts every path it offers. The
+  controller ignores `model-fields` references and checks the paths itself.
 
 ## Publishing, versioning and ownership
 

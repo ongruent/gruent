@@ -8,7 +8,7 @@
       "category": "conditional",
       "definition": {
         "path": "plugins/existence/v1/step.json",
-        "digest": "sha256:8a240d63fa0d4678fcaaf02ffe12293b322e0d8c8d8b97af81208f512fc14cee"
+        "digest": "sha256:0a4f9284a57aa82ea9f44588cd958985986a8af8503f5c757856a0fefdc4c30b"
       },
       "kotlin": {
         "package": "com.gruent.steps.plugins.existence.v1",

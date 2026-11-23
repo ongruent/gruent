@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/ongruent/gruent/services/controller/internal/plan"
+	"github.com/ongruent/gruent/services/controller/internal/types"
 )
 
 // existenceChannel returns a channel with a library HTTP source (whose output model is m1) connected to an
@@ -73,5 +74,30 @@ func TestCompileStepExistence(t *testing.T) {
 	}
 	if len(result.Diagnostics) != 0 {
 		t.Fatalf("diagnostics = %+v", result.Diagnostics)
+	}
+}
+
+// The editor's field picker (modelFields in libs/engine/steps/ts) offers the same paths for this model;
+// keep the two lists in sync.
+func TestModelPathsMatchFieldPicker(t *testing.T) {
+	model, err := types.FromModel("m", []byte(`{
+		"c1": {"id": "c1", "key": "deviceId", "type": "string"},
+		"c2": {"id": "c2", "key": "location", "type": "object"},
+		"c3": {"id": "c3", "key": "lat", "type": "number", "parentId": "c2"},
+		"c4": {"id": "c4", "key": "readings", "type": "array", "subtype": "object", "arrayObjectAttributes": {"c5": {"id": "c5", "key": "token", "type": "string", "parentId": "c4"}}},
+		"c6": {"key": "tags", "type": "array", "subtype": "string"},
+		"c7": {"id": "c7", "key": "active", "type": "boolean"}
+	}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got []string
+	for path := range modelPaths(model) {
+		got = append(got, path)
+	}
+	slices.Sort(got)
+	want := []string{"active", "deviceId", "location", "location.lat", "readings", "readings[]", "readings[].token", "tags", "tags[]"}
+	if !slices.Equal(got, want) {
+		t.Fatalf("paths = %v, want %v", got, want)
 	}
 }
