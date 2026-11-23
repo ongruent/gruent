@@ -2,6 +2,21 @@
   "manifestVersion": 1,
   "plugins": [
     {
+      "pluginType": "compare",
+      "pluginVersion": 1,
+      "contractVersion": 1,
+      "category": "conditional",
+      "definition": {
+        "path": "plugins/compare/v1/step.json",
+        "digest": "sha256:9152e734740f22d8d4a64450c334fbb4e0cca5fc98e65532da479cd3c4849f4d"
+      },
+      "kotlin": {
+        "package": "com.gruent.steps.plugins.compare.v1",
+        "class": "CompareConfig",
+        "path": "generated/kotlin/com/gruent/steps/plugins/compare/v1/CompareConfig.kt"
+      }
+    },
+    {
       "pluginType": "existence",
       "pluginVersion": 1,
       "contractVersion": 1,

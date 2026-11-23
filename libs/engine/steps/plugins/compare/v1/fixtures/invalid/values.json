@@ -1,0 +1,13 @@
+{
+  "description": "Unknown match and operator, a path with an empty segment or through an array, and unknown properties.",
+  "config": {
+    "modelId": "m1",
+    "match": "most",
+    "comparisons": [
+      { "left": "input.temperatureC", "operator": "between", "compareTo": "variable", "right": "a..b", "valueType": "number" },
+      { "left": "readings[].value", "operator": "equal", "compareTo": "value" }
+    ],
+    "threshold": 1
+  },
+  "errors": ["/comparisons/0/operator", "/comparisons/0/right", "/comparisons/0/valueType", "/comparisons/1/left", "/match", "/threshold"]
+}

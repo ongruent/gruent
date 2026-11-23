@@ -74,7 +74,7 @@ reference can be unresolved or fetched remotely.
 | `number` | `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `default` | `number` (`step`) |
 | `integer` | `minimum` **and** `maximum` (required, within ±(2^53−1)), `default` | `number` (`step`) |
 | `boolean` | `default` | `toggle` |
-| `array` | `items` (primitive `string`/`number`/`integer` only), `minItems`, `maxItems`, `uniqueItems`, `default` | `multiselect` (string items, needs `options`), `list` |
+| `array` | `items` (primitive `string`/`number`/`integer`, or `object` rows), `minItems`, `maxItems`, `uniqueItems` (not for rows), `default` | `multiselect` (string items, needs `options`), `list`, `objectList` (object items only) |
 
 Every field needs `title` and `x-ui` with `control` and a unique `order`. `description` is help text.
 Optional `x-ui` keys are `group`, `placeholder`, `visibleWhen` and `options`. Field names are camelCase
@@ -90,7 +90,19 @@ ASCII and cannot be Kotlin hard keywords.
 - Values are string identifiers. Static entries come first, and a value that appears in both sources is
   shown once with the static label.
 - A `multiselect` is one field: its option state is keyed by the array pointer (`/connectionIds`), and item
-  errors are reported at `/connectionIds/<index>`. Selectors inside array items are not supported in v1.
+  errors are reported at `/connectionIds/<index>`.
+
+**Rows (`objectList`).** An array whose `items` are `{ "type": "object", "additionalProperties": false,
+"required": […], "properties": {…} }` is edited as repeatable rows, e.g. the comparisons of `compare@1`:
+
+- Item fields follow the rules of top-level fields, but must be scalars (no nested arrays or objects) and
+  cannot be grouped. Their `order` is unique within the item.
+- An item field's `visibleWhen` refers to a sibling in the same row (`/compareTo`). Its named options'
+  `paramsFromFields` refer to top-level fields (`/modelId`), so every row offers the same options.
+- Item field `default`s initialize new rows in the editor; they are never applied when decoding.
+- Each row field is addressed by its full pointer (`/comparisons/0/left`): option state, events, validation
+  errors and `Definition.References` use it.
+- Kotlin generates a nested `<Field>Item` data class with its own enums, validator and codec.
 
 **Conditional sections.** `visibleWhen: { "field": "/ptr", "equals": v }` or `{ "field": "/ptr", "in": [...] }`
 can be set on a field or a group. It cannot target arrays, the field itself, or a field inside the group it
@@ -189,9 +201,10 @@ annotations.
   "(unavailable)" and is only removed by the user.
 - **Field identity in repeated arrays.** The option-state key and event `path` is the field's JSON Pointer. A
   `multiselect` is a single field keyed by its array pointer (`/connectionIds`), and its item errors are reported at
-  `/connectionIds/<index>`. `list` items are primitive values without options. Contract v1 rejects selectors
-  inside array items (`items` cannot carry `x-ui`), so the renderer has no per-item option keys. Supporting
-  them requires a contract change that defines item addressing first.
+  `/connectionIds/<index>`. `list` items are primitive values without options. Fields of `objectList` rows are
+  keyed by their full pointer (`/comparisons/0/left`), so each row's selects have their own option state, and
+  saved values are looked up at that pointer. Row field issues are shown next to the row field; issues of the
+  rows themselves and of hidden row fields are shown under the list.
 
 ### Channel editor integration (hub)
 
@@ -243,5 +256,5 @@ annotations.
   library steps against the library embedded in their binaries (`steps.EmbeddedLibrary()`), and the
   controller compiles them into plans (see `services/controller/README.md`). The runtime (`services/runtime`)
   executes steps that have a Kotlin implementation module in `plugins/<type>/v<N>` (`build.gradle.kts` +
-  `META-INF/services/com.gruent.steps.api.StepFactory`, see `api/`): today `timer-source@1`, `log@1` and `existence@1`. Plugin runtime artifacts (WASM) and
+  `META-INF/services/com.gruent.steps.api.StepFactory`, see `api/`): today `timer-source@1`, `log@1`, `existence@1` and `compare@1`. Plugin runtime artifacts (WASM) and
   custom/third-party step packages are out of scope: definitions carry no artifact fields.

@@ -53,6 +53,13 @@ var resolver = fakeResolver{
 			"c3": {"id": "c3", "key": "lat", "type": "number", "parentId": "c2"},
 			"c4": {"id": "c4", "key": "readings", "type": "array", "subtype": "object", "arrayObjectAttributes": {"c5": {"id": "c5", "key": "token", "type": "string", "parentId": "c4"}}}
 		}`)},
+		"m4": {ID: "m4", Name: "Device status", Attributes: []byte(`{
+			"d1": {"id": "d1", "key": "active", "type": "boolean"},
+			"d2": {"id": "d2", "key": "status", "type": "string"},
+			"d3": {"id": "d3", "key": "expected", "type": "object"},
+			"d4": {"id": "d4", "key": "status", "type": "string", "parentId": "d3"},
+			"d5": {"id": "d5", "key": "temperatureC", "type": "string"}
+		}`)},
 	},
 	connections: map[string]ConnectionRecord{
 		"t1": {ID: "t1", Name: "Mailer", Category: "SENDGRID_CLIENT", Revision: "sha256:t1", Attributes: []byte(`{"apiKey": "SENDGRID_KEY", "fromEmail": "alerts@example.com"}`)},

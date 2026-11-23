@@ -277,9 +277,57 @@ func TestEmbeddedLibraryMatchesManifest(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, id := range []Identity{{"hello-world", 1}, {"http-source", 1}, {"timer-source", 1}, {"message-queue-source", 1}, {"log", 1}, {"existence", 1}} {
+	for _, id := range []Identity{{"hello-world", 1}, {"http-source", 1}, {"timer-source", 1}, {"message-queue-source", 1}, {"log", 1}, {"existence", 1}, {"compare", 1}} {
 		if _, err := registry.Resolve(id); err != nil {
 			t.Errorf("%s: %v", id, err)
+		}
+	}
+}
+
+func objectListFixture(t *testing.T) *Definition {
+	t.Helper()
+	var fx definitionFixture
+	readJSON(t, "contracts/v1/fixtures/valid/object-list.json", &fx)
+	def, err := ParseDefinition(fx.Definition)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return def
+}
+
+func TestObjectListRows(t *testing.T) {
+	def := objectListFixture(t)
+	rows, _ := def.Field("rows")
+	if names := []string{rows.Items.Fields[0].Name, rows.Items.Fields[3].Name}; !reflect.DeepEqual(names, []string{"left", "strict"}) {
+		t.Fatalf("item fields are not ordered by x-ui.order: %v", names)
+	}
+
+	cfg := []byte(`{"modelId":"m1","rows":[{"left":"temperatureC","operator":"lessThan","value":"25"},{"left":"deviceId","operator":"equal"}]}`)
+	if issues := def.ValidateConfig(cfg); len(issues) != 0 {
+		t.Fatalf("issues = %v", issues)
+	}
+	refs, err := def.References(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	params := map[string]any{"model": "m1", "scalars": true}
+	want := []Reference{
+		{Path: "/modelId", Collection: "models", ID: "m1"},
+		{Path: "/rows/0/left", Collection: "model-fields", ID: "temperatureC", Params: params},
+		{Path: "/rows/1/left", Collection: "model-fields", ID: "deviceId", Params: params},
+	}
+	if !reflect.DeepEqual(refs, want) {
+		t.Fatalf("refs = %+v", refs)
+	}
+
+	issues := def.ValidateConfig([]byte(`{"rows":[{"left":"x","operator":"greaterThan","extra":1},{"operator":"equal"}]}`))
+	got := map[string]bool{}
+	for _, p := range paths(issues) {
+		got[p] = true
+	}
+	for _, p := range []string{"/rows/0/operator", "/rows/0/extra", "/rows/1/left"} {
+		if !got[p] {
+			t.Errorf("missing issue at %s; got %v", p, issues)
 		}
 	}
 }

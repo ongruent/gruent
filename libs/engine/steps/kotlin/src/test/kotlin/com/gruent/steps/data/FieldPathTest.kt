@@ -38,6 +38,13 @@ class FieldPathTest {
   }
 
   @Test
+  fun `variables are relative to the input`() {
+    assertEquals(listOf(input), FieldPath.parseVariable("input").values(input))
+    assertEquals(listOf(JsonPrimitive("d1")), FieldPath.parseVariable("input.device.id").values(input))
+    assertThrows<IllegalArgumentException> { FieldPath.parseVariable("device.id") }
+  }
+
+  @Test
   fun `invalid paths are rejected`() {
     assertThrows<IllegalArgumentException> { FieldPath.parse("a..b") }
     assertThrows<IllegalArgumentException> { FieldPath.parse("") }

@@ -1,0 +1,5 @@
+{
+  "description": "At least one comparison, each with a field, operator and what to compare to.",
+  "config": { "modelId": "m1", "match": "all", "comparisons": [] },
+  "errors": ["/comparisons"]
+}

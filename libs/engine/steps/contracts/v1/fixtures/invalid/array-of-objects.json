@@ -1,5 +1,5 @@
 {
-  "description": "Array items are primitives; selectors inside repeatable objects are not supported.",
+  "description": "Object items must declare closed properties.",
   "definition": {
     "contractVersion": 1,
     "pluginType": "fixture",
@@ -27,7 +27,7 @@
             "type": "object"
           },
           "x-ui": {
-            "control": "list",
+            "control": "objectList",
             "order": 2
           }
         }
@@ -35,6 +35,7 @@
     }
   },
   "errors": [
-    "/configSchema/properties/rows/items/type"
+    "/configSchema/properties/rows/items/additionalProperties",
+    "/configSchema/properties/rows/items/properties"
   ]
 }

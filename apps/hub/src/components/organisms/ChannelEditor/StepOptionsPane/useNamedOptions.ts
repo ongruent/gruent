@@ -8,6 +8,7 @@ import {
   type NamedOptions,
   type Option,
   type OptionsEvent,
+  valueAtPointer,
 } from '@gruent/libs/engine/steps/ts'
 import type { ApiResponse } from '@gruent/libs/gruent-js/src/response'
 import { type QueryClient, useQueryClient } from '@tanstack/react-query'
@@ -220,7 +221,8 @@ const useNamedOptions = (spaceId: string, config: Record<string, unknown>) => {
       const known = new Set(
         [...(state?.selectedItems ?? []), ...(state?.items ?? [])].map((o) => o.value),
       )
-      for (const id of savedIds(config[path.slice(1)])) {
+      // Paths may point into objectList rows (/comparisons/0/left).
+      for (const id of savedIds(valueAtPointer(config, path))) {
         const key = `${path}\u0000${name}\u0000${JSON.stringify(params)}\u0000${id}`
         if (known.has(id) || resolved.current.has(key)) continue
         resolved.current.add(key)

@@ -47,7 +47,10 @@ export function describeForm(def: Definition): Section[] {
 
 const valueAt = (config: Record<string, unknown>, pointer: string) => config[pointer.slice(1)]
 
-/** Declarative visibility. Hidden fields keep their values and are still validated. */
+/**
+ * Declarative visibility. Hidden fields keep their values and are still validated. Conditions of row fields
+ * are evaluated against the row.
+ */
 export function isVisible(condition: Condition | undefined, config: Record<string, unknown>): boolean {
   if (!condition) return true
   const v = valueAt(config, condition.field) as Scalar | undefined
@@ -118,4 +121,34 @@ export function withField(config: Record<string, unknown>, name: string, value: 
   if (value === undefined) delete next[name]
   else next[name] = value
   return next
+}
+
+/**
+ * Fields of one row of an objectList field, ordered by x-ui.order. Paths point into the row
+ * (`/rows/0/left`), so option state and validation issues are per row; names are the row's keys.
+ */
+export function describeItem(field: FieldModel, index: number): FieldModel[] {
+  const items = field.schema.items
+  if (items?.type !== 'object') return []
+  const required = new Set(items.required ?? [])
+  return Object.entries(items.properties ?? {})
+    .map(([name, schema]) => ({
+      name,
+      path: `${field.path}/${index}/${name}`,
+      required: required.has(name),
+      schema,
+    }))
+    .sort((a, b) => a.schema['x-ui'].order - b.schema['x-ui'].order)
+}
+
+/** Value at a JSON Pointer, e.g. `/rows/0/left`. undefined if any step is missing. */
+export function valueAtPointer(value: unknown, pointer: string): unknown {
+  let current = value
+  for (const token of pointer.split('/').slice(1)) {
+    const key = token.replace(/~1/g, '/').replace(/~0/g, '~')
+    if (Array.isArray(current)) current = current[Number(key)]
+    else if (current && typeof current === 'object') current = (current as Record<string, unknown>)[key]
+    else return undefined
+  }
+  return current
 }

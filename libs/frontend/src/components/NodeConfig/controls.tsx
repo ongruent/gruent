@@ -6,7 +6,7 @@ import { Checkbox } from '@gruent/libs/frontend/components/core/checkbox'
 import { Input } from '@gruent/libs/frontend/components/core/input'
 import { Textarea } from '@gruent/libs/frontend/components/core/textarea'
 import { PlusIcon, Trash2Icon } from 'lucide-react'
-import { FC, useEffect, useState } from 'react'
+import { FC, type ReactNode, useEffect, useState } from 'react'
 
 type ControlProps = {
   id: string
@@ -232,6 +232,83 @@ export const ListControl: FC<ControlProps & { itemInvalid: (index: number) => bo
         onClick={() => onChange([...items, numeric ? 0 : ''])}
       >
         <PlusIcon /> Add item
+      </Button>
+    </div>
+  )
+}
+
+/**
+ * Repeatable rows of an objectList field. The parent renders each row's fields with the regular controls;
+ * new rows start from the item fields' declared defaults. Saved values that are not lists are shown, not
+ * rewritten.
+ */
+export const ObjectListControl: FC<
+  Omit<ControlProps, 'field'> & {
+    title: string
+    maxItems?: number
+    newItem: () => Record<string, unknown>
+    renderRow: (
+      index: number,
+      item: Record<string, unknown>,
+      onChange: (item: Record<string, unknown>) => void,
+    ) => ReactNode
+  }
+> = ({ id, title, maxItems, value, invalid, newItem, renderRow, onChange }) => {
+  const rows = Array.isArray(value) ? (value as unknown[]) : []
+  const setRow = (index: number, row: Record<string, unknown>) =>
+    onChange(rows.map((v, i) => (i === index ? row : v)))
+  const removeRow = (index: number) => {
+    const next = rows.filter((_, i) => i !== index)
+    onChange(next.length > 0 ? next : undefined)
+  }
+
+  return (
+    <div className="flex flex-col gap-3" id={id} aria-invalid={invalid}>
+      {value !== undefined && !Array.isArray(value) && (
+        <p className="text-sm text-destructive">Saved value is not a list: {display(value)}</p>
+      )}
+      {rows.map((row, index) => {
+        const label = `${title} ${index + 1}`
+        const item =
+          row && typeof row === 'object' && !Array.isArray(row)
+            ? (row as Record<string, unknown>)
+            : undefined
+        return (
+          <section
+            key={index}
+            aria-label={label}
+            data-row={index}
+            className="flex flex-col gap-3 rounded-md border p-3"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-muted-foreground">{label}</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label={`Remove ${label}`}
+                onClick={() => removeRow(index)}
+              >
+                <Trash2Icon />
+              </Button>
+            </div>
+            {item ? (
+              renderRow(index, item, (next) => setRow(index, next))
+            ) : (
+              <p className="text-sm text-destructive">Saved row is not an object: {display(row)}</p>
+            )}
+          </section>
+        )
+      })}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="self-start"
+        disabled={maxItems !== undefined && rows.length >= maxItems}
+        onClick={() => onChange([...rows, newItem()])}
+      >
+        <PlusIcon /> Add {rows.length > 0 ? 'another' : 'one'}
       </Button>
     </div>
   )

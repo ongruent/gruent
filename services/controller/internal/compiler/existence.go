@@ -23,57 +23,50 @@ type existenceCompiled struct {
 	Paths    []string `json:"paths"`
 }
 
-// compileExistenceSteps resolves the model (and the selected fields) of every existence step into the
-// paths the runtime checks.
-func (c *compilation) compileExistenceSteps(graph plan.Graph, resolved []types.Resolved) error {
-	for i, step := range graph.Steps {
-		library := c.libraryCache[step.ID]
-		if !library.is(pluginExistence, 1) || !library.valid {
-			continue
-		}
-		modelID, ok := library.modelOf(existenceModelField)
-		if !ok {
-			continue
-		}
-		model, ok := c.models[modelID]
-		if !ok {
-			continue // reported by resolveModels
-		}
+// compileExistence resolves the model (and the selected fields) of an existence step into the paths the
+// runtime checks.
+func (c *compilation) compileExistence(step *plan.Step, library *libraryStep, input *types.Type) error {
+	modelID, ok := library.modelOf(existenceModelField)
+	if !ok {
+		return nil
+	}
+	model, ok := c.models[modelID]
+	if !ok {
+		return nil // reported by resolveModels
+	}
 
-		available := redactionPaths(model.t, "")
-		paths := available
-		var config struct {
-			Fields []string `json:"fields"`
-		}
-		if err := json.Unmarshal(step.Config, &config); err != nil {
-			return fmt.Errorf("decode configuration of step %s: %w", step.ID, err)
-		}
-		if len(config.Fields) > 0 {
-			paths = nil
-			known := modelPaths(model.t)
-			for index, field := range config.Fields {
-				if !known[field] {
-					c.errorf("unknown_model_field", step.ID, fmt.Sprintf("/config/fields/%d", index), "field %s is not part of the model of step %s", field, step.ID)
-					continue
-				}
-				paths = appendUnique(paths, field)
+	paths := redactionPaths(model.t, "")
+	var config struct {
+		Fields []string `json:"fields"`
+	}
+	if err := json.Unmarshal(step.Config, &config); err != nil {
+		return fmt.Errorf("decode configuration of step %s: %w", step.ID, err)
+	}
+	if len(config.Fields) > 0 {
+		paths = nil
+		known := modelPaths(model.t)
+		for index, field := range config.Fields {
+			if !known[field] {
+				c.errorf("unknown_model_field", step.ID, fmt.Sprintf("/config/fields/%d", index), "field %s is not part of the model of step %s", field, step.ID)
+				continue
 			}
+			paths = appendUnique(paths, field)
 		}
-		if len(paths) == 0 {
-			c.errorf("no_fields_to_check", step.ID, "/config/"+existenceModelField, "the model of step %s has no fields to check", step.ID)
-			continue
-		}
-		slices.Sort(paths)
+	}
+	if len(paths) == 0 {
+		c.errorf("no_fields_to_check", step.ID, "/config/"+existenceModelField, "the model of step %s has no fields to check", step.ID)
+		return nil
+	}
+	slices.Sort(paths)
 
-		compiled, err := plan.Canonicalize(mustMarshal(existenceCompiled{ModelRef: modelID, Paths: paths}))
-		if err != nil {
-			return err
-		}
-		graph.Steps[i].Compiled = compiled
+	compiled, err := plan.Canonicalize(mustMarshal(existenceCompiled{ModelRef: modelID, Paths: paths}))
+	if err != nil {
+		return err
+	}
+	step.Compiled = compiled
 
-		if input := resolvedInput(resolved, step.ID); input != nil && input.Kind == types.KindSignal {
-			c.warnf("existence_signal_input", step.ID, "", "the input of step %s is a signal without data, so its fields are always missing", step.ID)
-		}
+	if input != nil && input.Kind == types.KindSignal {
+		c.warnf("existence_signal_input", step.ID, "", "the input of step %s is a signal without data, so its fields are always missing", step.ID)
 	}
 	return nil
 }
@@ -88,32 +81,6 @@ func modelPaths(t types.Type) map[string]bool {
 		}
 	}
 	return paths
-}
-
-// modelOf returns the model selected in a configuration field.
-func (s *libraryStep) modelOf(field string) (string, bool) {
-	for _, dependency := range s.referencesTo(collectionModels) {
-		if dependency.field == field {
-			return dependency.modelID, true
-		}
-	}
-	return "", false
-}
-
-func resolvedInput(resolved []types.Resolved, stepID string) *types.Type {
-	index := slices.IndexFunc(resolved, func(r types.Resolved) bool { return r.StepID == stepID })
-	if index < 0 {
-		return nil
-	}
-	return resolved[index].Input
-}
-
-func mustMarshal(value any) []byte {
-	encoded, err := json.Marshal(value)
-	if err != nil {
-		panic(fmt.Sprintf("encode compiled step data: %v", err)) // only plain structs are encoded
-	}
-	return encoded
 }
 
 // checkConditionalPorts requires every edge out of a library conditional step to leave from its success

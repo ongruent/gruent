@@ -21,6 +21,7 @@ export type Control =
   | 'toggle'
   | 'multiselect'
   | 'list'
+  | 'objectList'
 
 export type Option = { value: string; label: string; disabled?: boolean }
 export type NamedOptionsSource = {
@@ -42,7 +43,11 @@ export type FieldUi = {
 }
 
 export type ItemSchema = {
-  type: 'string' | 'number' | 'integer'
+  type: 'string' | 'number' | 'integer' | 'object'
+  /** Fields of object items (control objectList). Item fields cannot be arrays or grouped. */
+  properties?: Record<string, FieldSchema>
+  required?: string[]
+  additionalProperties?: false
   minLength?: number
   maxLength?: number
   pattern?: string
@@ -53,7 +58,7 @@ export type ItemSchema = {
   exclusiveMaximum?: number
 }
 
-export type FieldSchema = Omit<ItemSchema, 'type'> & {
+export type FieldSchema = Omit<ItemSchema, 'type' | 'properties' | 'required' | 'additionalProperties'> & {
   type: FieldType
   title: string
   description?: string
@@ -205,7 +210,7 @@ export class Definition {
   createConfig(): Record<string, unknown> {
     const out: Record<string, unknown> = {}
     for (const [name, f] of Object.entries(this.document.configSchema.properties)) {
-      if (f.default !== undefined) out[name] = structuredClone(f.default)
+      if (f.default !== undefined) out[name] = f.default // item fields are scalars
     }
     return out
   }
@@ -260,9 +265,14 @@ function checkSemantics(def: StepDefinition): Issue[] {
   })
 
   const fieldOf = (pointer: string) => props[pointer.slice(1)]
-  const checkCondition = (path: string, c: Condition, self?: string): FieldSchema | undefined => {
+  const checkCondition = (
+    path: string,
+    c: Condition,
+    fields: Record<string, FieldSchema> = props,
+    self?: string,
+  ): FieldSchema | undefined => {
     const name = c.field.slice(1)
-    const target = props[name]
+    const target = fields[name]
     if (!target) return void add(`${path}/field`, `field ${c.field} does not exist`)
     if (name === self) return void add(`${path}/field`, 'a field cannot depend on itself')
     if (target.type === 'array') return void add(`${path}/field`, `conditions cannot reference array field ${c.field}`)
@@ -291,76 +301,106 @@ function checkSemantics(def: StepDefinition): Issue[] {
       add(`${path}/field`, `group "${g.id}" cannot depend on its own field ${g.visibleWhen.field}`)
   })
 
-  const orders = new Map<number, string>()
-  for (const name of Object.keys(props).sort()) {
-    const f = props[name]
-    const ui = f['x-ui']
-    const uiPath = prop(name, 'x-ui')
-    if (KOTLIN_KEYWORDS.has(name)) add(prop(name), `field name "${name}" is a reserved word in generated Kotlin`)
-    const other = orders.get(ui.order)
-    if (other !== undefined) add(`${uiPath}/order`, `order ${ui.order} is already used by field "${other}"`)
-    else orders.set(ui.order, name)
-    if (ui.group && !groups.has(ui.group)) add(`${uiPath}/group`, `group "${ui.group}" is not declared`)
-    if (ui.visibleWhen) checkCondition(`${uiPath}/visibleWhen`, ui.visibleWhen, name)
-
-    if (f.type === 'string') {
-      if ((ui.control === 'datetime') !== (f.format === 'date-time'))
-        add(`${uiPath}/control`, 'format "date-time" and control "datetime" must be used together')
-      if (f.enum && ui.control !== 'select')
-        add(prop(name, 'enum'), 'enum is only supported on select fields with static options')
-    }
-
-    if (ui.options) {
-      const isArray = f.type === 'array'
-      const enumPath = isArray ? prop(name, 'items', 'enum') : prop(name, 'enum')
-      const enumValues = isArray ? f.items?.enum : f.enum
-      if (isArray && f.items?.type !== 'string') add(prop(name, 'items', 'type'), 'multiselect values must be strings')
-      const optPath = `${uiPath}/options`
-      const statics = ui.options.static ?? []
-      const seen = new Set<string>()
-      statics.forEach((s, i) => {
-        if (seen.has(s.value)) add(`${optPath}/static/${i}/value`, `duplicate static option value "${s.value}"`)
-        seen.add(s.value)
-      })
-      const named = ui.options.named
-      if (named) {
-        if (enumValues?.length) add(enumPath, 'selects with named options must not declare enum')
-        for (const k of Object.keys(named.paramsFromFields ?? {}).sort()) {
-          const ptr = named.paramsFromFields![k]
-          const p = `${optPath}/named/paramsFromFields/${k}`
-          if (!fieldOf(ptr)) add(p, `field ${ptr} does not exist`)
-          else if (ptr.slice(1) === name) add(p, 'a field cannot derive parameters from itself')
-          if (named.params && k in named.params) add(p, `parameter "${k}" is declared in both params and paramsFromFields`)
-        }
-      } else if (enumValues?.length) {
-        const enumSet = new Set(enumValues)
-        if (enumValues.some((e) => !seen.has(e)) || statics.some((s) => !enumSet.has(s.value)))
-          add(enumPath, 'enum must match the static option values')
-      }
-    } else if (f.type === 'array' && f.items?.enum?.length) {
-      add(prop(name, 'items', 'enum'), 'enum on array items requires the multiselect control with static options')
-    }
-
-    const checkRange = (base: string, s: Omit<ItemSchema, 'type'>) => {
-      if (s.minimum !== undefined && s.exclusiveMinimum !== undefined)
-        add(`${base}/exclusiveMinimum`, 'declare either minimum or exclusiveMinimum, not both')
-      if (s.maximum !== undefined && s.exclusiveMaximum !== undefined)
-        add(`${base}/exclusiveMaximum`, 'declare either maximum or exclusiveMaximum, not both')
-      const lo = s.minimum ?? s.exclusiveMinimum
-      const hi = s.maximum ?? s.exclusiveMaximum
-      if (lo !== undefined && hi !== undefined && lo > hi) add(`${base}/maximum`, `maximum ${hi} is less than minimum ${lo}`)
-      if (s.minLength !== undefined && s.maxLength !== undefined && s.minLength > s.maxLength)
-        add(`${base}/maxLength`, 'is less than minLength')
-      if (s.pattern) {
-        const msg = unportablePattern(s.pattern)
-        if (msg) add(`${base}/pattern`, `pattern is not portable across RE2, ECMAScript and Java: ${msg}`)
-      }
-    }
-    checkRange(prop(name), f)
-    if (f.minItems !== undefined && f.maxItems !== undefined && f.minItems > f.maxItems)
-      add(prop(name, 'maxItems'), 'is less than minItems')
-    if (f.items) checkRange(prop(name, 'items'), f.items)
+  type Scope = {
+    /** Siblings: the fields that orders and visibleWhen conditions refer to. */
+    fields: Record<string, FieldSchema>
+    /** Path of a sibling's schema in the definition. */
+    path: (name: string, ...rest: string[]) => string
+    /** Item fields cannot be grouped. */
+    grouped: boolean
   }
+
+  const checkFields = ({ fields, path: at, grouped }: Scope) => {
+    const orders = new Map<number, string>()
+    for (const name of Object.keys(fields).sort()) {
+      const f = fields[name]
+      const ui = f['x-ui']
+      const prop = (...rest: string[]) => at(name, ...rest)
+      const uiPath = prop('x-ui')
+      if (KOTLIN_KEYWORDS.has(name)) add(prop(), `field name "${name}" is a reserved word in generated Kotlin`)
+      const other = orders.get(ui.order)
+      if (other !== undefined) add(`${uiPath}/order`, `order ${ui.order} is already used by field "${other}"`)
+      else orders.set(ui.order, name)
+      if (grouped && ui.group && !groups.has(ui.group)) add(`${uiPath}/group`, `group "${ui.group}" is not declared`)
+      if (ui.visibleWhen) checkCondition(`${uiPath}/visibleWhen`, ui.visibleWhen, fields, name)
+
+      if (f.type === 'string') {
+        if ((ui.control === 'datetime') !== (f.format === 'date-time'))
+          add(`${uiPath}/control`, 'format "date-time" and control "datetime" must be used together')
+        if (f.enum && ui.control !== 'select')
+          add(prop('enum'), 'enum is only supported on select fields with static options')
+      }
+      const objectItems = f.type === 'array' && f.items?.type === 'object'
+      if (objectItems !== (ui.control === 'objectList'))
+        add(`${uiPath}/control`, 'object items and control "objectList" must be used together')
+
+      if (ui.options) {
+        const isArray = f.type === 'array'
+        const enumPath = isArray ? prop('items', 'enum') : prop('enum')
+        const enumValues = isArray ? f.items?.enum : f.enum
+        if (isArray && f.items?.type !== 'string') add(prop('items', 'type'), 'multiselect values must be strings')
+        const optPath = `${uiPath}/options`
+        const statics = ui.options.static ?? []
+        const seen = new Set<string>()
+        statics.forEach((s, i) => {
+          if (seen.has(s.value)) add(`${optPath}/static/${i}/value`, `duplicate static option value "${s.value}"`)
+          seen.add(s.value)
+        })
+        const named = ui.options.named
+        if (named) {
+          if (enumValues?.length) add(enumPath, 'selects with named options must not declare enum')
+          for (const k of Object.keys(named.paramsFromFields ?? {}).sort()) {
+            const ptr = named.paramsFromFields![k]
+            const p = `${optPath}/named/paramsFromFields/${k}`
+            // Parameters are always derived from top-level fields.
+            if (!fieldOf(ptr)) add(p, `field ${ptr} does not exist`)
+            else if (fieldOf(ptr) === f) add(p, 'a field cannot derive parameters from itself')
+            if (named.params && k in named.params) add(p, `parameter "${k}" is declared in both params and paramsFromFields`)
+          }
+        } else if (enumValues?.length) {
+          const enumSet = new Set(enumValues)
+          if (enumValues.some((e) => !seen.has(e)) || statics.some((s) => !enumSet.has(s.value)))
+            add(enumPath, 'enum must match the static option values')
+        }
+      } else if (f.type === 'array' && f.items?.enum?.length) {
+        add(prop('items', 'enum'), 'enum on array items requires the multiselect control with static options')
+      }
+
+      const checkRange = (base: string, s: Omit<ItemSchema, 'type'>) => {
+        if (s.minimum !== undefined && s.exclusiveMinimum !== undefined)
+          add(`${base}/exclusiveMinimum`, 'declare either minimum or exclusiveMinimum, not both')
+        if (s.maximum !== undefined && s.exclusiveMaximum !== undefined)
+          add(`${base}/exclusiveMaximum`, 'declare either maximum or exclusiveMaximum, not both')
+        const lo = s.minimum ?? s.exclusiveMinimum
+        const hi = s.maximum ?? s.exclusiveMaximum
+        if (lo !== undefined && hi !== undefined && lo > hi) add(`${base}/maximum`, `maximum ${hi} is less than minimum ${lo}`)
+        if (s.minLength !== undefined && s.maxLength !== undefined && s.minLength > s.maxLength)
+          add(`${base}/maxLength`, 'is less than minLength')
+        if (s.pattern) {
+          const msg = unportablePattern(s.pattern)
+          if (msg) add(`${base}/pattern`, `pattern is not portable across RE2, ECMAScript and Java: ${msg}`)
+        }
+      }
+      checkRange(prop(), f)
+      if (f.minItems !== undefined && f.maxItems !== undefined && f.minItems > f.maxItems)
+        add(prop('maxItems'), 'is less than minItems')
+      if (f.items) checkRange(prop('items'), f.items)
+
+      if (objectItems) {
+        const items = f.items?.properties ?? {}
+        if (f.uniqueItems) add(prop('uniqueItems'), 'object items cannot be unique')
+        ;(f.items?.required ?? []).forEach((r, i) => {
+          if (!items[r]) add(prop('items', 'required', String(i)), `required field "${r}" is not declared in properties`)
+        })
+        checkFields({
+          fields: items,
+          path: (item, ...rest) => prop('items', 'properties', escapePointer(item), ...rest),
+          grouped: false,
+        })
+      }
+    }
+  }
+  checkFields({ fields: props, path: (name, ...rest) => prop(name, ...rest), grouped: true })
   return issues
 }
 
@@ -369,13 +409,39 @@ function checkDefaults(def: StepDefinition, validator: ValidateFunction): Issue[
   for (const [name, f] of Object.entries(def.configSchema.properties)) {
     if (f.default !== undefined) defaults[name] = f.default
   }
-  if (validator(defaults)) return []
-  return normalize(validator.errors)
-    .filter((i) => i.path.split('/')[1] in defaults)
-    .map((i) => ({
-      path: `/configSchema/properties/${i.path.split('/')[1]}/default`,
-      message: `default ${i.message}`,
-    }))
+  const issues = validator(defaults)
+    ? []
+    : normalize(validator.errors)
+        .filter((i) => i.path.split('/')[1] in defaults)
+        .map((i) => ({
+          path: `/configSchema/properties/${i.path.split('/')[1]}/default`,
+          message: `default ${i.message}`,
+        }))
+
+  // Item field defaults initialize new rows; check them as one row of the array.
+  for (const [name, f] of Object.entries(def.configSchema.properties)) {
+    const item = createItem(f)
+    if (!item || Object.keys(item).length === 0 || validator({ [name]: [item] })) continue
+    for (const i of normalize(validator.errors)) {
+      const [, field, index, key] = i.path.split('/')
+      if (field !== name || index !== '0' || !key || !(key in item)) continue
+      issues.push({
+        path: `/configSchema/properties/${escapePointer(name)}/items/properties/${key}/default`,
+        message: `default ${i.message}`,
+      })
+    }
+  }
+  return issues
+}
+
+/** A new row of an objectList field: its item fields' declared defaults only. undefined for other fields. */
+export function createItem(field: FieldSchema): Record<string, unknown> | undefined {
+  if (field.type !== 'array' || field.items?.type !== 'object') return undefined
+  const out: Record<string, unknown> = {}
+  for (const [name, f] of Object.entries(field.items.properties ?? {})) {
+    if (f.default !== undefined) out[name] = f.default // item fields are scalars
+  }
+  return out
 }
 
 /**

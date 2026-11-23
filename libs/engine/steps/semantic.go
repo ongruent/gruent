@@ -29,6 +29,7 @@ var controlTypes = map[string]FieldType{
 	"toggle":      TypeBoolean,
 	"multiselect": TypeArray,
 	"list":        TypeArray,
+	"objectList":  TypeArray,
 }
 
 // checkSemantics enforces the contract rules that the envelope schema cannot express. The TypeScript
@@ -68,29 +69,48 @@ func checkSemantics(d *Definition, required []string) []Issue {
 		}
 	}
 
+	checkFields(fieldScope{fields: byName, top: byName, groups: groups, path: propPath}, add)
+	return issues
+}
+
+// fieldScope is a set of sibling fields: the top-level configuration fields, or the fields of an array's
+// object items.
+type fieldScope struct {
+	// fields are the siblings, which visibleWhen conditions and orders refer to.
+	fields map[string]*Field
+	// top are the top-level fields, which named option parameters are derived from.
+	top map[string]*Field
+	// groups are the layout groups; nil for item fields, which cannot be grouped.
+	groups map[string]*Group
+	// path returns the definition path of a sibling's schema, e.g. /configSchema/properties/rows/items/properties/x.
+	path func(name string, rest ...string) string
+}
+
+func checkFields(scope fieldScope, add func(string, string, ...any)) {
 	orders := map[int]string{}
-	names := make([]string, 0, len(d.fields))
-	for _, f := range d.fields {
-		names = append(names, f.Name)
+	names := make([]string, 0, len(scope.fields))
+	for name := range scope.fields {
+		names = append(names, name)
 	}
 	sort.Strings(names)
 	for _, name := range names {
-		f := byName[name]
-		ui := propPath(name, "x-ui")
+		f := scope.fields[name]
+		path := func(rest ...string) string { return scope.path(name, rest...) }
+		ui := path("x-ui")
 
 		if kotlinKeywords[name] {
-			add(propPath(name), "field name %q is a reserved word in generated Kotlin", name)
+			add(path(), "field name %q is a reserved word in generated Kotlin", name)
 		}
 		if other, ok := orders[f.UI.Order]; ok {
 			add(ui+"/order", "order %d is already used by field %q", f.UI.Order, other)
 		} else {
 			orders[f.UI.Order] = name
 		}
-		if f.UI.Group != "" && groups[f.UI.Group] == nil {
+		if f.UI.Group != "" && scope.groups[f.UI.Group] == nil {
 			add(ui+"/group", "group %q is not declared in configSchema.x-ui.groups", f.UI.Group)
 		}
 		if f.UI.VisibleWhen != nil {
-			checkCondition(ui+"/visibleWhen", f.UI.VisibleWhen, byName, name, add)
+			checkCondition(ui+"/visibleWhen", f.UI.VisibleWhen, scope.fields, name, add)
 		}
 
 		// Control and type agreement.
@@ -107,40 +127,66 @@ func checkSemantics(d *Definition, required []string) []Issue {
 				add(ui+"/control", `format "date-time" and control "datetime" must be used together`)
 			}
 			if len(f.Enum) > 0 && f.UI.Control != "select" {
-				add(propPath(name, "enum"), `enum is only supported on select fields with static options`)
+				add(path("enum"), `enum is only supported on select fields with static options`)
 			}
+		}
+		objectItems := f.Type == TypeArray && f.Items != nil && f.Items.Type == TypeObject
+		if objectItems != (f.UI.Control == "objectList") {
+			add(ui+"/control", "object items and control \"objectList\" must be used together")
 		}
 
 		// Options.
 		if f.UI.Options != nil {
-			enumPath, enum := propPath(name, "enum"), f.Enum
+			enumPath, enum := path("enum"), f.Enum
 			if f.Type == TypeArray {
-				enumPath = propPath(name, "items", "enum")
+				enumPath = path("items", "enum")
 				if f.Items != nil {
 					enum = f.Items.Enum
 				}
 				if f.Items == nil || f.Items.Type != TypeString {
-					add(propPath(name, "items", "type"), "multiselect values must be strings")
+					add(path("items", "type"), "multiselect values must be strings")
 				}
 			}
-			checkOptions(ui+"/options", f, enumPath, enum, byName, add)
+			checkOptions(ui+"/options", f, enumPath, enum, scope.top, add)
 		} else if f.Type == TypeArray && f.Items != nil && len(f.Items.Enum) > 0 {
-			add(propPath(name, "items", "enum"), "enum on array items requires the multiselect control with static options")
+			add(path("items", "enum"), "enum on array items requires the multiselect control with static options")
 		}
 
 		// Constraint consistency.
-		checkRange(propPath(name), f.Minimum, f.Maximum, f.ExclusiveMinimum, f.ExclusiveMaximum, add)
-		checkLengths(propPath(name, "maxLength"), f.MinLength, f.MaxLength, "minLength", add)
-		checkLengths(propPath(name, "maxItems"), f.MinItems, f.MaxItems, "minItems", add)
-		checkPattern(propPath(name, "pattern"), f.Pattern, add)
+		checkRange(path(), f.Minimum, f.Maximum, f.ExclusiveMinimum, f.ExclusiveMaximum, add)
+		checkLengths(path("maxLength"), f.MinLength, f.MaxLength, "minLength", add)
+		checkLengths(path("maxItems"), f.MinItems, f.MaxItems, "minItems", add)
+		checkPattern(path("pattern"), f.Pattern, add)
 		if f.Items != nil {
 			it := f.Items
-			checkRange(propPath(name, "items"), it.Minimum, it.Maximum, it.ExclusiveMinimum, it.ExclusiveMaximum, add)
-			checkLengths(propPath(name, "items", "maxLength"), it.MinLength, it.MaxLength, "minLength", add)
-			checkPattern(propPath(name, "items", "pattern"), it.Pattern, add)
+			checkRange(path("items"), it.Minimum, it.Maximum, it.ExclusiveMinimum, it.ExclusiveMaximum, add)
+			checkLengths(path("items", "maxLength"), it.MinLength, it.MaxLength, "minLength", add)
+			checkPattern(path("items", "pattern"), it.Pattern, add)
+		}
+
+		if objectItems {
+			if f.UniqueItems {
+				add(path("uniqueItems"), "object items cannot be unique")
+			}
+			items := map[string]*Field{}
+			for i := range f.Items.Fields {
+				items[f.Items.Fields[i].Name] = &f.Items.Fields[i]
+			}
+			for i, r := range f.Items.Required {
+				if items[r] == nil {
+					add(fmt.Sprintf("%s/%d", path("items", "required"), i), "required field %q is not declared in properties", r)
+				}
+			}
+			parent := name
+			checkFields(fieldScope{
+				fields: items,
+				top:    scope.top,
+				path: func(item string, rest ...string) string {
+					return propPath(parent, append([]string{"items", "properties", escapePointer(item)}, rest...)...)
+				},
+			}, add)
 		}
 	}
-	return issues
 }
 
 func checkCondition(path string, c *Condition, byName map[string]*Field, self string, add func(string, string, ...any)) *Field {
@@ -188,7 +234,9 @@ func scalarMatches(f *Field, v any) bool {
 	return false
 }
 
-func checkOptions(path string, f *Field, enumPath string, enum []string, byName map[string]*Field, add func(string, string, ...any)) {
+// checkOptions checks a select's options. top are the top-level fields, which named option parameters are
+// derived from.
+func checkOptions(path string, f *Field, enumPath string, enum []string, top map[string]*Field, add func(string, string, ...any)) {
 	o := f.UI.Options
 	seen := map[string]bool{}
 	for i, s := range o.Static {
@@ -211,9 +259,9 @@ func checkOptions(path string, f *Field, enumPath string, enum []string, byName 
 			ptr := o.Named.ParamsFromFields[k]
 			p := path + "/named/paramsFromFields/" + k
 			name := strings.TrimPrefix(ptr, "/")
-			if byName[name] == nil {
+			if top[name] == nil {
 				add(p, "field %s does not exist", ptr)
-			} else if name == f.Name {
+			} else if top[name] == f {
 				add(p, "a field cannot derive parameters from itself")
 			}
 			if _, dup := o.Named.Params[k]; dup {
@@ -309,11 +357,7 @@ func checkDefaults(d *Definition) []Issue {
 	defaults := map[string]any{}
 	for _, f := range d.fields {
 		if len(f.Default) > 0 {
-			var v any
-			dec := json.NewDecoder(strings.NewReader(string(f.Default)))
-			dec.UseNumber()
-			_ = dec.Decode(&v)
-			defaults[f.Name] = v
+			defaults[f.Name] = decodeNumber(f.Default)
 		}
 	}
 	var issues []Issue
@@ -324,5 +368,41 @@ func checkDefaults(d *Definition) []Issue {
 		}
 		issues = append(issues, Issue{Path: propPath(name, "default"), Message: "default " + is.Message})
 	}
+
+	// Item field defaults initialize new rows; check them as one row of the array.
+	for _, f := range d.fields {
+		if f.Items == nil || f.Items.Type != TypeObject {
+			continue
+		}
+		item := map[string]any{}
+		for _, field := range f.Items.Fields {
+			if len(field.Default) > 0 {
+				item[field.Name] = decodeNumber(field.Default)
+			}
+		}
+		if len(item) == 0 {
+			continue
+		}
+		prefix := f.Pointer + "/0/"
+		for _, is := range d.validateValue(map[string]any{f.Name: []any{item}}) {
+			rest, ok := strings.CutPrefix(is.Path, prefix)
+			if !ok {
+				continue
+			}
+			key := strings.SplitN(rest, "/", 2)[0]
+			if _, ok := item[key]; !ok {
+				continue
+			}
+			issues = append(issues, Issue{Path: propPath(f.Name, "items", "properties", escapePointer(key), "default"), Message: "default " + is.Message})
+		}
+	}
 	return issues
+}
+
+func decodeNumber(raw json.RawMessage) any {
+	var v any
+	dec := json.NewDecoder(strings.NewReader(string(raw)))
+	dec.UseNumber()
+	_ = dec.Decode(&v)
+	return v
 }

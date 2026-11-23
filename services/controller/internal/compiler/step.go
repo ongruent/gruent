@@ -66,6 +66,12 @@ func CompileStep(ctx context.Context, input StepInput, resolver Resolver) (*Step
 		}
 	}
 
+	if ok {
+		if err := c.compileLibraryStep(&step, upstream); err != nil {
+			return nil, err
+		}
+	}
+
 	output, diagnostics := types.ResolveStep(typeStep, upstream)
 	c.diagnostics = append(c.diagnostics, diagnostics...)
 	resolved := types.Resolved{StepID: node.ID, Input: upstream, Output: output, Variables: []types.Variable{}}
