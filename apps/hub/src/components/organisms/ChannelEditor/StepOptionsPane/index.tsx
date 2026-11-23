@@ -4,6 +4,7 @@ import nodeDefinitions from '@gruent/hub/lib/nodeDefinitions'
 import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
 import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
 import NodeConfig, { NodeDefinitionsProvider } from '@gruent/libs/frontend/components/NodeConfig'
+import type { ChannelConfig } from '@gruent/libs/legacy/engine/channels/index'
 import type { ChannelNode } from '@gruent/libs/legacy/engine/nodes/v1'
 import { cn } from 'cn'
 import { CircleAlertIcon, CircleXIcon } from 'lucide-react'
@@ -16,17 +17,21 @@ import useNamedOptions from './useNamedOptions'
 
 type Props = {
   spaceId: string
+  /** The editor's draft channel, so options can depend on the graph (e.g. the step's inferred input). */
+  channelConfig: ChannelConfig
 }
 
 /** Parent of <NodeConfig />: owns the step's configuration in the editor store and all named option data. */
-const PluginStepOptions: FC<{ step: ChannelNode; identity: PluginIdentity; spaceId: string }> = ({
-  step,
-  identity,
-  spaceId,
-}) => {
+const PluginStepOptions: FC<{
+  step: ChannelNode
+  identity: PluginIdentity
+  spaceId: string
+  channelConfig: ChannelConfig
+}> = ({ step, identity, spaceId, channelConfig }) => {
   const setStepConfig = useChannelEditorStore((state) => state.setStepConfig)
   const config = useMemo(() => nodeConfig(step), [step])
-  const { namedOptions, onOptionsSearch, onOptionsLoadMore } = useNamedOptions(spaceId, config)
+  const context = useMemo(() => ({ stepId: step.id, channel: channelConfig }), [step.id, channelConfig])
+  const { namedOptions, onOptionsSearch, onOptionsLoadMore } = useNamedOptions(spaceId, config, context)
   const handleChange = useCallback(
     (value: Record<string, unknown>) => setStepConfig(step.id, value),
     [step.id, setStepConfig],
@@ -45,7 +50,7 @@ const PluginStepOptions: FC<{ step: ChannelNode; identity: PluginIdentity; space
   )
 }
 
-const StepOptionsPane: FC<Props> = ({ spaceId }) => {
+const StepOptionsPane: FC<Props> = ({ spaceId, channelConfig }) => {
   const currentStep = useChannelEditorStore((state) => state.currentStep)
   const validationErrors = useChannelEditorStore((state) => state.validationErrors)
   if (!currentStep) return null
@@ -97,6 +102,7 @@ const StepOptionsPane: FC<Props> = ({ spaceId }) => {
               step={currentStep}
               identity={identity}
               spaceId={spaceId}
+              channelConfig={channelConfig}
             />
           </NodeDefinitionsProvider>
         )}

@@ -1,5 +1,5 @@
 {
-  "description": "At least one rule is required.",
-  "config": { "inputModelId": "mdl_in", "outputModelId": "mdl_out", "mappings": [] },
+  "description": "At least one output field must be mapped.",
+  "config": { "outputModelId": "mdl_out", "mappings": [] },
   "errors": ["/mappings"]
 }

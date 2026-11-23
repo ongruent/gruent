@@ -8,10 +8,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 class TransformStepTest {
-  private val config = """{"inputModelId":"m1","outputModelId":"m2","mappings":["x = input.x"]}"""
+  private val config = """{"outputModelId":"m2","mappings":[{"target":"x","source":"x"}]}"""
 
   private fun step(rules: String) =
-    TransformStepFactory().create(StepSpec("map", "Map", "transform", 1, config, compiledJson = """{"inputModelRef":"m1","outputModelRef":"m2","rules":[$rules]}""")) as TransformStep
+    TransformStepFactory().create(StepSpec("map", "Map", "transform", 1, config, compiledJson = """{"outputModelRef":"m2","rules":[$rules]}""")) as TransformStep
 
   private fun transform(rules: String, input: String) = step(rules).transform(Json.parseToJsonElement(input)).toString()
 

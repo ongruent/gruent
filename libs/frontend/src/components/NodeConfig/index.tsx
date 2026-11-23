@@ -10,7 +10,9 @@ import {
   type Issue,
   isFieldVisible,
   isVisible,
+  keyOptionsEvent,
   type NamedOptions,
+  type NamedOptionState,
   type OptionsEvent,
   withField,
 } from '@gruent/libs/engine/steps/ts'
@@ -25,10 +27,11 @@ import {
   FieldSet,
 } from '@gruent/libs/frontend/components/core/field'
 import { CircleXIcon, LoaderCircleIcon } from 'lucide-react'
-import { FC, type ReactElement, useId, useMemo } from 'react'
+import { FC, type ComponentProps, type ReactElement, useEffect, useId, useMemo, useRef } from 'react'
 import { useNodeDefinition } from './context'
 import {
   DateTimeControl,
+  KeyedObjectListControl,
   ListControl,
   NumberControl,
   ObjectListControl,
@@ -88,6 +91,31 @@ const NodeConfig: FC<NodeConfigProps> = ({ pluginType, pluginVersion, ...props }
     )
 
   return <NodeConfigForm definition={state.definition} {...props} />
+}
+
+/** A keyed objectList that asks the parent for its key options when it appears and when their parameters change. */
+const KeyedRows: FC<
+  Omit<ComponentProps<typeof KeyedObjectListControl>, 'options' | 'loading' | 'error'> & {
+    request?: OptionsEvent
+    state?: NamedOptionState
+    onOptionsSearch: (request: OptionsEvent) => void
+  }
+> = ({ request, state, onOptionsSearch, ...props }) => {
+  const key = JSON.stringify(request ?? null)
+  const latest = useRef(onOptionsSearch)
+  latest.current = onOptionsSearch
+  useEffect(() => {
+    if (request) latest.current(request)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key])
+  return (
+    <KeyedObjectListControl
+      {...props}
+      options={state?.items ?? []}
+      loading={state?.loading ?? !!request}
+      error={state?.error}
+    />
+  )
 }
 
 /** Renders an already resolved definition. Saved values are never rewritten on mount and defaults are never applied. */
@@ -199,9 +227,37 @@ export const NodeConfigForm: FC<FormProps & { definition: Definition }> = ({
             isVisible(f.schema['x-ui'].visibleWhen, (row ?? {}) as Record<string, unknown>),
           ),
         )
-        errors = errors.filter((e) => !shownRowFields.some((f) => fieldIssues(f, [e]).length > 0))
+        const keyField = field.schema['x-ui'].keyField
+        errors = errors.filter(
+          (e) =>
+            !shownRowFields.some((f) => f.name !== keyField && fieldIssues(f, [e]).length > 0),
+        )
         // Only the list's own issues mark it invalid, so one invalid row doesn't highlight every row.
         invalid = errors.length > 0
+        const rowFields = (index: number, row: Record<string, unknown>, setRow: (row: Record<string, unknown>) => void) =>
+          describeItem(field, index)
+            .filter((f) => f.name !== keyField && isVisible(f.schema['x-ui'].visibleWhen, row))
+            // Keyed rows are optional until something is set, so their fields carry no required marker;
+            // the label of the key (e.g. "message (string, required)") says whether it must be set.
+            .map((f) => (keyField ? { ...f, required: false } : f))
+            .map((f) => renderField(f, row[f.name], (v) => setRow(withField(row, f.name, v))))
+        if (keyField) {
+          input = (
+            <KeyedRows
+              id={id}
+              value={fieldValue}
+              invalid={invalid}
+              keyField={keyField}
+              request={keyOptionsEvent(field, value)}
+              state={namedOptions[field.path]}
+              onOptionsSearch={onOptionsSearch}
+              emptyMessage={`Nothing to map yet: complete the fields above.`}
+              onChange={set}
+              renderRow={rowFields}
+            />
+          )
+          break
+        }
         input = (
           <ObjectListControl
             id={id}
@@ -211,11 +267,7 @@ export const NodeConfigForm: FC<FormProps & { definition: Definition }> = ({
             invalid={invalid}
             onChange={set}
             newItem={() => createItem(field.schema) ?? {}}
-            renderRow={(index, row, setRow) =>
-              describeItem(field, index)
-                .filter((f) => isVisible(f.schema['x-ui'].visibleWhen, row))
-                .map((f) => renderField(f, row[f.name], (v) => setRow(withField(row, f.name, v))))
-            }
+            renderRow={rowFields}
           />
         )
         break
@@ -259,7 +311,9 @@ export const NodeConfigForm: FC<FormProps & { definition: Definition }> = ({
     )
 
     return (
-      <Field key={field.path} data-invalid={invalid} data-path={field.path}>
+      // A list's own issues are listed under it, but the list isn't marked invalid: the marking would carry
+      // over to every row.
+      <Field key={field.path} data-invalid={invalid && control !== 'objectList'} data-path={field.path}>
         {control === 'toggle' ? (
           <div className="flex items-center gap-2">
             {input}

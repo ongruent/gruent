@@ -111,6 +111,8 @@ type FieldUI struct {
 	Step        *float64   `json:"step,omitempty"`
 	VisibleWhen *Condition `json:"visibleWhen,omitempty"`
 	Options     *Options   `json:"options,omitempty"`
+	// KeyField is set on objectList fields that get one row per option of this item field.
+	KeyField string `json:"keyField,omitempty"`
 }
 
 // Items describes the items of an array field: primitives, or objects of scalar fields.

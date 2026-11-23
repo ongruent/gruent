@@ -647,7 +647,7 @@ const ChannelByIdEditClientPage: FC<Props> = ({
           className="w-[360px] xl:w-[400px] shrink-0 border-l bg-background flex flex-col overflow-y-auto"
           data-testid="channel-inspector"
         >
-          {currentStep && <StepOptionsPane spaceId={spaceId} />}
+          {currentStep && <StepOptionsPane spaceId={spaceId} channelConfig={channelConfig} />}
           {currentNote && <NoteOptionsPane />}
           {currentEdge && (
             <InspectorSection

@@ -113,7 +113,7 @@
       "category": "processing",
       "definition": {
         "path": "plugins/transform/v1/step.json",
-        "digest": "sha256:5ffe665ee2794fe25b5afa643f1ace708eb57d1876a989ef5a9f4f92d0f219cf"
+        "digest": "sha256:a8a3551ed71d8a68861bc4060ba340b78e67636b98eea92da3b2577f5dfc8f2b"
       },
       "kotlin": {
         "package": "com.gruent.steps.plugins.transform.v1",

@@ -1,7 +1,6 @@
 package compiler
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"regexp"
@@ -14,10 +13,15 @@ import (
 
 const (
 	pluginTransform = "transform"
-	// Configuration fields of transform@1. The models also declare the step's input and output types (see
-	// libraryModelFields).
-	transformInputModelField  = "inputModelId"
+	// transformOutputModelField is the configuration field of transform@1's output model. It also declares
+	// the step's output type (see libraryModelFields). The input type is inferred from the previous step.
 	transformOutputModelField = "outputModelId"
+)
+
+// Sources of transform@1 mappings other than an input field.
+const (
+	transformFromValue    = "$value"
+	transformFromTemplate = "$template"
 )
 
 // Source kinds of compiled transform rules.
@@ -30,7 +34,6 @@ const (
 // transformCompiled is the plan step's compiled data of transform@1: the rules that build the output from
 // the input, in configuration order. Paths are relative to the input and the output, in variable syntax.
 type transformCompiled struct {
-	InputModelRef  string          `json:"inputModelRef"`
 	OutputModelRef string          `json:"outputModelRef"`
 	Rules          []transformRule `json:"rules"`
 }
@@ -61,52 +64,63 @@ type transformPart struct {
 	Path *string `json:"path,omitempty"`
 }
 
+// transformMapping is one row of transform@1's mappings: an output field and where its value comes from.
+type transformMapping struct {
+	Target string  `json:"target"`
+	Source string  `json:"source"`
+	Value  *string `json:"value"`
+}
+
 var (
-	transformTarget      = regexp.MustCompile(`^[^.\s\[\]=]+(?:\[\])?(?:\.[^.\s\[\]=]+(?:\[\])?)*$`)
-	transformVariable    = regexp.MustCompile(`^input(?:\[\])?(?:\.[^.\s\[\]]+(?:\[\])?)*$`)
+	// transformInputPath is an input field relative to the input, possibly through arrays.
+	transformInputPath   = regexp.MustCompile(`^[^.\s\[\]{}]+(?:\[\])?(?:\.[^.\s\[\]{}]+(?:\[\])?)*$`)
 	transformPlaceholder = regexp.MustCompile(`\{\{\s*([^{}]*?)\s*\}\}`)
 )
 
-// compileTransform parses the mapping rules of a transform step, checks them against its input and output
-// models, and compiles them into the plan step.
-func (c *compilation) compileTransform(step *plan.Step, library *libraryStep) error {
-	inputID, okInput := library.modelOf(transformInputModelField)
-	outputID, okOutput := library.modelOf(transformOutputModelField)
-	if !okInput || !okOutput {
+// compileTransform checks the mappings of a transform step against its output model and its input type,
+// which is inferred from the previous step, and compiles them into the plan step. input is nil when the
+// input type is unknown (node-only compilation without upstream context); mappings that read the input are
+// then only checked once the step is connected.
+func (c *compilation) compileTransform(step *plan.Step, library *libraryStep, input *types.Type) error {
+	outputID, ok := library.modelOf(transformOutputModelField)
+	if !ok {
 		return nil
 	}
-	inputModel, okInput := c.models[inputID]
-	outputModel, okOutput := c.models[outputID]
-	if !okInput || !okOutput {
+	outputModel, ok := c.models[outputID]
+	if !ok {
 		return nil // reported by resolveModels
 	}
 
 	var config struct {
-		Mappings []string `json:"mappings"`
+		Mappings []transformMapping `json:"mappings"`
 	}
 	if err := json.Unmarshal(step.Config, &config); err != nil {
 		return fmt.Errorf("decode configuration of step %s: %w", step.ID, err)
 	}
 
-	compiled := transformCompiled{InputModelRef: inputID, OutputModelRef: outputID, Rules: []transformRule{}}
+	compiled := transformCompiled{OutputModelRef: outputID, Rules: []transformRule{}}
 	valid := true
-	for index, line := range config.Mappings {
-		path := fmt.Sprintf("/config/mappings/%d", index)
-		rule, problem := parseTransformRule(line)
+	for index, mapping := range config.Mappings {
+		base := fmt.Sprintf("/config/mappings/%d", index)
+		rule, field, problem := transformRuleOf(mapping)
 		if problem == "" {
-			problem = checkTransformRule(&rule, inputModel.t, outputModel.t)
+			field, problem = checkTransformRule(&rule, input, outputModel.t)
 		}
 		if problem == "" {
 			for _, other := range compiled.Rules {
-				if other.Target == rule.Target || strings.HasPrefix(rule.Target, other.Target+".") || strings.HasPrefix(rule.Target, other.Target+"[]") ||
-					strings.HasPrefix(other.Target, rule.Target+".") || strings.HasPrefix(other.Target, rule.Target+"[]") {
-					problem = fmt.Sprintf("%s is already set by the rule for %s", rule.Target, other.Target)
+				if overlaps(rule.Target, other.Target) {
+					field, problem = "target", fmt.Sprintf("%s is already set by the mapping of %s", rule.Target, other.Target)
 					break
 				}
 			}
 		}
+		if problem == untypedInput {
+			c.errorf("untyped_transform_input", step.ID, base+"/source", "the input of step %s %s, so the mapping of %s can't read input fields; give the previous step's output a model, or use a fixed value", step.ID, describeUntyped(input), mapping.Target)
+			valid = false
+			continue
+		}
 		if problem != "" {
-			c.errorf("invalid_mapping", step.ID, path, "rule %d of step %s (%s): %s", index+1, step.ID, strings.TrimSpace(line), problem)
+			c.errorf("invalid_mapping", step.ID, base+"/"+field, "mapping %d of step %s (%s): %s", index+1, step.ID, mapping.Target, problem)
 			valid = false
 			continue
 		}
@@ -116,7 +130,7 @@ func (c *compilation) compileTransform(step *plan.Step, library *libraryStep) er
 		return nil
 	}
 	for _, field := range unmappedRequiredFields(outputModel.t, "", compiled.Rules) {
-		c.errorf("unmapped_required_field", step.ID, "/config/mappings", "the output model of step %s requires %s, but no rule sets it", step.ID, field)
+		c.errorf("unmapped_required_field", step.ID, "/config/mappings", "the output model of step %s requires %s, but nothing is mapped to it", step.ID, field)
 	}
 
 	encoded, err := plan.Canonicalize(mustMarshal(compiled))
@@ -127,57 +141,52 @@ func (c *compilation) compileTransform(step *plan.Step, library *libraryStep) er
 	return nil
 }
 
-// parseTransformRule parses "<output field> = <source>". It returns a problem description if the rule is
-// invalid.
-func parseTransformRule(line string) (transformRule, string) {
-	target, expression, ok := strings.Cut(line, "=")
-	target, expression = strings.TrimSpace(target), strings.TrimSpace(expression)
-	if !ok || target == "" || expression == "" {
-		return transformRule{}, "a rule has the form <output field> = <value>"
-	}
-	if !transformTarget.MatchString(target) {
-		return transformRule{}, fmt.Sprintf("%s is not an output field such as location.lat or values[].c", target)
-	}
-	rule := transformRule{Target: target}
+// untypedInput is the problem of a mapping that reads fields of an input without fields.
+const untypedInput = "untyped input"
 
-	switch {
-	case strings.HasPrefix(expression, "input"):
-		if !transformVariable.MatchString(expression) {
-			return transformRule{}, fmt.Sprintf("%s is not an input value such as input.device.id", expression)
+func describeUntyped(input *types.Type) string {
+	if input != nil && input.Kind == types.KindSignal {
+		return "is a signal without data"
+	}
+	return "has no model"
+}
+
+func overlaps(a, b string) bool {
+	return a == b || strings.HasPrefix(a, b+".") || strings.HasPrefix(a, b+"[]") || strings.HasPrefix(b, a+".") || strings.HasPrefix(b, a+"[]")
+}
+
+// transformRuleOf turns a mapping into a rule. Fixed values are typed later, against the output field. It
+// returns the configuration field with a problem and its description if the mapping is invalid.
+func transformRuleOf(mapping transformMapping) (transformRule, string, string) {
+	rule := transformRule{Target: mapping.Target}
+	switch mapping.Source {
+	case transformFromValue, transformFromTemplate:
+		if mapping.Value == nil {
+			return rule, "value", "a value is required"
 		}
-		rule.Source = transformSource{Kind: transformSourceVariable, Path: variablePath(expression)}
-	case strings.HasPrefix(expression, `"`):
-		var text string
-		if err := json.Unmarshal([]byte(expression), &text); err != nil {
-			return transformRule{}, fmt.Sprintf("%s is not a quoted text", expression)
+		if mapping.Source == transformFromValue {
+			rule.Source = transformSource{Kind: transformSourceValue, Value: mustMarshal(*mapping.Value)}
+			return rule, "", ""
 		}
-		parts, problem := parseTemplate(text)
+		parts, problem := parseTemplate(*mapping.Value)
 		if problem != "" {
-			return transformRule{}, problem
+			return rule, "value", problem
 		}
-		if len(parts) == 1 && parts[0].Path == nil || len(parts) == 0 {
-			rule.Source = transformSource{Kind: transformSourceValue, Value: mustMarshal(text)}
+		if len(parts) == 0 || len(parts) == 1 && parts[0].Path == nil {
+			rule.Source = transformSource{Kind: transformSourceValue, Value: mustMarshal(*mapping.Value)}
 		} else {
 			rule.Source = transformSource{Kind: transformSourceTemplate, Parts: parts}
 		}
 	default:
-		var value any
-		decoder := json.NewDecoder(bytes.NewReader([]byte(expression)))
-		decoder.UseNumber()
-		if err := decoder.Decode(&value); err != nil || decoder.More() {
-			return transformRule{}, fmt.Sprintf("%s is not an input value, a number, true, false, null or a quoted text", expression)
+		if !transformInputPath.MatchString(mapping.Source) {
+			return rule, "source", fmt.Sprintf("%s is not an input field such as device.id or readings[].celsius", mapping.Source)
 		}
-		switch value.(type) {
-		case json.Number, bool, nil:
-		default:
-			return transformRule{}, fmt.Sprintf("%s is not an input value, a number, true, false, null or a quoted text", expression)
-		}
-		rule.Source = transformSource{Kind: transformSourceValue, Value: json.RawMessage(expression)}
+		rule.Source = transformSource{Kind: transformSourceVariable, Path: mapping.Source}
 	}
-	return rule, ""
+	return rule, "", ""
 }
 
-// parseTemplate splits a text into literal parts and {{input.*}} placeholders.
+// parseTemplate splits a text into literal parts and {{device.id}} placeholders of input fields.
 func parseTemplate(text string) ([]transformPart, string) {
 	var parts []transformPart
 	last := 0
@@ -185,11 +194,10 @@ func parseTemplate(text string) ([]transformPart, string) {
 		if match[0] > last {
 			parts = append(parts, transformPart{Text: text[last:match[0]]})
 		}
-		variable := text[match[2]:match[3]]
-		if !transformVariable.MatchString(variable) || strings.Contains(variable, "[]") {
-			return nil, fmt.Sprintf("{{%s}} is not a single input value such as {{input.device.id}}", variable)
+		path := text[match[2]:match[3]]
+		if !transformInputPath.MatchString(path) || strings.Contains(path, "[]") {
+			return nil, fmt.Sprintf("{{%s}} is not a single input field such as {{device.id}}", path)
 		}
-		path := variablePath(variable)
 		parts = append(parts, transformPart{Path: &path})
 		last = match[1]
 	}
@@ -199,65 +207,105 @@ func parseTemplate(text string) ([]transformPart, string) {
 	return parts, ""
 }
 
-// variablePath returns the path of a variable relative to the input: "input.a.b" -> "a.b", "input" -> "".
-func variablePath(variable string) string {
-	return strings.TrimPrefix(strings.TrimPrefix(variable, "input"), ".")
-}
-
-// checkTransformRule checks a rule against the input and output models and sets whether its target is
-// required. It returns a problem description if the rule cannot produce a valid output.
-func checkTransformRule(rule *transformRule, input, output types.Type) string {
+// checkTransformRule checks a rule against the input type (nil if unknown) and the output model, types its
+// fixed value and sets whether its target is required. It returns the configuration field with a problem
+// and its description if the rule cannot produce a valid output.
+func checkTransformRule(rule *transformRule, input *types.Type, output types.Type) (string, string) {
 	target, targetArrays, required, ok := typeAtPath(output, rule.Target)
 	if !ok {
-		return fmt.Sprintf("%s is not a field of the output model", rule.Target)
+		return "target", fmt.Sprintf("%s is not a field of the output model", rule.Target)
 	}
 	if targetArrays > 1 {
-		return fmt.Sprintf("%s goes through more than one array", rule.Target)
+		return "target", fmt.Sprintf("%s goes through more than one array", rule.Target)
 	}
 	rule.Required = required
 
+	// Input fields can only be checked against an input with fields.
+	readsInput := rule.Source.Kind == transformSourceVariable || rule.Source.Kind == transformSourceTemplate
+	if readsInput && input != nil && (input.Kind == types.KindBytes || input.Kind == types.KindSignal) {
+		return "source", untypedInput
+	}
+	known := input != nil
+
 	switch rule.Source.Kind {
 	case transformSourceValue:
-		return checkFixedValue(rule.Source.Value, target, required)
+		value, problem := typedFixedValue(rule.Source.Value, target, targetArrays)
+		if problem != "" {
+			return "value", problem
+		}
+		rule.Source.Value = value
 	case transformSourceTemplate:
+		if targetArrays > 0 || target.Kind != types.KindString {
+			return "value", fmt.Sprintf("%s is not a text field, so it can't be set to text", rule.Target)
+		}
 		for _, part := range rule.Source.Parts {
-			if part.Path == nil {
+			if part.Path == nil || !known {
 				continue
 			}
-			value, arrays, _, ok := typeAtPath(input, *part.Path)
+			value, arrays, _, ok := typeAtPath(*input, *part.Path)
 			if !ok {
-				return fmt.Sprintf("input.%s is not part of the input model", *part.Path)
+				return "value", fmt.Sprintf("%s is not part of the input", *part.Path)
 			}
 			if arrays > 0 || value.Kind == types.KindObject || value.Kind == types.KindArray {
-				return fmt.Sprintf("input.%s is not a single value that can be written as text", *part.Path)
+				return "value", fmt.Sprintf("%s is not a single value that can be written as text", *part.Path)
 			}
 		}
-		if targetArrays > 0 || target.Kind != types.KindString {
-			return fmt.Sprintf("%s is not a text field, so it can't be set to text", rule.Target)
-		}
 	case transformSourceVariable:
-		source, sourceArrays, _, ok := typeAtPath(input, rule.Source.Path)
+		if !known {
+			return "", ""
+		}
+		source, sourceArrays, _, ok := typeAtPath(*input, rule.Source.Path)
 		if !ok {
-			return fmt.Sprintf("%s is not part of the input model", "input"+prefixed(rule.Source.Path))
+			return "source", fmt.Sprintf("%s is not part of the input", rule.Source.Path)
 		}
 		switch {
 		case sourceArrays > 1:
-			return fmt.Sprintf("input%s goes through more than one array", prefixed(rule.Source.Path))
+			return "source", fmt.Sprintf("%s goes through more than one array", rule.Source.Path)
 		case sourceArrays == 1 && targetArrays == 1:
-			// Items are mapped by index: values[].c = input.readings[].celsius
+			// Items are mapped by index: values[].c = readings[].celsius
 		case sourceArrays == 1 && target.Kind == types.KindArray && target.Items != nil:
-			// The values of every item become the array: values = input.readings[].celsius
+			// The values of every item become the array: values = readings[].celsius
 			target = *target.Items
 		case sourceArrays == 1:
-			return fmt.Sprintf("input%s has a value per array item, but %s is not an array", prefixed(rule.Source.Path), rule.Target)
+			return "source", fmt.Sprintf("%s has a value per array item, but %s is not an array", rule.Source.Path, rule.Target)
 		case targetArrays == 1:
-			return fmt.Sprintf("%s sets every item of an array, but input%s is a single value", rule.Target, prefixed(rule.Source.Path))
+			return "source", fmt.Sprintf("%s sets every item of an array, but %s is a single value", rule.Target, rule.Source.Path)
 		}
 		if !source.AssignableTo(target) {
-			return fmt.Sprintf("input%s is a %s that doesn't match %s (%s)", prefixed(rule.Source.Path), source.Kind, rule.Target, target.Kind)
+			return "source", fmt.Sprintf("%s is a %s that doesn't match %s (%s)", rule.Source.Path, source.Kind, rule.Target, target.Kind)
 		}
 	}
-	return ""
+	return "", ""
+}
+
+// typedFixedValue converts a fixed value, entered as text, to the JSON value of the output field's type.
+func typedFixedValue(raw json.RawMessage, target types.Type, targetArrays int) (json.RawMessage, string) {
+	var text string
+	if err := json.Unmarshal(raw, &text); err != nil {
+		return nil, "invalid fixed value"
+	}
+	if targetArrays > 0 {
+		return nil, "a fixed value can't set every item of an array"
+	}
+	trimmed := strings.TrimSpace(text)
+	switch target.Kind {
+	case types.KindString:
+		return raw, ""
+	case types.KindNumber:
+		if !fixedNumber.MatchString(trimmed) {
+			return nil, fmt.Sprintf("%q is not a number", text)
+		}
+		return json.RawMessage(trimmed), ""
+	case types.KindBoolean:
+		switch strings.ToLower(trimmed) {
+		case "true":
+			return json.RawMessage("true"), ""
+		case "false":
+			return json.RawMessage("false"), ""
+		}
+		return nil, fmt.Sprintf("%q is not true or false", text)
+	}
+	return nil, fmt.Sprintf("a fixed value can only set text, number or true/false fields, not %s fields", target.Kind)
 }
 
 func prefixed(path string) string {
@@ -265,31 +313,6 @@ func prefixed(path string) string {
 		return ""
 	}
 	return "." + path
-}
-
-func checkFixedValue(value json.RawMessage, target types.Type, required bool) string {
-	var decoded any
-	if err := json.Unmarshal(value, &decoded); err != nil {
-		return "invalid fixed value"
-	}
-	var kind types.Kind
-	switch decoded.(type) {
-	case nil:
-		if required {
-			return "the field is required, so it can't be null"
-		}
-		return ""
-	case string:
-		kind = types.KindString
-	case float64:
-		kind = types.KindNumber
-	case bool:
-		kind = types.KindBoolean
-	}
-	if kind != target.Kind {
-		return fmt.Sprintf("%s is a %s field, not a %s", string(value), target.Kind, kind)
-	}
-	return ""
 }
 
 // typeAtPath returns the type at a path in variable syntax ("" is the type itself), the number of arrays

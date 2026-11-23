@@ -34,7 +34,8 @@ class TransformStepFactory : StepFactory {
     } catch (e: ConfigValidationException) {
       throw StepConfigurationException("invalid configuration for step ${spec.stepId}: ${e.message}", e)
     }
-    // The controller parses and type-checks the rules against the models and compiles them into the plan.
+    // The controller type-checks the mappings against the output model and the inferred input type, and
+    // compiles them into rules in the plan.
     val compiled = spec.compiledJson
       ?: throw StepConfigurationException("step ${spec.stepId} has no compiled mapping rules in the plan")
     val rules = try {

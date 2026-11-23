@@ -1,8 +1,12 @@
 {
-  "description": "Rules with an input value, a fixed value, a template and array items.",
+  "description": "An input field, a fixed value, text with input values and array items.",
   "config": {
-    "inputModelId": "mdl_in",
     "outputModelId": "mdl_out",
-    "mappings": ["deviceId = input.device.id", "unit = \"celsius\"", "label = \"Device {{input.device.name}}\"", "values[].c = input.readings[].celsius"]
+    "mappings": [
+      { "target": "deviceId", "source": "device.id" },
+      { "target": "unit", "source": "$value", "value": "celsius" },
+      { "target": "label", "source": "$template", "value": "Device {{device.name}}" },
+      { "target": "values[].c", "source": "readings[].celsius" }
+    ]
   }
 }

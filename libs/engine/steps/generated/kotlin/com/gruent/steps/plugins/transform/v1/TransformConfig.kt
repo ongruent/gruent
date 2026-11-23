@@ -19,56 +19,96 @@ import kotlinx.serialization.json.JsonObject
  */
 data class TransformConfig(
   /**
-   * Input model
-   *
-   * Model of the input. The input of the step must match it.
-   */
-  val inputModelId: String,
-  /**
    * Output model
    *
-   * Model of the output. Every required field must be mapped.
+   * Model of the output. Every required field must be mapped. The input is the output of the previous step.
    */
   val outputModelId: String,
   /**
-   * Rules
+   * Mapping
+   *
+   * For each output field, pick an input field, a fixed value, or text with input values such as "Device {{device.id}}". A field inside an array ([]) takes the matching item of an input array.
    */
-  val mappings: List<String>,
+  val mappings: List<MappingsItem>,
 ) {
+  /** An item of Mapping. */
+  data class MappingsItem(
+    /**
+     * Output field
+     */
+    val target: String,
+    /**
+     * Value from
+     */
+    val source: String,
+    /**
+     * Value
+     *
+     * A number, true/false or text, depending on the output field. Text can include input values: {{device.id}}.
+     */
+    val value: String? = null,
+  ) {
+    fun toJsonObject(): JsonObject = Companion.toJsonObject(this)
+
+    companion object {
+      private val properties: Set<String> = setOf("target", "source", "value")
+      private val required: List<String> = listOf("target", "source")
+      private val targetPattern = Regex("^[^.\\s\\[\\]=]+(?:\\[\\])?(?:\\.[^.\\s\\[\\]=]+(?:\\[\\])?)*\$")
+
+      fun check(v: ConfigValidator, element: JsonElement, path: String) {
+        val obj = v.objectAt(element, path) ?: return
+        v.closed(obj, path, properties, required)
+        obj["target"]?.let { v.string(it, ConfigValidator.child(path, "target"), minLength = 1, maxLength = 200, pattern = targetPattern) }
+        obj["source"]?.let { v.string(it, ConfigValidator.child(path, "source"), minLength = 1, maxLength = 200) }
+        obj["value"]?.let { v.string(it, ConfigValidator.child(path, "value"), maxLength = 1000) }
+      }
+
+      fun fromValidated(obj: JsonObject): MappingsItem =
+        MappingsItem(
+          target = obj.getValue("target").let { ConfigCodec.string(it) },
+          source = obj.getValue("source").let { ConfigCodec.string(it) },
+          value = obj["value"]?.let { ConfigCodec.string(it) },
+        )
+
+      fun toJsonObject(value: MappingsItem): JsonObject =
+        ConfigCodec.objectOf(
+          "target" to value.target.let { ConfigCodec.primitive(it) },
+          "source" to value.source.let { ConfigCodec.primitive(it) },
+          "value" to value.value?.let { ConfigCodec.primitive(it) },
+        )
+    }
+  }
+
   fun toJson(): String = Definition.encode(this)
 
   companion object Definition : StepConfigDefinition<TransformConfig> {
     override val pluginType: String = "transform"
     override val pluginVersion: Int = 1
     override val contractVersion: Int = 1
-    override val definitionDigest: String = "sha256:5ffe665ee2794fe25b5afa643f1ace708eb57d1876a989ef5a9f4f92d0f219cf"
+    override val definitionDigest: String = "sha256:a8a3551ed71d8a68861bc4060ba340b78e67636b98eea92da3b2577f5dfc8f2b"
 
-    private val properties: Set<String> = setOf("inputModelId", "outputModelId", "mappings")
-    private val required: List<String> = listOf("inputModelId", "outputModelId", "mappings")
-    private val mappingsPattern = Regex("^\\s*[^=\\s]+\\s*=\\s*\\S")
+    private val properties: Set<String> = setOf("outputModelId", "mappings")
+    private val required: List<String> = listOf("outputModelId", "mappings")
 
     override fun validate(element: JsonElement): List<ConfigViolation> {
       val v = ConfigValidator()
       val obj = v.objectAt(element, "") ?: return v.violations
       v.closed(obj, "", properties, required)
-      obj["inputModelId"]?.let { v.string(it, "/inputModelId", minLength = 1) }
       obj["outputModelId"]?.let { v.string(it, "/outputModelId", minLength = 1) }
-      obj["mappings"]?.let { v.array(it, "/mappings", minItems = 1, maxItems = 200) { item, itemPath -> v.string(item, itemPath, minLength = 3, maxLength = 500, pattern = mappingsPattern) } }
+      obj["mappings"]?.let { v.array(it, "/mappings", minItems = 1, maxItems = 200) { item, itemPath -> MappingsItem.check(v, item, itemPath) } }
       return v.violations
     }
 
     override fun fromValidated(obj: JsonObject): TransformConfig =
       TransformConfig(
-        inputModelId = obj.getValue("inputModelId").let { ConfigCodec.string(it) },
         outputModelId = obj.getValue("outputModelId").let { ConfigCodec.string(it) },
-        mappings = obj.getValue("mappings").let { ConfigCodec.list(it) { item -> ConfigCodec.string(item) } },
+        mappings = obj.getValue("mappings").let { ConfigCodec.list(it) { item -> MappingsItem.fromValidated(item as JsonObject) } },
       )
 
     override fun toJsonObject(value: TransformConfig): JsonObject =
       ConfigCodec.objectOf(
-        "inputModelId" to value.inputModelId.let { ConfigCodec.primitive(it) },
         "outputModelId" to value.outputModelId.let { ConfigCodec.primitive(it) },
-        "mappings" to value.mappings.let { list -> ConfigCodec.array(list.map { ConfigCodec.primitive(it) }) },
+        "mappings" to value.mappings.let { list -> ConfigCodec.array(list.map { it.toJsonObject() }) },
       )
   }
 }

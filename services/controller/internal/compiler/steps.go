@@ -33,7 +33,7 @@ func (c *compilation) compileLibraryStep(step *plan.Step, input *types.Type) err
 	case library.is(pluginCompare, 1):
 		return c.compileCompare(step, library, input)
 	case library.is(pluginTransform, 1):
-		return c.compileTransform(step, library)
+		return c.compileTransform(step, library, input)
 	}
 	return nil
 }

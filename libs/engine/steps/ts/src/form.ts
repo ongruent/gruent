@@ -152,3 +152,39 @@ export function valueAtPointer(value: unknown, pointer: string): unknown {
   }
   return current
 }
+
+/**
+ * For an objectList with x-ui.keyField: the options request of the key field. It is keyed by the list's
+ * pointer (`/mappings`), since the key's options decide which rows the list has.
+ */
+export function keyOptionsEvent(field: FieldModel, config: Record<string, unknown>, query = ''): OptionsEvent | undefined {
+  const key = field.schema['x-ui'].keyField
+  const named = key ? field.schema.items?.properties?.[key]?.['x-ui'].options?.named : undefined
+  if (!named) return undefined
+  return { path: field.path, name: named.name, query, params: namedParams(named, config) }
+}
+
+/**
+ * Updates the row of a keyed objectList whose key field is `key`, appending it if it is new. A row left
+ * with only its key is removed, so unmapped keys are never saved. `undefined` removes the list.
+ */
+export function withKeyedRow(
+  rows: unknown,
+  keyField: string,
+  key: string,
+  row: Record<string, unknown>,
+): Record<string, unknown>[] | undefined {
+  const list = (Array.isArray(rows) ? rows : []) as Record<string, unknown>[]
+  const index = list.findIndex((r) => r?.[keyField] === key)
+  const empty = Object.entries(row).every(([k, v]) => k === keyField || v === undefined)
+  const next = { ...row, [keyField]: key }
+  const out =
+    index < 0
+      ? empty
+        ? list
+        : [...list, next]
+      : empty
+        ? list.filter((_, i) => i !== index)
+        : list.map((r, i) => (i === index ? next : r))
+  return out.length > 0 ? out : undefined
+}

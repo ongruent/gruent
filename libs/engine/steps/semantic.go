@@ -164,6 +164,24 @@ func checkFields(scope fieldScope, add func(string, string, ...any)) {
 			checkPattern(path("items", "pattern"), it.Pattern, add)
 		}
 
+		if f.UI.KeyField != "" {
+			key := (*Field)(nil)
+			if objectItems {
+				for i := range f.Items.Fields {
+					if f.Items.Fields[i].Name == f.UI.KeyField {
+						key = &f.Items.Fields[i]
+					}
+				}
+			}
+			switch {
+			case !objectItems:
+				add(ui+"/keyField", "keyField is only supported on objectList fields")
+			case key == nil:
+				add(ui+"/keyField", "item field %q does not exist", f.UI.KeyField)
+			case !key.Required || key.UI.Control != "select" || key.UI.Options == nil || key.UI.Options.Named == nil || len(key.UI.Options.Static) > 0 || key.UI.VisibleWhen != nil:
+				add(ui+"/keyField", "the key field must be a required, always visible select with named options only")
+			}
+		}
 		if objectItems {
 			if f.UniqueItems {
 				add(path("uniqueItems"), "object items cannot be unique")

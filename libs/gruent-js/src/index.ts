@@ -39,6 +39,7 @@ import {
   channelStatus,
   deleteChannel,
   validateChannel,
+  compileChannel,
   listChannels,
   publishChannel,
   unpublishChannel,
@@ -217,6 +218,8 @@ export class Client {
         channelStatus(this.key, this._config, spaceId, channelId),
       validate: (spaceId: string, channelConfig: ChannelConfig) =>
         validateChannel(this.key, this._config, spaceId, channelConfig),
+      compile: (spaceId: string, channelId: string, channelConfig: ChannelConfig) =>
+        compileChannel(this.key, this._config, spaceId, channelId, channelConfig),
       delete: (spaceId: string, channelId: string) =>
         deleteChannel(this.key, this._config, spaceId, channelId),
       executions: {
