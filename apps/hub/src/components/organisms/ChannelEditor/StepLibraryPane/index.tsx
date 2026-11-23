@@ -1,11 +1,12 @@
 'use client'
 
 import nodeDefinitions from '@gruent/hub/lib/nodeDefinitions'
+import useChannelEditorStore from '@gruent/hub/stores/channelEditorStore'
 import type { Category, Definition, ManifestEntry } from '@gruent/libs/engine/steps/ts'
 import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
-import { useQuery } from '@tanstack/react-query'
 import { Button } from '@gruent/libs/frontend/components/core/button'
 import { Input } from '@gruent/libs/frontend/components/core/input'
+import { useQuery } from '@tanstack/react-query'
 import { cn } from 'cn'
 import {
   ChevronRightIcon,
@@ -21,7 +22,11 @@ import {
 import { DragEvent, FC, useMemo, useState } from 'react'
 import { StepTypeIcon } from '../flow/stepIcons'
 import { stepCategoryStyle } from '../flow/stepStyles'
+import { pluginIdentity } from '../pluginNodes'
 import StepLibrarySectionStep from './StepLibrarySectionStep'
+
+/** Steps that answer the request of an HTTP source, listed only for channels that have one. */
+const HTTP_SOURCE_ONLY = ['http-response']
 
 const CATEGORIES: Category[] = ['source', 'processing', 'conditional', 'action', 'custom']
 
@@ -78,9 +83,20 @@ const StepLibraryPane: FC<Props> = ({ onClose }) => {
     retry: false,
   })
 
+  const steps = useChannelEditorStore((state) => state.steps)
+  const hasHttpSource = useMemo(
+    () =>
+      Array.from(steps.values()).some((step) => pluginIdentity(step)?.pluginType === 'http-source'),
+    [steps],
+  )
   const available = useMemo(
-    () => (library ?? []).filter((e) => matches(e, searchQuery)),
-    [library, searchQuery],
+    () =>
+      (library ?? []).filter(
+        (e) =>
+          matches(e, searchQuery) &&
+          (hasHttpSource || !HTTP_SOURCE_ONLY.includes(e.entry.pluginType)),
+      ),
+    [library, searchQuery, hasHttpSource],
   )
   const isSearching = searchQuery.trim().length > 0
 

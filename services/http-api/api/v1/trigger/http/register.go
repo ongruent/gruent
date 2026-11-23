@@ -6,6 +6,7 @@ import (
 	"github.com/ongruent/gruent/services/http-api/api/middleware"
 	"github.com/ongruent/gruent/services/http-api/api/v1/trigger/http/channelId"
 	"github.com/ongruent/gruent/services/http-api/config"
+	"github.com/ongruent/gruent/services/http-api/services/ingress"
 )
 
 func Register(app fiber.Router) {
@@ -17,11 +18,13 @@ func Register(app fiber.Router) {
 		trigger.Use(middleware.IpRateLimiter)
 	}
 
-	// HTTP trigger
-	trigger.Get("/http/:channelId", channelId.Handler)
-	trigger.Post("/http/:channelId", channelId.Handler)
-	trigger.Put("/http/:channelId", channelId.Handler)
-	trigger.Delete("/http/:channelId", channelId.Handler)
-	trigger.Patch("/http/:channelId", channelId.Handler)
-	trigger.Head("/http/:channelId", channelId.Handler)
+	// HTTP trigger. Channels published to the runtime platform go through the ingress; others use the
+	// legacy trigger.
+	handler := ingress.Trigger(channelId.Handler)
+	trigger.Get("/http/:channelId", handler)
+	trigger.Post("/http/:channelId", handler)
+	trigger.Put("/http/:channelId", handler)
+	trigger.Delete("/http/:channelId", handler)
+	trigger.Patch("/http/:channelId", handler)
+	trigger.Head("/http/:channelId", handler)
 }

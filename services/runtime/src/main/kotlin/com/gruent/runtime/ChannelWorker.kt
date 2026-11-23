@@ -92,8 +92,11 @@ class ChannelWorker(
       }, clock)
       timers += trigger.start(triggerScope)
     }
-    if (plan.bindings.http.isNotEmpty() || plan.bindings.messageQueue.isNotEmpty()) {
-      log.warn("Channel {} has HTTP or message queue bindings; they run once a source service publishes their invocations", channelId)
+    for (binding in plan.bindings.http) {
+      log.info("HTTP trigger {} {} reaches channel {} through the API's ingress", binding.method, binding.path, channelId)
+    }
+    if (plan.bindings.messageQueue.isNotEmpty()) {
+      log.warn("Channel {} has message queue bindings; they run once a source service publishes their invocations", channelId)
     }
     log.info(
       "Serving channel {} at plan version {} (subjects {}, {} timer(s), {} concurrent / {} queued executions)",
@@ -162,11 +165,12 @@ class ChannelWorker(
   }
 
   /**
-   * The reply to a sync HTTP invocation. Response steps don't exist yet, so a completed execution answers
-   * 200 with no body.
+   * The reply to a sync HTTP invocation: the response of an HTTP response step, or 200 with no body for a
+   * completed execution without one; 504 on timeout and 500 on failure.
    */
   private fun syncReply(result: ExecutionResult): Reply = when (result.status) {
-    ExecutionStatus.COMPLETED -> Reply(status = 200)
+    ExecutionStatus.COMPLETED -> result.response?.let { Reply(status = it.status, headers = it.headers.ifEmpty { null }, body = it.body) }
+      ?: Reply(status = 200)
     ExecutionStatus.TIMEOUT -> Reply(status = 504)
     else -> Reply(status = 500)
   }

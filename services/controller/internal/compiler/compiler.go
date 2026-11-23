@@ -187,6 +187,7 @@ func (c *compilation) run(ctx context.Context) (*Result, error) {
 	result := &Result{Types: sortedResolved(resolved)}
 	c.applyRedactions(graph, result.Types)
 	c.checkConditionalPorts(graph)
+	c.checkHTTPResponses(graph, sources)
 	if err := c.compileLibrarySteps(graph, result.Types); err != nil {
 		return nil, err
 	}

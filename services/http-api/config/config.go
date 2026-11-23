@@ -71,6 +71,18 @@ type VaultConfig struct {
 	RedisUsername string `mapstructure:"REDIS_USERNAME"`
 	RedisPassword string `mapstructure:"REDIS_PASSWORD"`
 
+	// HTTP trigger ingress (services/ingress): NATS for invoking runtime workers, read access to the
+	// artifact storage that holds the routing table, and the controller's artifact signing public keys
+	// (`<key ID>=<base64 public key>`, comma-separated). The ingress is disabled when these are unset.
+	NatsUrl                        string `mapstructure:"NATS_URL"`
+	ArtifactStorageEndpoint        string `mapstructure:"ARTIFACT_STORAGE_ENDPOINT"`
+	ArtifactStorageAccessKeyID     string `mapstructure:"ARTIFACT_STORAGE_ACCESS_KEY_ID"`
+	ArtifactStorageSecretAccessKey string `mapstructure:"ARTIFACT_STORAGE_SECRET_ACCESS_KEY"`
+	ArtifactStorageBucket          string `mapstructure:"ARTIFACT_STORAGE_BUCKET"`
+	ArtifactStorageRegion          string `mapstructure:"ARTIFACT_STORAGE_REGION"`
+	ArtifactStorageUseSSL          bool   `mapstructure:"ARTIFACT_STORAGE_USE_SSL"`
+	ArtifactSigningKeyring         string `mapstructure:"ARTIFACT_SIGNING_KEYRING"`
+
 	// SMTP
 	SmtpHost     string `mapstructure:"SMTP_HOST"`
 	SmtpPort     int    `mapstructure:"SMTP_PORT"`
@@ -214,6 +226,15 @@ func loadVaultSecrets() (*VaultConfig, error) {
 		SmtpPort:                 SecretsClient.GetIntFromMap(secrets, "SMTP_PORT"),
 		SmtpUser:                 SecretsClient.GetStringFromMap(secrets, "SMTP_USER"),
 		SmtpPassword:             SecretsClient.GetStringFromMap(secrets, "SMTP_PASSWORD"),
+
+		NatsUrl:                        SecretsClient.GetStringFromMap(secrets, "NATS_URL"),
+		ArtifactStorageEndpoint:        SecretsClient.GetStringFromMap(secrets, "ARTIFACT_STORAGE_ENDPOINT"),
+		ArtifactStorageAccessKeyID:     SecretsClient.GetStringFromMap(secrets, "ARTIFACT_STORAGE_ACCESS_KEY_ID"),
+		ArtifactStorageSecretAccessKey: SecretsClient.GetStringFromMap(secrets, "ARTIFACT_STORAGE_SECRET_ACCESS_KEY"),
+		ArtifactStorageBucket:          SecretsClient.GetStringFromMap(secrets, "ARTIFACT_STORAGE_BUCKET"),
+		ArtifactStorageRegion:          SecretsClient.GetStringFromMap(secrets, "ARTIFACT_STORAGE_REGION"),
+		ArtifactStorageUseSSL:          SecretsClient.GetBoolFromMap(secrets, "ARTIFACT_STORAGE_USE_SSL"),
+		ArtifactSigningKeyring:         SecretsClient.GetStringFromMap(secrets, "ARTIFACT_SIGNING_KEYRING"),
 	}
 
 	return vaultConfig, nil
