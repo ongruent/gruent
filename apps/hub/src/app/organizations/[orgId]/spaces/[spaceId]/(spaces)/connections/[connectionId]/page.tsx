@@ -74,14 +74,12 @@ const ConnectionDetailsPage = async ({ params }) => {
     )
   }
 
-  const attributes = JSON.parse(connection.attributes.toString())
-
   const { policy: policyResponse, policyErrors } = await (async () => {
-    if (!attributes || !attributes.certificateId) return { policy: null, policyErrors: null }
+    if (!connection.attributes || !connection.attributes.certificateId) return { policy: null, policyErrors: null }
 
     const { data: policy, errors: policyErrors } = await gruentClient(accessToken).policies.get(
       spaceId,
-      attributes.certificateId,
+      connection.attributes.certificateId,
     )
 
     if (policyErrors && policyErrors.length > 0) return { policy: null, policyErrors }
@@ -134,7 +132,7 @@ const ConnectionDetailsPage = async ({ params }) => {
                       policy={policy}
                       revoke={revoke ?? false}
                       spaceId={spaceId}
-                      certificateId={attributes.certificateId}
+                      certificateId={connection.attributes.certificateId}
                       className="my-4"
                     />
                   )}
@@ -165,7 +163,7 @@ const ConnectionDetailsPage = async ({ params }) => {
           <ExportConnectionButton
             name={connection.name}
             category={connection.connectionCategory}
-            attributes={attributes}
+            attributes={connection.attributes}
           />
         </section>
       </Container>

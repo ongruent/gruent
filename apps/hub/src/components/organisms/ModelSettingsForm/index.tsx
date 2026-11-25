@@ -404,14 +404,7 @@ const ModelSettingsForm: FC<Props> = ({
       return
     }
 
-    const attributes = (() => {
-      if (typeof initialModel.attributes === 'string')
-        return JSON.parse(initialModel.attributes as string)
-
-      return initialModel.attributes
-    })()
-
-    setAttributes(attributes)
+    setAttributes(initialModel.attributes)
   }, [initialModel, setAttributes])
 
   const updateModelMutation = useMutation({
