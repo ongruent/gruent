@@ -73,6 +73,10 @@ export const ConnectionCategoryOptions = [
     value: 'MONGODB_SERVER',
     label: 'MongoDB Server',
   },
+  {
+    value: 'POSTGRES_SERVER',
+    label: 'PostgreSQL Server',
+  },
 ]
 
 type Props = {

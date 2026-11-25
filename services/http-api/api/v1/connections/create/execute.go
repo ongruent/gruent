@@ -144,6 +144,13 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 			return nil, err
 		}
 		output.Connection = connection
+	case things.PostgresServerThingCategory:
+		connection, err := handleCreatePostgresServer(request, *connectionId)
+		if err != nil {
+			return nil, err
+		}
+
+		output.Connection = connection
 	case things.MongoDbServerThingCategory:
 		connection, err := handleCreateMongoDbServer(request, *connectionId)
 		if err != nil {
@@ -718,6 +725,47 @@ func handleCreateMongoDbServer(request *gruenthttp.Request[Input], connectionId 
 		ConnectionName: request.Input.Name,
 		ActorId:        request.GetActorId(),
 		Attributes:     mongoDbServer,
+	})
+	if err != nil {
+		request.Span.SetAttributes(
+			attribute.String("error.type", "database"),
+			attribute.String("error.message", err.Error()),
+		)
+		dbSpan.End()
+		return nil, err
+	}
+
+	dbSpan.End()
+
+	return connection, nil
+}
+
+func handleCreatePostgresServer(request *gruenthttp.Request[Input], connectionId string) (*sqldb.AppConnection, error) {
+	// Create attributes. The password stays the secret's name: the controller bundles it as a secret
+	// reference for the runtime, so only check that the secret exists.
+	postgresServer, err := things.NewPostgresServerFromAttributes(request.Input.Attributes)
+	err = handleCreateAttributesError(request, err)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := postgresServer.ResolvePassword(config.SecretsClient, request.Input.SpaceId); err != nil {
+		request.Span.SetAttributes(
+			attribute.String("error.type", "validation"),
+			attribute.String("error.message", err.Error()),
+		)
+		response := gruenthttp.NewErrorResponse([]any{err.Error()})
+		responseJson, _ := response.MarshalJson()
+		return nil, fiber.NewError(fiber.StatusBadRequest, string(responseJson))
+	}
+
+	// Create a new Connection
+	dbCtx, dbSpan := otel.Tracer("sqlc").Start(request.Context, "Insert connection")
+	connection, err := insertConnectionIntoDatabase(dbCtx, insertConnectionIntoDatabaseParams{
+		SpaceId:        request.Input.SpaceId,
+		ConnectionId:   connectionId,
+		ConnectionName: request.Input.Name,
+		ActorId:        request.GetActorId(),
+		Attributes:     postgresServer,
 	})
 	if err != nil {
 		request.Span.SetAttributes(

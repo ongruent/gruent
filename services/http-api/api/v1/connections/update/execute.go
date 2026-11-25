@@ -8,6 +8,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	gruenthttp "github.com/ongruent/gruent/libs/http"
 	gruentchannels "github.com/ongruent/gruent/libs/legacy/engine/channels"
+	"github.com/ongruent/gruent/libs/legacy/engine/dependencies/things"
+	"github.com/ongruent/gruent/services/http-api/config"
 	"github.com/ongruent/gruent/services/http-api/services/sqlc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -150,7 +152,7 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 	}
 
 	dbCtx, dbSpan = otel.Tracer("sqlc").Start(request.Context, "Update connection in space")
-	_, err = sqlc.Queries.GetConnection(dbCtx, request.Input.ConnectionId)
+	existingConnection, err := sqlc.Queries.GetConnection(dbCtx, request.Input.ConnectionId)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			dbSpan.SetAttributes(
@@ -171,6 +173,16 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 		return nil, err
 	}
 
+	// PostgreSQL connections keep the password as a secret name and are read by the runtime, so validate
+	// them like on create and store the normalized attributes.
+	if existingConnection.ConnectionCategory == things.PostgresServerThingCategory.String() {
+		attributes, err = validatePostgresServer(request)
+		if err != nil {
+			dbSpan.End()
+			return nil, err
+		}
+	}
+
 	connection, err := sqlc.Queries.UpdateConnection(dbCtx, request.Input.ConnectionId, request.Input.Name, attributes, request.GetActorId())
 	if err != nil {
 		dbSpan.SetAttributes(
@@ -188,4 +200,22 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 	}
 
 	return &output, nil
+}
+
+func validatePostgresServer(request *gruenthttp.Request[Input]) ([]byte, error) {
+	postgresServer, err := things.NewPostgresServerFromAttributes(request.Input.Attributes)
+	if err == nil {
+		_, err = postgresServer.ResolvePassword(config.SecretsClient, request.Input.SpaceId)
+	}
+	if err != nil {
+		request.Span.SetAttributes(
+			attribute.String("error.type", "validation"),
+			attribute.String("error.message", err.Error()),
+		)
+		response := gruenthttp.NewErrorResponse([]any{err.Error()})
+		responseJson, _ := response.MarshalJson()
+		return nil, fiber.NewError(fiber.StatusBadRequest, string(responseJson))
+	}
+
+	return postgresServer.MarshalJson()
 }

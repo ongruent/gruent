@@ -25,6 +25,7 @@ var ThingCategories = []ThingCategory{
 	NatsClientThingCategory,
 	InfluxDbDatabaseThingCategory,
 	ClickhouseDatabaseThingCategory,
+	PostgresServerThingCategory,
 	AwsSNSThingCategory,
 	AwsSESThingCategory,
 	SendgridClientThingCategory,

@@ -40,6 +40,7 @@ import AwsSESEndpoint from '../ConnectionFormPartials/AwsSesEndpoint'
 import AwsSNSEndpoint from '../ConnectionFormPartials/AwsSnsEndpoint'
 import SendgridClient from '../ConnectionFormPartials/SendgridClient'
 import MongoDbServer from '../ConnectionFormPartials/MongoDbServer'
+import PostgresServer from '../ConnectionFormPartials/PostgresServer'
 
 type Props = {
   orgId: string
@@ -301,6 +302,14 @@ const CreateConnectionForm = forwardRef(
         case 'MONGODB_SERVER':
           return (
             <MongoDbServer
+              setFormData={setCurrentCategoryFormData}
+              secretOptions={secretOptions}
+              initial={initialConnection}
+            />
+          )
+        case 'POSTGRES_SERVER':
+          return (
+            <PostgresServer
               setFormData={setCurrentCategoryFormData}
               secretOptions={secretOptions}
               initial={initialConnection}
