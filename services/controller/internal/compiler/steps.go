@@ -32,6 +32,8 @@ func (c *compilation) compileLibraryStep(step *plan.Step, input *types.Type) err
 		return c.compileExistence(step, library, input)
 	case library.is(pluginCompare, 1):
 		return c.compileCompare(step, library, input)
+	case library.is(pluginRelationalDB, 1):
+		return c.compileRelational(step, input)
 	case library.is(pluginTransform, 1):
 		return c.compileTransform(step, library, input)
 	}

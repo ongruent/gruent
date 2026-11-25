@@ -107,6 +107,21 @@
       }
     },
     {
+      "pluginType": "relational-db",
+      "pluginVersion": 1,
+      "contractVersion": 1,
+      "category": "action",
+      "definition": {
+        "path": "plugins/relational-db/v1/step.json",
+        "digest": "sha256:f46ccaa154ee885cce850a785c0a130f277e78a9c9e3b80c6850ff62fbdc142c"
+      },
+      "kotlin": {
+        "package": "com.gruent.steps.plugins.relationaldb.v1",
+        "class": "RelationalDbConfig",
+        "path": "generated/kotlin/com/gruent/steps/plugins/relationaldb/v1/RelationalDbConfig.kt"
+      }
+    },
+    {
       "pluginType": "timer-source",
       "pluginVersion": 1,
       "contractVersion": 1,

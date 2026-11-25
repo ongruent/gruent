@@ -27,13 +27,15 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 
 	// Get the count of connections (based on the filter)
 	dbCtx, dbSpan := otel.Tracer("sqlc").Start(request.Context, "Count connections")
-	connectionCategory := ""
+	var connectionCategory *string
 	if request.Input.ConnectionCategory != nil {
-		connectionCategory = request.Input.ConnectionCategory.String()
+		cc := request.Input.ConnectionCategory.String()
+		connectionCategory = &cc
 	}
-	filter := ""
+	var filter *string
 	if request.Input.Filter != "" {
-		filter = "%" + request.Input.Filter + "%"
+		f := "%" + request.Input.Filter + "%"
+		filter = &f
 	}
 	var tagFilter []string
 	if len(request.Input.TagFilter) > 0 {
@@ -59,12 +61,12 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 	// List the connections (based on the filter)
 	dbCtx, dbSpan = otel.Tracer("sqlc").Start(request.Context, "List connections")
 	connections, err := sqlc.Queries.ListConnectionsFiltered(dbCtx, sqldb.ListConnectionsFilteredParams{
-		SpaceID: request.Input.SpaceId,
-		Column2: connectionCategory,
-		Column3: filter,
-		Column4: tagFilter,
-		Limit:   int32(request.Input.ResultsPerPage),
-		Offset:  int32((request.Input.Page - 1) * request.Input.ResultsPerPage),
+		SpaceID:            request.Input.SpaceId,
+		ConnectionCategory: connectionCategory,
+		Search:             filter,
+		TagFilter:          tagFilter,
+		Limit:              int32(request.Input.ResultsPerPage),
+		Offset:             int32((request.Input.Page - 1) * request.Input.ResultsPerPage),
 	})
 	if err != nil {
 		dbSpan.SetAttributes(

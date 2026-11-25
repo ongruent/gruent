@@ -12,6 +12,7 @@ import (
 	messageQueueHealthcheck "github.com/ongruent/gruent/libs/legacy/engine/dependencies/things/healthcheck/messageQueue"
 	mqttHealthcheck "github.com/ongruent/gruent/libs/legacy/engine/dependencies/things/healthcheck/mqtt"
 	notificationHealthcheck "github.com/ongruent/gruent/libs/legacy/engine/dependencies/things/healthcheck/notification"
+	relationalDbHealthcheck "github.com/ongruent/gruent/libs/legacy/engine/dependencies/things/healthcheck/relationalDb"
 	timeSeriesDbHealthcheck "github.com/ongruent/gruent/libs/legacy/engine/dependencies/things/healthcheck/timeSeriesDb"
 	"github.com/ongruent/gruent/services/http-api/config"
 	"go.opentelemetry.io/otel/attribute"
@@ -126,6 +127,20 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 
 		// Run the healthcheck
 		err = documentDbHealthcheck.MongoDbServer(attrs)
+		return nil, handleError(request.Span, err)
+	case string(things.PostgresServerThingCategory):
+		// Init the connection attributes
+		attrs, err := things.NewPostgresServerFromAttributes(request.Input.Attributes)
+		if err != nil {
+			return nil, handleError(request.Span, err)
+		}
+		password, err := attrs.ResolvePassword(config.SecretsClient, request.Input.SpaceId)
+		if err != nil {
+			return nil, handleError(request.Span, err)
+		}
+
+		// Run the healthcheck
+		err = relationalDbHealthcheck.PostgresServer(attrs, password)
 		return nil, handleError(request.Span, err)
 	case string(things.MqttBrokerThingCategory):
 		// Init the connection attributes

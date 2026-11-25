@@ -1,0 +1,5 @@
+{
+  "description": "Unsupported database, empty statement and no connection.",
+  "config": { "engine": "MYSQL_SERVER", "statement": "" },
+  "errors": ["/connectionId", "/engine", "/statement"]
+}

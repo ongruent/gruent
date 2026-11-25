@@ -5,48 +5,54 @@ WHERE id = $1;
 -- name: CountConnectionsFiltered :one
 SELECT COUNT(DISTINCT t.id)
 FROM app.connections t
-WHERE t.space_id = $1
+WHERE t.space_id = sqlc.arg('SpaceID')
   AND t.internal = false
-  AND ($2::text IS NULL OR t.connection_category = $2)
   AND (
-    $3::text IS NULL
-    OR t.id ILIKE $3
-    OR t.name ILIKE $3
-    OR t.connection_category ILIKE $3
+    sqlc.narg('ConnectionCategory')::text IS NULL
+    OR t.connection_category = sqlc.narg('ConnectionCategory')
   )
   AND (
-    $4::text[] IS NULL
+    sqlc.narg('Search')::text IS NULL
+    OR t.id ILIKE sqlc.narg('Search')::text
+    OR t.name ILIKE sqlc.narg('Search')::text
+    OR t.connection_category ILIKE sqlc.narg('Search')::text
+  )
+  AND (
+    sqlc.narg('TagFilter')::text[] IS NULL
     OR EXISTS (
       SELECT 1
       FROM app.applied_tags at
       WHERE at.connection_id = t.id
-        AND at.tag_id = ANY($4::text[])
+        AND at.tag_id = ANY(sqlc.narg('TagFilter')::text[])
     )
   );
 
 -- name: ListConnectionsFiltered :many
 SELECT t.*
 FROM app.connections t
-WHERE t.space_id = $1
+WHERE t.space_id = sqlc.arg('SpaceID')
   AND t.internal = false
-  AND ($2::text IS NULL OR t.connection_category = $2)
   AND (
-    $3::text IS NULL
-    OR t.id ILIKE $3
-    OR t.name ILIKE $3
-    OR t.connection_category ILIKE $3
+    sqlc.narg('ConnectionCategory')::text IS NULL
+    OR t.connection_category = sqlc.narg('ConnectionCategory')
   )
   AND (
-    $4::text[] IS NULL
+     sqlc.narg('Search')::text IS NULL
+     OR t.id ILIKE sqlc.narg('Search')::text
+     OR t.name ILIKE sqlc.narg('Search')::text
+     OR t.connection_category ILIKE sqlc.narg('Search')::text
+  )
+  AND (
+    sqlc.narg('TagFilter')::text[] IS NULL
     OR EXISTS (
       SELECT 1
       FROM app.applied_tags at
       WHERE at.connection_id = t.id
-        AND at.tag_id = ANY($4::text[])
+        AND at.tag_id = ANY(sqlc.narg('TagFilter')::text[])
     )
   )
 ORDER BY t.connection_category DESC
-LIMIT $5 OFFSET $6;
+LIMIT sqlc.arg('Limit') OFFSET sqlc.arg('Offset');
 
 -- name: ListConnections :many
 SELECT * FROM app.connections

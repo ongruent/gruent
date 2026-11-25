@@ -14,12 +14,15 @@ SELECT COUNT(DISTINCT t.id)
 FROM app.connections t
 WHERE t.space_id = $1
   AND t.internal = false
-  AND ($2::text IS NULL OR t.connection_category = $2)
+  AND (
+    $2::text IS NULL
+    OR t.connection_category = $2
+  )
   AND (
     $3::text IS NULL
-    OR t.id ILIKE $3
-    OR t.name ILIKE $3
-    OR t.connection_category ILIKE $3
+    OR t.id ILIKE $3::text
+    OR t.name ILIKE $3::text
+    OR t.connection_category ILIKE $3::text
   )
   AND (
     $4::text[] IS NULL
@@ -32,12 +35,12 @@ WHERE t.space_id = $1
   )
 `
 
-func (q *Queries) CountConnectionsFiltered(ctx context.Context, spaceID string, column2 string, column3 string, column4 []string) (int64, error) {
+func (q *Queries) CountConnectionsFiltered(ctx context.Context, spaceID string, connectionCategory *string, search *string, tagFilter []string) (int64, error) {
 	row := q.db.QueryRow(ctx, countConnectionsFiltered,
 		spaceID,
-		column2,
-		column3,
-		column4,
+		connectionCategory,
+		search,
+		tagFilter,
 	)
 	var count int64
 	err := row.Scan(&count)
@@ -268,12 +271,15 @@ SELECT t.id, t.name, t.space_id, t.attributes, t.internal, t.created_at, t.updat
 FROM app.connections t
 WHERE t.space_id = $1
   AND t.internal = false
-  AND ($2::text IS NULL OR t.connection_category = $2)
   AND (
-    $3::text IS NULL
-    OR t.id ILIKE $3
-    OR t.name ILIKE $3
-    OR t.connection_category ILIKE $3
+    $2::text IS NULL
+    OR t.connection_category = $2
+  )
+  AND (
+     $3::text IS NULL
+     OR t.id ILIKE $3::text
+     OR t.name ILIKE $3::text
+     OR t.connection_category ILIKE $3::text
   )
   AND (
     $4::text[] IS NULL
@@ -285,26 +291,26 @@ WHERE t.space_id = $1
     )
   )
 ORDER BY t.connection_category DESC
-LIMIT $5 OFFSET $6
+LIMIT $6 OFFSET $5
 `
 
 type ListConnectionsFilteredParams struct {
-	SpaceID string   `json:"space_id"`
-	Column2 string   `json:"column_2"`
-	Column3 string   `json:"column_3"`
-	Column4 []string `json:"column_4"`
-	Limit   int32    `json:"limit"`
-	Offset  int32    `json:"offset"`
+	SpaceID            string   `json:"SpaceID"`
+	ConnectionCategory *string  `json:"ConnectionCategory"`
+	Search             *string  `json:"Search"`
+	TagFilter          []string `json:"TagFilter"`
+	Offset             int32    `json:"Offset"`
+	Limit              int32    `json:"Limit"`
 }
 
 func (q *Queries) ListConnectionsFiltered(ctx context.Context, arg ListConnectionsFilteredParams) ([]AppConnection, error) {
 	rows, err := q.db.Query(ctx, listConnectionsFiltered,
 		arg.SpaceID,
-		arg.Column2,
-		arg.Column3,
-		arg.Column4,
-		arg.Limit,
+		arg.ConnectionCategory,
+		arg.Search,
+		arg.TagFilter,
 		arg.Offset,
+		arg.Limit,
 	)
 	if err != nil {
 		return nil, err

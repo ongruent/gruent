@@ -25,6 +25,7 @@ import AwsSESEndpoint from '@gruent/hub/components/organisms/ConnectionFormParti
 import AwsSNSEndpoint from '@gruent/hub/components/organisms/ConnectionFormPartials/AwsSnsEndpoint'
 import SendgridClient from '@gruent/hub/components/organisms/ConnectionFormPartials/SendgridClient'
 import MonogoDbServer from '@gruent/hub/components/organisms/ConnectionFormPartials/MongoDbServer'
+import PostgresServer from '@gruent/hub/components/organisms/ConnectionFormPartials/PostgresServer'
 import { Connection } from '@prisma/client'
 
 type Props = {
@@ -210,6 +211,14 @@ const ConnectionSettingsForm: FC<Props> = ({ orgId, spaceId, connection, classNa
       case 'MONGODB_SERVER':
         return (
           <MonogoDbServer
+            setFormData={setCurrentCategoryFormData}
+            initial={connection}
+            secretOptions={secretOptions}
+          />
+        )
+      case 'POSTGRES_SERVER':
+        return (
+          <PostgresServer
             setFormData={setCurrentCategoryFormData}
             initial={connection}
             secretOptions={secretOptions}

@@ -14,7 +14,7 @@ type Querier interface {
 	ChannelArtifactExists(ctx context.Context, channelID string, kind string, version string) (bool, error)
 	CountAppliedTagsByTag(ctx context.Context, tagID string) (int64, error)
 	CountChannelsFiltered(ctx context.Context, spaceID string, column2 string, column3 []string) (int64, error)
-	CountConnectionsFiltered(ctx context.Context, spaceID string, column2 string, column3 string, column4 []string) (int64, error)
+	CountConnectionsFiltered(ctx context.Context, spaceID string, connectionCategory *string, search *string, tagFilter []string) (int64, error)
 	CountModelsFiltered(ctx context.Context, spaceID string, column2 string, column3 []string) (int64, error)
 	CountOrganizationAdmins(ctx context.Context, organizationID string) (int64, error)
 	CountOrganizationApiKeys(ctx context.Context, organizationID string) (int64, error)

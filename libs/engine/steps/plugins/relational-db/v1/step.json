@@ -1,0 +1,61 @@
+{
+  "contractVersion": 1,
+  "pluginType": "relational-db",
+  "pluginVersion": 1,
+  "displayName": "Relational database",
+  "description": "Run a SQL statement against a relational database. Input values in the statement are sent as bound parameters, never as SQL text.",
+  "category": "action",
+  "configSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["engine", "connectionId", "statement"],
+    "x-ui": {
+      "groups": [
+        { "id": "database", "title": "Database" },
+        {
+          "id": "statement",
+          "title": "Statement",
+          "description": "Write input values as {{input.device.id}}. Each one is bound as a parameter, so don't put it in quotes."
+        }
+      ]
+    },
+    "properties": {
+      "engine": {
+        "type": "string",
+        "title": "Database",
+        "enum": ["POSTGRES_SERVER"],
+        "default": "POSTGRES_SERVER",
+        "x-ui": {
+          "control": "select",
+          "order": 1,
+          "group": "database",
+          "options": { "static": [{ "value": "POSTGRES_SERVER", "label": "PostgreSQL" }] }
+        }
+      },
+      "connectionId": {
+        "type": "string",
+        "title": "Connection",
+        "minLength": 1,
+        "x-ui": {
+          "control": "select",
+          "order": 2,
+          "group": "database",
+          "options": { "named": { "name": "connections", "paramsFromFields": { "category": "/engine" } } }
+        }
+      },
+      "statement": {
+        "type": "string",
+        "title": "SQL",
+        "minLength": 1,
+        "maxLength": 10000,
+        "x-ui": {
+          "control": "textarea",
+          "order": 3,
+          "group": "statement",
+          "placeholder": "INSERT INTO readings (device_id, celsius) VALUES ({{input.device.id}}, {{input.celsius}})"
+        }
+      }
+    }
+  }
+}

@@ -33,6 +33,7 @@ volumes:
   pnpm_store:
   hub_next:
   site_next:
+  go_deps_cache:
 
 x-node: &node
   profiles: [frontend]
@@ -71,6 +72,7 @@ services:
       - "9001:9001"
     volumes:
       - ../../..:/gruent
+      - go_deps_cache:/go/pkg/mod
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - gruent_network
@@ -116,6 +118,7 @@ services:
       - "9002:9002"
     volumes:
       - ../../..:/gruent
+      - go_deps_cache:/go/pkg/mod
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - gruent_network
