@@ -4,6 +4,7 @@ import com.gruent.runtime.artifacts.ArtifactStore
 import com.gruent.runtime.artifacts.DirectoryArtifactStore
 import com.gruent.runtime.artifacts.Keyring
 import com.gruent.runtime.artifacts.S3ArtifactStore
+import com.gruent.runtime.dependencies.VaultSecretResolver
 import java.net.URI
 import java.nio.file.Path
 import java.time.Duration
@@ -24,7 +25,15 @@ data class RuntimeConfig(
   val otelEndpoint: String?,
   val environment: String,
   val shutdownGracePeriod: Duration,
+  /**
+   * Vault, to resolve the secrets of the plan's connections. Without it, only connections without secrets
+   * (e.g. Postgres without a password) can be hydrated.
+   */
+  val vault: Vault? = null,
 ) {
+  data class Vault(val address: URI, val auth: VaultSecretResolver.Auth)
+
+
   companion object {
     const val CHANNEL_ID = "GRUENT_CHANNEL_ID"
     const val PLAN_KEY = "GRUENT_PLAN_KEY"
@@ -41,6 +50,10 @@ data class RuntimeConfig(
     const val OTEL_ENDPOINT = "OTEL_COLLECTOR_ENDPOINT"
     const val ENVIRONMENT = "ENVIRONMENT"
     const val SHUTDOWN_GRACE_SECONDS = "GRUENT_SHUTDOWN_GRACE_SECONDS"
+    const val VAULT_ADDRESS = "VAULT_ADDRESS"
+    const val VAULT_TOKEN = "VAULT_TOKEN"
+    const val VAULT_USERNAME = "VAULT_USERNAME"
+    const val VAULT_PASSWORD = "VAULT_PASSWORD"
 
     fun fromEnvironment(env: Map<String, String> = System.getenv()): RuntimeConfig {
       fun required(name: String) = env[name]?.takeIf { it.isNotBlank() } ?: throw IllegalArgumentException("$name is required")
@@ -57,6 +70,14 @@ data class RuntimeConfig(
           secretAccessKey = required(STORAGE_SECRET_ACCESS_KEY),
         )
       }
+      val vault = optional(VAULT_ADDRESS)?.let { address ->
+        val auth = optional(VAULT_TOKEN)?.let { VaultSecretResolver.Auth.Token(it) }
+          ?: VaultSecretResolver.Auth.UserPass(
+            optional(VAULT_USERNAME) ?: throw IllegalArgumentException("$VAULT_TOKEN or $VAULT_USERNAME is required with $VAULT_ADDRESS"),
+            required(VAULT_PASSWORD),
+          )
+        Vault(URI(if (address.contains("://")) address else "http://$address"), auth)
+      }
       return RuntimeConfig(
         channelId = required(CHANNEL_ID),
         planKey = required(PLAN_KEY),
@@ -67,6 +88,7 @@ data class RuntimeConfig(
         otelEndpoint = optional(OTEL_ENDPOINT)?.let { if (it.contains("://")) it else "http://$it" },
         environment = optional(ENVIRONMENT) ?: "development",
         shutdownGracePeriod = Duration.ofSeconds(optional(SHUTDOWN_GRACE_SECONDS)?.toLong() ?: 30),
+        vault = vault,
       )
     }
   }

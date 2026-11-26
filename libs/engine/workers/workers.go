@@ -27,6 +27,12 @@ const (
 	EnvStorageAccessKeyID     = "ARTIFACT_STORAGE_ACCESS_KEY_ID"
 	EnvStorageSecretAccessKey = "ARTIFACT_STORAGE_SECRET_ACCESS_KEY"
 	EnvStorageUseSSL          = "ARTIFACT_STORAGE_USE_SSL"
+
+	// Vault, from which workers resolve the secrets of their plan's connections. The worker logs in with
+	// userpass credentials and only needs to read the spaces' key-value secrets.
+	EnvVaultAddress  = "VAULT_ADDRESS"
+	EnvVaultUsername = "VAULT_USERNAME"
+	EnvVaultPassword = "VAULT_PASSWORD"
 )
 
 // KindObservation is the kind of Observation messages.

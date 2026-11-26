@@ -41,6 +41,7 @@ dependencies {
   testImplementation(project(":libs:engine:steps:plugins:existence:v1"))
   testImplementation(project(":libs:engine:steps:plugins:http-source:v1"))
   testImplementation(project(":libs:engine:steps:plugins:http-response:v1"))
+  testImplementation(project(":libs:engine:steps:plugins:relational-db:v1"))
   testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

@@ -1,6 +1,7 @@
 package com.gruent.runtime.artifacts
 
 import com.gruent.runtime.CHANNEL_ID
+import com.gruent.runtime.timerToLogPlan
 import com.gruent.runtime.timerToLogPlanJson
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Assertions.assertArrayEquals
@@ -75,6 +76,33 @@ class ArtifactsTest {
     val other = timerToLogPlanJson().replace("gruent.com/v1", "gruent.io/v1").toByteArray()
     val (otherKey, otherVersion) = store(other)
     assertThrows<IllegalArgumentException> { PlanLoader(DirectoryArtifactStore(dir), keyring).load(otherKey, otherVersion) }
+  }
+
+  @Test
+  fun `signed dependency bundles load for the plan that pins them`(@TempDir dir: Path) {
+    val data = """
+      {"apiVersion": "gruent.com/v1", "kind": "DependencyBundle",
+       "metadata": {"orgId": "org1", "spaceId": "space1", "channelId": "$CHANNEL_ID", "channelName": "Ticks"},
+       "models": null, "secrets": null, "certificates": null,
+       "connections": [{"id": "t6", "name": "Warehouse", "category": "POSTGRES_SERVER", "revision": "r",
+         "attributes": {"host": "postgres"}, "secretFields": {}, "certificateFields": {}}]}
+    """.trimIndent().toByteArray()
+    val version = Keyring.digest(data)
+    val key = "orgs/org1/spaces/space1/channels/$CHANNEL_ID/dependency_bundle/${version.removePrefix("sha256:")}.json"
+    Files.createDirectories(dir.resolve(key).parent)
+    Files.write(dir.resolve(key), data)
+    Files.writeString(dir.resolve("$key.sig"), Json.encodeToString(SignatureEnvelope.serializer(), envelope("dependency_bundle", version)))
+    val loader = DependencyBundleLoader(DirectoryArtifactStore(dir), keyring)
+    fun plan(kind: String = "dependency_bundle", bundleVersion: String = version) = timerToLogPlan(
+      timerToLogPlanJson().replace(
+        """"dependencies": {"kind": "dependency_bundle", "version": "sha256:2", "key": "k"}""",
+        """"dependencies": {"kind": "$kind", "version": "$bundleVersion", "key": "$key"}""",
+      ),
+    )
+
+    assertEquals("t6", loader.load(plan()).connections.single().id)
+    assertThrows<VerificationException> { loader.load(plan(bundleVersion = "sha256:other")) }
+    assertThrows<VerificationException> { loader.load(plan(kind = "plan")) }
   }
 
   @Test

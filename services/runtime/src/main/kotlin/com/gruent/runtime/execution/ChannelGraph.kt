@@ -45,9 +45,9 @@ class ChannelGraph private constructor(val nodes: Map<String, GraphNode>) {
   companion object {
     /**
      * Validates the graph (edges reference existing steps, sources have no inputs, no cycles) and creates
-     * the step implementations.
+     * the step implementations with the plan's hydrated [connections].
      */
-    fun build(plan: Plan, registry: StepRegistry): ChannelGraph {
+    fun build(plan: Plan, registry: StepRegistry, connections: Map<String, String> = emptyMap()): ChannelGraph {
       val steps = plan.channel.graph.steps
       val ids = steps.map { it.id }
       ids.groupingBy { it }.eachCount().filterValues { it > 1 }.keys.firstOrNull()?.let {
@@ -67,7 +67,7 @@ class ChannelGraph private constructor(val nodes: Map<String, GraphNode>) {
 
       val nodes = linkedMapOf<String, GraphNode>()
       for (planStep in steps) {
-        val step = registry.create(planStep)
+        val step = registry.create(planStep, connections)
         if (step is SourceStep && (upstreamCount[planStep.id] ?: 0) > 0) {
           throw InvalidGraphException("source step ${planStep.id} cannot have inputs")
         }

@@ -73,6 +73,39 @@ func TestDeployAppliesSecretAndDeployment(t *testing.T) {
 	}
 }
 
+func TestDeployPassesVaultCredentialsThroughASecret(t *testing.T) {
+	kube, requests := fakeKube(t, http.StatusOK)
+	deployer := &Deployer{Kube: kube, Config: Config{
+		Namespace: "gruent-runtime", Storage: Storage{AccessKeyID: "id", SecretAccessKey: "secret"},
+		Vault: Vault{Address: "http://vault:8200", Username: "runtime", Password: "vault-password"},
+	}}
+	if err := deployer.Deploy(context.Background(), Worker{ChannelID: "AbC123", SpaceID: "s1", PlanVersion: "sha256:1"}); err != nil {
+		t.Fatal(err)
+	}
+	if len(*requests) != 3 {
+		t.Fatalf("expected 3 requests, got %d", len(*requests))
+	}
+	vault, deployment := (*requests)[1], (*requests)[2]
+	if !strings.HasPrefix(vault.Path, "/api/v1/namespaces/gruent-runtime/secrets/runtime-vault?") {
+		t.Errorf("unexpected vault secret request %s", vault.Path)
+	}
+	if data, _ := vault.Body["stringData"].(map[string]any); data["VAULT_USERNAME"] != "runtime" || data["VAULT_PASSWORD"] != "vault-password" {
+		t.Errorf("unexpected vault secret %+v", vault.Body)
+	}
+	encoded, _ := json.Marshal(deployment.Body)
+	for _, want := range []string{
+		`{"name":"VAULT_ADDRESS","value":"http://vault:8200"}`,
+		`"secretKeyRef":{"key":"VAULT_PASSWORD","name":"runtime-vault"}`,
+	} {
+		if !strings.Contains(string(encoded), want) {
+			t.Errorf("deployment does not contain %s:\n%s", want, encoded)
+		}
+	}
+	if strings.Contains(string(encoded), "vault-password") {
+		t.Error("the deployment must not contain the vault password")
+	}
+}
+
 func TestRemoveIgnoresMissingDeployments(t *testing.T) {
 	kube, requests := fakeKube(t, http.StatusNotFound)
 	deployer := &Deployer{Kube: kube, Config: Config{Namespace: "gruent-runtime"}}

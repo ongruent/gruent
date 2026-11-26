@@ -8,7 +8,8 @@
 // termination grace period. Unpublishing deletes the Deployment.
 //
 // Credentials for artifact storage are kept in one Secret (runtime-artifact-storage) that the controller
-// applies to the runtime namespace.
+// applies to the runtime namespace, and Vault credentials, with which workers resolve the secrets of their
+// plan's connections, in another (runtime-vault).
 package runtimes
 
 import (
@@ -38,6 +39,17 @@ const (
 // StorageSecretName is the Secret with the artifact storage credentials of runtime workers.
 const StorageSecretName = "runtime-artifact-storage"
 
+// VaultSecretName is the Secret with the Vault credentials of runtime workers.
+const VaultSecretName = "runtime-vault"
+
+// Vault is how runtime workers reach Vault to resolve connection secrets. Without an address, workers can
+// only hydrate connections without secrets.
+type Vault struct {
+	Address  string
+	Username string
+	Password string
+}
+
 // Storage is how runtime workers reach artifact storage.
 type Storage struct {
 	Endpoint        string
@@ -55,6 +67,7 @@ type Config struct {
 	// ImagePullPolicy is e.g. IfNotPresent for images loaded into a local kind cluster.
 	ImagePullPolicy string
 	Storage         Storage
+	Vault           Vault
 	// SigningKeyring lists the trusted artifact signing keys: "<key ID>=<base64 public key>,…".
 	SigningKeyring string
 	NATSURL        string
@@ -93,6 +106,11 @@ func (d *Deployer) Deploy(ctx context.Context, worker Worker) error {
 	if err := d.Kube.Apply(ctx, fmt.Sprintf("/api/v1/namespaces/%s/secrets/%s", namespace, StorageSecretName), d.storageSecret()); err != nil {
 		return fmt.Errorf("apply artifact storage secret: %w", err)
 	}
+	if d.Config.Vault.Address != "" {
+		if err := d.Kube.Apply(ctx, fmt.Sprintf("/api/v1/namespaces/%s/secrets/%s", namespace, VaultSecretName), d.vaultSecret()); err != nil {
+			return fmt.Errorf("apply vault secret: %w", err)
+		}
+	}
 	name := DeploymentName(worker.ChannelID)
 	if err := d.Kube.Apply(ctx, fmt.Sprintf("/apis/apps/v1/namespaces/%s/deployments/%s", namespace, name), d.deployment(worker)); err != nil {
 		return fmt.Errorf("apply runtime worker: %w", err)
@@ -128,6 +146,23 @@ func (d *Deployer) storageSecret() object {
 	}
 }
 
+func (d *Deployer) vaultSecret() object {
+	return object{
+		"apiVersion": "v1",
+		"kind":       "Secret",
+		"metadata": object{
+			"name":      VaultSecretName,
+			"namespace": d.Config.Namespace,
+			"labels":    object{LabelManagedBy: FieldManager},
+		},
+		"type": "Opaque",
+		"stringData": object{
+			workers.EnvVaultUsername: d.Config.Vault.Username,
+			workers.EnvVaultPassword: d.Config.Vault.Password,
+		},
+	}
+}
+
 func (d *Deployer) deployment(worker Worker) object {
 	name := DeploymentName(worker.ChannelID)
 	labels := object{
@@ -139,6 +174,9 @@ func (d *Deployer) deployment(worker Worker) object {
 	value := func(name, value string) object { return object{"name": name, "value": value} }
 	fromSecret := func(name string) object {
 		return object{"name": name, "valueFrom": object{"secretKeyRef": object{"name": StorageSecretName, "key": name}}}
+	}
+	fromVaultSecret := func(name string) object {
+		return object{"name": name, "valueFrom": object{"secretKeyRef": object{"name": VaultSecretName, "key": name}}}
 	}
 	env := []object{
 		value(workers.EnvChannelID, worker.ChannelID),
@@ -154,6 +192,13 @@ func (d *Deployer) deployment(worker Worker) object {
 		value(workers.EnvNATSURL, d.Config.NATSURL),
 		value(workers.EnvOtelEndpoint, d.Config.OtelEndpoint),
 		value(workers.EnvEnvironment, d.Config.Environment),
+	}
+	if d.Config.Vault.Address != "" {
+		env = append(env,
+			value(workers.EnvVaultAddress, d.Config.Vault.Address),
+			fromVaultSecret(workers.EnvVaultUsername),
+			fromVaultSecret(workers.EnvVaultPassword),
+		)
 	}
 	memory := fmt.Sprintf("%dMi", worker.MemoryMiB+d.Config.OverheadMiB)
 	pullPolicy := d.Config.ImagePullPolicy

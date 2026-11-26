@@ -37,7 +37,7 @@ Models are embedded in the bundle. Connections are embedded with their sensitive
 - Fields such as client private keys are dropped.
 - Connections whose category has unknown sensitive fields are embedded without attributes. Runtimes load them by ID and revision instead.
 
-Runtimes resolve secret and certificate references with their own credentials when they apply a plan. Rotating a secret therefore changes no artifact. See the `plan.DependencyBundle` docs.
+Runtimes resolve secret and certificate references with their own credentials when they apply a plan. Rotating a secret therefore changes no artifact. See the `plan.DependencyBundle` docs. Runtime workers get Vault credentials from the controller's `RUNTIME_VAULT_ADDRESS`, `RUNTIME_VAULT_USERNAME` and `RUNTIME_VAULT_PASSWORD` (the `runtime-vault` Secret) and currently resolve secrets only; see `services/runtime/README.md`.
 
 ## Payload types
 

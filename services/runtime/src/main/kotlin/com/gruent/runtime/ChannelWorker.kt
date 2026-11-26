@@ -33,7 +33,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * Serves one plan version of a channel:
  *
- * 1. Applying the plan builds the [ChannelGraph], which creates every step. A plan that can't be applied
+ * 1. Applying the plan builds the [ChannelGraph], which creates every step with the connections it uses,
+ *    hydrated beforehand. A plan that can't be applied
  *    throws, and the runtime reports the failure.
  * 2. [start] subscribes to the channel's invocation subject in the queue group `runtime.<channel ID>`, so
  *    replicas share the work, and starts the plan's timer bindings ([TimerTrigger]).
@@ -49,10 +50,12 @@ class ChannelWorker(
   private val bus: MessageBus,
   telemetry: ExecutionTelemetry,
   private val clock: Clock = Clock.systemUTC(),
+  /** The plan's hydrated connections by ID (see [com.gruent.runtime.dependencies.ConnectionHydrator]). */
+  connections: Map<String, String> = emptyMap(),
 ) {
   private val log = LoggerFactory.getLogger(ChannelWorker::class.java)
   private val channelId = plan.metadata.channelId
-  private val graph = ChannelGraph.build(plan, registry)
+  private val graph = ChannelGraph.build(plan, registry, connections)
   private val admission = plan.policies.runtime.concurrency.let { Admission(it.maxConcurrentExecutions, it.maxQueuedExecutions) }
   private val executor = Executor(graph, channelId, planVersion, telemetry, plan.policies.runtime.timeouts.maxInvocationMs)
 
