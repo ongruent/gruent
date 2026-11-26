@@ -17,6 +17,8 @@ data class Plan(
     val publishStrategy: PublishStrategy = PublishStrategy(),
     val channel: Channel,
     val bindings: Bindings = Bindings(),
+    /** The plan's dependency bundle (see [com.gruent.runtime.dependencies.DependencyBundle]). */
+    val dependencies: ArtifactRef? = null,
     val policies: Policies,
 ) {
     companion object {
@@ -48,6 +50,10 @@ data class Metadata(
     val channelName: String = "",
 )
 
+/** Identity of a signed artifact: its kind, version (digest) and storage key. */
+@Serializable
+data class ArtifactRef(val kind: String, val version: String, val key: String)
+
 @Serializable
 data class PublishStrategy(val mode: String = "replace")
 
@@ -71,6 +77,8 @@ data class Step(
     val redaction: Redaction? = null,
     /** Step-specific data compiled by the controller (see [com.gruent.steps.api.StepSpec.compiledJson]). */
     val compiled: JsonElement? = null,
+    /** IDs of the connections the step uses, hydrated from the dependency bundle. */
+    val connectionRefs: List<String> = emptyList(),
 ) {
     val category: String get() = type.substringBefore('.')
 }

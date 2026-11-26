@@ -80,6 +80,11 @@ func runtimeDeployer() deployments.Runtimes {
 				SecretAccessKey: conf.ArtifactStorageSecretAccessKey,
 				UseSSL:          conf.ArtifactStorageUseSSL,
 			},
+			Vault: runtimes.Vault{
+				Address:  conf.RuntimeVaultAddress,
+				Username: conf.RuntimeVaultUsername,
+				Password: conf.RuntimeVaultPassword,
+			},
 			SigningKeyring:          artifactstore.Signer.KeyID() + "=" + artifactstore.Signer.PublicKey(),
 			NATSURL:                 conf.RuntimeNatsURL,
 			OtelEndpoint:            conf.RuntimeOtelCollectorEndpoint,

@@ -47,8 +47,11 @@ class StepRegistry(factories: Iterable<StepFactory>) {
     return factory
   }
 
-  /** Creates the implementation of a plan step. */
-  fun create(step: PlanStep): Step {
+  /**
+   * Creates the implementation of a plan step. [connections] are the plan's hydrated connections by ID
+   * (see [com.gruent.runtime.dependencies.ConnectionHydrator]); the step gets the ones it references.
+   */
+  fun create(step: PlanStep, connections: Map<String, String> = emptyMap()): Step {
     val factory = factory(step)
     val definition = step.definition!!
     return factory.create(
@@ -60,6 +63,7 @@ class StepRegistry(factories: Iterable<StepFactory>) {
         configJson = step.config?.toString() ?: "{}",
         redaction = step.redaction?.let { Redaction(it.paths, it.replacement) },
         compiledJson = step.compiled?.takeUnless { it is JsonNull }?.toString(),
+        connections = step.connectionRefs.mapNotNull { id -> connections[id]?.let { id to it } }.toMap(),
       ),
     )
   }

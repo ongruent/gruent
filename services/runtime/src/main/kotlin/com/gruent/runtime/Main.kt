@@ -1,6 +1,9 @@
 package com.gruent.runtime
 
+import com.gruent.runtime.artifacts.DependencyBundleLoader
 import com.gruent.runtime.artifacts.PlanLoader
+import com.gruent.runtime.dependencies.ConnectionHydrator
+import com.gruent.runtime.dependencies.VaultSecretResolver
 import com.gruent.runtime.invocations.InMemoryMessageBus
 import com.gruent.runtime.invocations.MessageBus
 import com.gruent.runtime.invocations.NatsMessageBus
@@ -45,13 +48,22 @@ fun main() {
     exitProcess(1)
   }
 
+  val connections = try {
+    hydrateConnections(config, plan)
+  } catch (e: Exception) {
+    log.error("Could not hydrate the connections of plan {}: {}", config.planVersion, e.message)
+    reporter.report(Observation.FAILED, "could not hydrate the plan's connections: ${e.message}")
+    bus.close()
+    exitProcess(1)
+  }
+
   val otel = config.otelEndpoint?.let { RuntimeOpenTelemetry.otlp(it, plan.metadata, config.environment) }
     ?: RuntimeOpenTelemetry.noop().also { log.warn("${RuntimeConfig.OTEL_ENDPOINT} is not set; execution telemetry is dropped") }
 
   val worker = try {
     val registry = StepRegistry.discover()
     log.info("Steps available: {}", registry.identities.sortedBy { it.first }.joinToString { "${it.first}@${it.second}" })
-    ChannelWorker(plan, config.planVersion, registry, bus, OtelExecutionTelemetry(otel.openTelemetry))
+    ChannelWorker(plan, config.planVersion, registry, bus, OtelExecutionTelemetry(otel.openTelemetry), connections = connections)
   } catch (e: Exception) {
     log.error("Could not apply plan {}: {}", config.planVersion, e.message, e)
     reporter.report(Observation.FAILED, "could not apply the plan: ${e.message}")
@@ -81,17 +93,34 @@ fun main() {
 }
 
 /** Loads and verifies the plan, retrying while storage is unreachable. */
-private fun loadPlan(config: RuntimeConfig): Plan = runBlocking {
-  val loader = PlanLoader(config.artifactStore, config.keyring)
+private fun loadPlan(config: RuntimeConfig): Plan {
+  val plan = retryingStorage { PlanLoader(config.artifactStore, config.keyring).load(config.planKey, config.planVersion) }
+  require(plan.metadata.channelId == config.channelId) {
+    "plan is for channel ${plan.metadata.channelId}, not ${config.channelId}"
+  }
+  log.info("Loaded plan {} of channel {}", config.planVersion, config.channelId)
+  return plan
+}
+
+/**
+ * Hydrates the connections the plan's steps use from its verified dependency bundle, resolving their
+ * secrets from Vault. Plans without connections don't load the bundle.
+ */
+private fun hydrateConnections(config: RuntimeConfig, plan: Plan): Map<String, String> {
+  if (plan.channel.graph.steps.all { it.connectionRefs.isEmpty() }) return emptyMap()
+  val bundle = retryingStorage { DependencyBundleLoader(config.artifactStore, config.keyring).load(plan) }
+  val secrets = config.vault?.let { VaultSecretResolver(it.address, it.auth) }
+  return ConnectionHydrator.hydrate(plan, bundle, secrets).also {
+    log.info("Hydrated connections {} of channel {}", it.keys, config.channelId)
+  }
+}
+
+/** Runs [load], retrying while artifact storage is unreachable. */
+private fun <T> retryingStorage(load: () -> T): T = runBlocking {
   var attempt = 0
   while (true) {
     try {
-      val plan = loader.load(config.planKey, config.planVersion)
-      require(plan.metadata.channelId == config.channelId) {
-        "plan is for channel ${plan.metadata.channelId}, not ${config.channelId}"
-      }
-      log.info("Loaded plan {} of channel {}", config.planVersion, config.channelId)
-      return@runBlocking plan
+      return@runBlocking load()
     } catch (e: java.io.IOException) {
       attempt++
       if (attempt >= 10) throw e

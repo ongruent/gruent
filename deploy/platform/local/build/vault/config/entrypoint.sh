@@ -125,6 +125,15 @@ path "kv/config/controller" {
 }
 ' | vault policy write controller -
 
+# Create a runtime workers user and policy. Workers resolve the secrets of their channel's connections.
+vault write auth/userpass/users/runtime password=gruent policies=runtime
+
+echo '
+path "kv/spaces/*" {
+  capabilities = ["read"]
+}
+' | vault policy write runtime -
+
 # Create a tests services user and policy
 vault write auth/userpass/users/tests password=gruent policies=tests
 

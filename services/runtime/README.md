@@ -73,10 +73,13 @@ docker exec gruent-control-plane kubectl --kubeconfig /etc/kubernetes/admin.conf
 | `NATS_URL` | NATS server. Without it, invocations only flow within the process. |
 | `OTEL_COLLECTOR_ENDPOINT` | OTLP/gRPC collector. Without it, execution telemetry is dropped. |
 | `GRUENT_SHUTDOWN_GRACE_SECONDS` | How long a stopping worker drains in-flight executions (default 30). |
+| `VAULT_ADDRESS`, and `VAULT_TOKEN` or `VAULT_USERNAME` + `VAULT_PASSWORD` | Vault, to resolve connection secrets (userpass login). Without it, only connections without secrets can be hydrated. |
 
 The controller's settings for workers are `RUNTIME_NAMESPACE`, `RUNTIME_IMAGE`,
 `RUNTIME_IMAGE_PULL_POLICY`, `RUNTIME_NATS_URL`, `RUNTIME_OTEL_COLLECTOR_ENDPOINT`,
-`RUNTIME_ARTIFACT_STORAGE_ENDPOINT` and `NATS_URL` (observations); see
+`RUNTIME_ARTIFACT_STORAGE_ENDPOINT`, `RUNTIME_VAULT_ADDRESS`, `RUNTIME_VAULT_USERNAME` and
+`RUNTIME_VAULT_PASSWORD` (passed to workers through the `runtime-vault` Secret; locally the `runtime` Vault
+user, which can only read `kv/spaces/*`) and `NATS_URL` (observations); see
 `deploy/platform/local/.env.controller.example`. `pnpm nx start platform` builds the `gruent-runtime:local`
 image and loads it into the kind cluster; `pnpm nx run runtime:image` rebuilds it after runtime changes.
 
@@ -178,7 +181,16 @@ later steps still run; without a response step, a completed execution answers 20
 
 **Relational database step**: binds the compiled parameters from the JSON input (missing values as NULL)
 and runs the statement with a `RelationalDriver` per engine; `PostgresDriver` uses a JDBC PreparedStatement.
-It needs its connection in `StepSpec.connections`, which the runtime does not hydrate yet (see Limitations).
+It gets its connection from `StepSpec.connections` (see Connection hydration).
+
+**Connection hydration**: when a plan step has `connectionRefs`, the worker downloads the plan's dependency
+bundle (`plan.dependencies`), verifies it like the plan, and hydrates each referenced connection: its
+attributes, with every `secretFields` entry (`secretref://vault/spaces/<space ID>#<name>`) resolved from the
+space's secrets in Vault (`kv/spaces/<space ID>`). Only the plan's own space is resolved, values stay in
+memory, and steps get the connections they reference in `StepSpec.connections`. Connections without secrets
+(e.g. Postgres without a password) don't need Vault. A missing connection or secret, a connection with
+certificates or of a category whose sensitive fields the controller doesn't know fails the plan, and the
+worker reports `failed` with the reason. Rotated secrets are picked up when the worker restarts.
 
 **Artifact access** uses a small SigV4 GetObject client instead of an S3 SDK, and the controller's
 Ed25519 signature contract (`libs/engine/signing`) is implemented with the JDK.
@@ -186,12 +198,12 @@ Ed25519 signature contract (`libs/engine/signing`) is implemented with the JDK.
 ## Limitations
 
 - Only step library steps with a Kotlin implementation run: `timer-source@1`, `http-source@1`, `log@1`,
-  `existence@1`, `compare@1`, `transform@1` and `http-response@1`. Other steps (including the message
-  queue source) make the plan fail to apply, and the worker reports `failed`.
-- Connections are not hydrated (no dependency bundle loading or secret resolution), so `relational-db@1`
-  steps fail to apply until they are.
+  `existence@1`, `compare@1`, `transform@1`, `http-response@1` and `relational-db@1`. Other steps
+  (including the message queue source) make the plan fail to apply, and the worker reports `failed`.
+- Connections with certificate fields (e.g. MQTT client certificates) are not hydrated yet; only steps
+  whose connections use secrets or nothing sensitive can run.
 - Payloads are the trigger's raw bytes (JSON for HTTP and queues), not the FlatBuffers encoding the plan
-  describes; the dependency bundle is not hydrated yet.
+  describes.
 - HTTP replies: sync invocations answer with the HTTP response step's response, or 200 with no body without
   one; 504 on timeout and 500 on failure (including a request body the steps can't use). Nothing consumes
   queues yet, and downstream events are not produced.

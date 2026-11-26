@@ -1,5 +1,6 @@
 package com.gruent.runtime.artifacts
 
+import com.gruent.runtime.dependencies.DependencyBundle
 import com.gruent.runtime.plan.Plan
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -91,21 +92,41 @@ class Keyring(private val keys: Map<String, PublicKey>) {
   }
 }
 
+/** Downloads [key] and its signature, and verifies them as an artifact of [kind] at [expectedVersion]. */
+fun ArtifactStore.loadVerified(keyring: Keyring, kind: String, key: String, expectedVersion: String): ByteArray {
+  val data = get(key) ?: throw VerificationException("$kind $key does not exist")
+  val envelopeData = get("$key.sig") ?: throw VerificationException("$kind $key has no signature")
+  val envelope = envelopeJson.decodeFromString(SignatureEnvelope.serializer(), envelopeData.decodeToString())
+  keyring.verify(kind, expectedVersion, data, envelope)
+  return data
+}
+
+private val envelopeJson = Json { ignoreUnknownKeys = true }
+
 /** Loads and verifies plans from artifact storage. */
 class PlanLoader(private val store: ArtifactStore, private val keyring: Keyring) {
   /** Downloads the plan at [key] and its signature, and verifies them against [expectedVersion]. */
-  fun load(key: String, expectedVersion: String): Plan {
-    val data = store.get(key) ?: throw VerificationException("plan $key does not exist")
-    val envelopeData = store.get("$key.sig") ?: throw VerificationException("plan $key has no signature")
-    val envelope = envelopeJson.decodeFromString(SignatureEnvelope.serializer(), envelopeData.decodeToString())
-    keyring.verify(ARTIFACT_PLAN, expectedVersion, data, envelope)
-    return Plan.parse(data)
-  }
+  fun load(key: String, expectedVersion: String): Plan =
+    Plan.parse(store.loadVerified(keyring, ARTIFACT_PLAN, key, expectedVersion))
 
   companion object {
     /** Artifact kind of plans in identities, storage keys and signatures. */
     const val ARTIFACT_PLAN = "plan"
+  }
+}
 
-    private val envelopeJson = Json { ignoreUnknownKeys = true }
+/** Loads and verifies the dependency bundle that a plan pins. */
+class DependencyBundleLoader(private val store: ArtifactStore, private val keyring: Keyring) {
+  fun load(plan: Plan): DependencyBundle {
+    val ref = plan.dependencies ?: throw VerificationException("the plan has no dependency bundle")
+    if (ref.kind != ARTIFACT_DEPENDENCY_BUNDLE) {
+      throw VerificationException("the plan's dependencies are a ${ref.kind} artifact, not a $ARTIFACT_DEPENDENCY_BUNDLE")
+    }
+    return DependencyBundle.parse(store.loadVerified(keyring, ARTIFACT_DEPENDENCY_BUNDLE, ref.key, ref.version))
+  }
+
+  companion object {
+    /** Artifact kind of dependency bundles in identities, storage keys and signatures. */
+    const val ARTIFACT_DEPENDENCY_BUNDLE = "dependency_bundle"
   }
 }

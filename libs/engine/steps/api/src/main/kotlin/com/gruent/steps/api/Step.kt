@@ -207,11 +207,16 @@ data class StepSpec(
   val redaction: Redaction? = null,
   val compiledJson: String? = null,
   /**
-   * Hydrated connections by ID: the connection's attributes as JSON, with secret fields resolved. The
-   * runtime does not hydrate the dependency bundle yet, so this is empty until it does.
+   * Hydrated connections by ID: the connection's attributes as JSON, with secret fields resolved. Only the
+   * connections the plan step references (`connectionRefs`) are present.
    */
   val connections: Map<String, String> = emptyMap(),
-)
+) {
+  /** Connections hold resolved secrets, so only their IDs are printed. */
+  override fun toString(): String =
+    "StepSpec(stepId=$stepId, name=$name, pluginType=$pluginType, pluginVersion=$pluginVersion, configJson=$configJson, " +
+      "redaction=$redaction, compiledJson=$compiledJson, connections=${connections.keys})"
+}
 
 /**
  * Input fields that a step must redact before the input leaves the runtime, for example in logs. Paths use

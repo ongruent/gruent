@@ -75,6 +75,10 @@ type VaultConfig struct {
 	RuntimeNatsURL                 string `mapstructure:"RUNTIME_NATS_URL"`
 	RuntimeOtelCollectorEndpoint   string `mapstructure:"RUNTIME_OTEL_COLLECTOR_ENDPOINT"`
 	RuntimeArtifactStorageEndpoint string `mapstructure:"RUNTIME_ARTIFACT_STORAGE_ENDPOINT"`
+	// Vault, from which runtime workers resolve connection secrets
+	RuntimeVaultAddress  string `mapstructure:"RUNTIME_VAULT_ADDRESS"`
+	RuntimeVaultUsername string `mapstructure:"RUNTIME_VAULT_USERNAME"`
+	RuntimeVaultPassword string `mapstructure:"RUNTIME_VAULT_PASSWORD"`
 
 	// NATS, for runtime observations
 	NatsURL string `mapstructure:"NATS_URL"`
@@ -204,6 +208,9 @@ func loadVaultSecrets() (*VaultConfig, error) {
 		RuntimeNatsURL:                 SecretsClient.GetStringFromMap(secrets, "RUNTIME_NATS_URL"),
 		RuntimeOtelCollectorEndpoint:   SecretsClient.GetStringFromMap(secrets, "RUNTIME_OTEL_COLLECTOR_ENDPOINT"),
 		RuntimeArtifactStorageEndpoint: SecretsClient.GetStringFromMap(secrets, "RUNTIME_ARTIFACT_STORAGE_ENDPOINT"),
+		RuntimeVaultAddress:            SecretsClient.GetStringFromMap(secrets, "RUNTIME_VAULT_ADDRESS"),
+		RuntimeVaultUsername:           SecretsClient.GetStringFromMap(secrets, "RUNTIME_VAULT_USERNAME"),
+		RuntimeVaultPassword:           SecretsClient.GetStringFromMap(secrets, "RUNTIME_VAULT_PASSWORD"),
 		NatsURL:                        SecretsClient.GetStringFromMap(secrets, "NATS_URL"),
 		RedisHost:                      SecretsClient.GetStringFromMap(secrets, "REDIS_HOST"),
 		RedisPort:                      SecretsClient.GetIntFromMap(secrets, "REDIS_PORT"),
