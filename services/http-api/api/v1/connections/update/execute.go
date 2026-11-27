@@ -203,10 +203,7 @@ func execute(request *gruenthttp.Request[Input]) (*Output, error) {
 }
 
 func validatePostgresServer(request *gruenthttp.Request[Input]) ([]byte, error) {
-	postgresServer, err := things.NewPostgresServerFromAttributes(request.Input.Attributes)
-	if err == nil {
-		_, err = postgresServer.ResolvePassword(config.SecretsClient, request.Input.SpaceId)
-	}
+	postgresServer, err := things.NewPostgresServerForSpace(request.Input.Attributes, config.SecretsClient, request.Input.SpaceId)
 	if err != nil {
 		request.Span.SetAttributes(
 			attribute.String("error.type", "validation"),

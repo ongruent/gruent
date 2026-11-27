@@ -57,6 +57,21 @@ func NewPostgresServerFromAttributes(attributes map[string]any) (*PostgresServer
 	return &postgresServer, nil
 }
 
+// NewPostgresServerForSpace reads and validates PostgreSQL connection attributes for a space, as both
+// creating and updating a connection do. A password must name a secret that exists in the space; it is
+// kept as that name. An empty password is allowed and stays empty.
+func NewPostgresServerForSpace(attributes map[string]any, secretsClient secrets.SecretsClient, spaceId string) (*PostgresServer, error) {
+	postgresServer, err := NewPostgresServerFromAttributes(attributes)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := postgresServer.ResolvePassword(secretsClient, spaceId); err != nil {
+		return nil, err
+	}
+
+	return postgresServer, nil
+}
+
 // ResolvePassword reads the password from the space's secrets. It returns an empty string when the
 // connection has no password, and an error when the named secret doesn't exist.
 func (m *PostgresServer) ResolvePassword(secretsClient secrets.SecretsClient, spaceId string) (string, error) {
