@@ -11,6 +11,8 @@ import ExportConnectionButton from '@gruent/hub/components/molecules/ExportConne
 import Container from '@gruent/libs/frontend/components/Container'
 import OpenModalButton from '@gruent/libs/frontend/components/OpenModalButton'
 import { Alert, AlertDescription, AlertTitle } from '@gruent/libs/frontend/components/core/alert'
+import apiField from '@gruent/hub/util/apiField'
+import { Connection } from '@prisma/client'
 
 export const metadata = {
   title: 'Connection details | Gruent',
@@ -46,7 +48,7 @@ const ConnectionDetailsPage = async ({ params }) => {
       </div>
     )
 
-  const { data: connection, errors: getConnectionErrors } = await gruentClient(
+  const { data: connectionResponse, errors: getConnectionErrors } = await gruentClient(
     accessToken,
   ).connections.get(spaceId, connectionId)
 
@@ -62,6 +64,20 @@ const ConnectionDetailsPage = async ({ params }) => {
     )
   }
 
+  // The API serializes connections with snake_case keys (`connection_category`), but the forms read the
+  // camelCase Prisma fields. Without this, no category matches and the attribute fields never render.
+  const connection: Connection | null = connectionResponse
+    ? {
+        ...connectionResponse,
+        spaceId: apiField<string>(connectionResponse, 'spaceId') as string,
+        connectionCategory: apiField<string>(connectionResponse, 'connectionCategory') as string,
+        createdAt: apiField<Date>(connectionResponse, 'createdAt') as Date,
+        updatedAt: apiField<Date>(connectionResponse, 'updatedAt') as Date,
+        createdBy: apiField<string>(connectionResponse, 'createdBy') as string,
+        updatedBy: apiField<string>(connectionResponse, 'updatedBy') as string,
+      }
+    : null
+
   if (!connection || !connection.attributes) {
     return (
       <div className="mt-4 px-8 py-2">
@@ -75,7 +91,8 @@ const ConnectionDetailsPage = async ({ params }) => {
   }
 
   const { policy: policyResponse, policyErrors } = await (async () => {
-    if (!connection.attributes || !connection.attributes.certificateId) return { policy: null, policyErrors: null }
+    if (!connection.attributes || !connection.attributes.certificateId)
+      return { policy: null, policyErrors: null }
 
     const { data: policy, errors: policyErrors } = await gruentClient(accessToken).policies.get(
       spaceId,

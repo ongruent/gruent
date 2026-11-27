@@ -743,12 +743,11 @@ func handleCreateMongoDbServer(request *gruenthttp.Request[Input], connectionId 
 func handleCreatePostgresServer(request *gruenthttp.Request[Input], connectionId string) (*sqldb.AppConnection, error) {
 	// Create attributes. The password stays the secret's name: the controller bundles it as a secret
 	// reference for the runtime, so only check that the secret exists.
-	postgresServer, err := things.NewPostgresServerFromAttributes(request.Input.Attributes)
-	err = handleCreateAttributesError(request, err)
-	if err != nil {
-		return nil, err
+	postgresServer, err := things.NewPostgresServerForSpace(request.Input.Attributes, config.SecretsClient, request.Input.SpaceId)
+	if _, ok := err.(validator.ValidationErrors); ok {
+		return nil, handleCreateAttributesError(request, err)
 	}
-	if _, err := postgresServer.ResolvePassword(config.SecretsClient, request.Input.SpaceId); err != nil {
+	if err != nil {
 		request.Span.SetAttributes(
 			attribute.String("error.type", "validation"),
 			attribute.String("error.message", err.Error()),

@@ -53,6 +53,13 @@ const PostgresServer: FC<Props> = ({ setFormData, secretOptions, initial }) => {
   })
   const [sslMode, setSslMode] = useState<string>(attributes?.sslMode ?? 'prefer')
 
+  // Keep the selected secret visible even when it isn't in the list (the secrets haven't loaded yet, or
+  // the secret was deleted), so the field never looks like "No password" while a reference is set.
+  const passwordOptions = useMemo(() => {
+    if (!password || secretOptions.some((option) => option.value === password)) return secretOptions
+    return [...secretOptions, { label: `${password} (not found in this space)`, value: password }]
+  }, [password, secretOptions])
+
   useEffect(() => {
     const updatedFormData = new Map()
     updatedFormData.set('host', host)
@@ -124,14 +131,17 @@ const PostgresServer: FC<Props> = ({ setFormData, secretOptions, initial }) => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={NO_PASSWORD}>No password</SelectItem>
-            {secretOptions.map((option) => (
+            {passwordOptions.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <FieldDescription>The space secret that holds the password.</FieldDescription>
+        <FieldDescription>
+          The space secret that holds the password. Choose &quot;No password&quot; only if the
+          server accepts connections without one.
+        </FieldDescription>
       </Field>
       <Field className="mt-4 mb-2">
         <FieldLabel htmlFor="sslMode">SSL Mode</FieldLabel>

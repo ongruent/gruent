@@ -99,3 +99,53 @@ func TestPostgresServerIsListable(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, things.PostgresServerThingCategory, *category)
 }
+
+// Creating and updating a connection both store what NewPostgresServerForSpace returns.
+func TestNewPostgresServerForSpaceKeepsThePasswordSecretReference(t *testing.T) {
+	client := &fakeSecrets{values: map[string]any{"PG_PASSWORD": "s3cret"}}
+	attributes := map[string]any{
+		"host": "postgres", "port": float64(5432), "database": "iot", "username": "gruent",
+		"password": "PG_PASSWORD", "sslMode": "disable",
+	}
+
+	server, err := things.NewPostgresServerForSpace(attributes, client, "spc_1")
+	require.NoError(t, err)
+	assert.Equal(t, "spaces/spc_1", client.path, "the secret is checked in the connection's space")
+
+	stored, err := server.MarshalJson()
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"host":"postgres","port":5432,"database":"iot","username":"gruent","password":"PG_PASSWORD","sslMode":"disable"}`, string(stored))
+	assert.NotContains(t, string(stored), "s3cret", "the secret's value is never stored")
+}
+
+func TestNewPostgresServerForSpaceAllowsNoPassword(t *testing.T) {
+	client := &fakeSecrets{values: map[string]any{}}
+	for name, password := range map[string]any{"omitted": nil, "empty": ""} {
+		t.Run(name, func(t *testing.T) {
+			attributes := map[string]any{"host": "postgres", "database": "iot", "username": "gruent"}
+			if password != nil {
+				attributes["password"] = password
+			}
+
+			server, err := things.NewPostgresServerForSpace(attributes, client, "spc_1")
+			require.NoError(t, err)
+
+			stored, err := server.MarshalJson()
+			require.NoError(t, err)
+			assert.NotContains(t, string(stored), "password")
+		})
+	}
+	assert.Empty(t, client.path, "no secrets are read without a password")
+}
+
+func TestNewPostgresServerForSpaceRejectsUnknownSecrets(t *testing.T) {
+	client := &fakeSecrets{values: map[string]any{"OTHER": "value"}}
+	_, err := things.NewPostgresServerForSpace(map[string]any{
+		"host": "postgres", "database": "iot", "username": "gruent", "password": "PG_PASSWORD",
+	}, client, "spc_1")
+	assert.ErrorContains(t, err, `"PG_PASSWORD" does not exist`)
+
+	_, err = things.NewPostgresServerForSpace(map[string]any{"host": "postgres"}, client, "spc_1")
+	var validationErrors validator.ValidationErrors
+	assert.ErrorAs(t, err, &validationErrors)
+}

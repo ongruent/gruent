@@ -92,7 +92,9 @@ const CreateConnectionModal: FC<Props> = ({ orgId, spaceId, onClose, onSubmit })
   const { accessToken } = useAuth()
 
   const { data: secrets, error: secretsError } = useQuery({
-    queryKey: ['secrets'],
+    // Scope the cache to the space so the password pickers never offer another space's secrets.
+    queryKey: ['secrets', spaceId],
+    enabled: !!accessToken,
     queryFn: async () => {
       if (!accessToken) throw new Error('Current session is not active')
 
